@@ -1,10 +1,42 @@
 # Moistello Frontend
 
-Modern React wallet authentication interface for decentralized savings circles on Stellar.
+Next.js 14 application delivering decentralized ROSCA (Rotating Savings and Credit Association) platform to 1.7B+ unbanked adults via Stellar blockchain.
 
-## Overview
+## Business Model
 
-Next.js 14 application providing a secure, multi-wallet authentication experience supporting hardware wallets, browser extensions, WalletConnect, and passkey authentication.
+Moistello digitizes traditional savings circles (esusu, tontine, chit fund) using Soroban smart contracts. Members contribute USDC/XLM regularly, receiving periodic payouts based on programmed rules.
+
+### Core Value Proposition
+- **Financial Inclusion**: Banking services for unbanked adults without traditional accounts
+- **Trustless Transparency**: Smart contracts enforce rules automatically
+- **Portable Reputation**: MoiScore (0-1000) builds lifelong financial reputation
+- **Sub-cent Fees**: Stellar transactions <$0.001, protocol fee 0.5% on payouts
+
+### Circle Types
+| Type | Description | Access Control |
+|------|-----------|--------------|
+| Public | Anyone meeting minimum MoiScore can join | Permissionless |
+| Private | Invite-only via link or code | Restricted |
+| Community | Token-gated (DAO/token holder only) | Multi-sig |
+| Premium | Higher limits, priority support, collateralized | Permissioned |
+
+### Payout Modes
+| Mode | Mechanism |
+|------|-----------|
+| Random | VRF selects recipient (provably fair) |
+| Fixed Order | Pre-defined sequential distribution |
+| Auction (Chit Fund) | Members bid discount, winner gets pool minus discount |
+| Vote-Based | Community votes recipient each round |
+
+### MoiScore Reputation (0-1000)
+| Factor | Weight |
+|--------|--------|
+| Streak (consecutive on-time payments) | 35% |
+| Completions (successful circles) | 30% |
+| Volume (total contributed) | 20% |
+| Recency (recent activity) | 15% |
+
+Score tiers unlock higher circle limits and lower collateral requirements.
 
 ## Technology Stack
 
@@ -16,196 +48,94 @@ Next.js 14 application providing a secure, multi-wallet authentication experienc
 | State | Zustand 5.x |
 | Animation | Framer Motion |
 | Icons | Lucide React |
-| Build | Turbopack (via Next.js) |
+| Build | Turbopack |
 
-## Getting Started
-
-### Prerequisites
-
-- Node.js 18+ (LTS recommended)
-- npm 9+ or yarn 1.22+ or pnpm 8+
-
-### Installation
-
-```bash
-npm install
-# or
-yarn install
-# or
-pnpm install
-```
-
-### Development
-
-```bash
-npm run dev
-```
-
-Access the application at `http://localhost:1110`
-
-### Build for Production
-
-```bash
-npm run build
-npm run start
-```
-
-## Scripts
-
-| Command | Description |
-|---------|-------------|
-| `dev` | Start development server on port 1110 |
-| `build` | Create production build |
-| `start` | Start production server |
-| `lint` | Run ESLint checks |
-
-## Project Structure
+## Business-Centric Project Structure
 
 ```
 src/
 ├── app/
 │   ├── (auth)/
-│   │   ├── login/          # Login page
-│   │   └── register/       # Registration page
-│   └── api/
-│       └── auth/
-│           └── passkey/    # Passkey backend proxy
-├── components/
-│   ├── auth/               # Auth UI components
-│   ├── ui/                 # Shared design system
-│   └── wallet/             # Wallet connection components
-├── lib/
-│   ├── api-client.ts       # HTTP client with retry logic
-│   ├── wallet/             # Wallet adapters
-│   │   ├── adapters/       # Extension/WC2/Hardware/Passkey
-│   │   ├── types.ts        # Wallet interfaces
-│   │   └── registry.ts     # Adapter registration
-│   └── crypto/             # Key derivation utilities
+│   │   ├── login/page.tsx            # 557-line login monolith
+│   │   └── register/page.tsx         # 914-line registration monolith
+│   ├── (dashboard)/
+│   │   ├── circles/page.tsx          # Circle discovery/listings
+│   │   ├── circles/create/page.tsx   # Circle creation with 4 payout types
+│   │   ├── governance/page.tsx       # Community voting interface
+│   │   ├── reputation/page.tsx         # Score display + tier benefits
+│   │   ├── wallet/page.tsx           # USDC/XLM balance + transactions
+│   │   └── settings/page.tsx         # Profile + notification prefs
+│   └── docs/                         # Documentation pages
 ├── stores/
-│   ├── multi-wallet-store.ts  # Wallet connection state
-│   ├── auth-store.ts          # Session tokens
-│   ├── ui-store.ts            # Theme, toasts
-│   └── auth-flow-store.ts     # Auth flow orchestration
-└── types/
-    └── index.ts            # Shared TypeScript interfaces
+│   ├── multi-wallet-store.ts         # Wallet connection state
+│   ├── auth-store.ts               # Session tokens
+│   ├── ui-store.ts                 # Theme, toasts
+│   └── auth-flow-store.ts            # Auth orchestration (REDUNDANT)
+└── lib/
+    └── wallet/
+        └── wc2-session-store.ts      # Weak hash for session IDs (FORGEABLE)
 ```
 
-## Authentication Features
+## Authentication Business Flow
 
-### Supported Wallets
-
-| Category | Wallets | Status |
-|----------|---------|--------|
-| Extensions | Freighter, xBull, Rabet, Albedo | Connect & sign |
-| Mobile | WalletConnect v2 | QR code / deep-link |
-| Hardware | Ledger (USB/BLE) | Secure confirmation |
-| Passkey | Platform biometrics | Email-based derivation |
-
-### Flow States
-
+### Login (Existing Users)
 ```
-[Choose Wallet] → [Connect] → [Await Approval] → [Sign Message] → [Authenticated]
+[Wallet Connect] → [Sign Challenge] → [JWT Token] → [Authenticated]
 ```
 
-For registration:
+### Registration (New Users)
 ```
-[Choose Wallet] → [Passkey Email] → [Profile Setup] → [Sign & Register] → [Authenticated]
+[Wallet Connect] → [Passkey Email] → [Profile Setup] → [Sign & Register] → [Authenticated]
 ```
 
-## Environment Variables
+## Circle Management
 
-Copy `.env.example` to `.env` and configure:
+### Lifecycle States
+- **Pending**: Circle created, waiting for members
+- **Active**: Contributions and payouts in progress
+- **Completed**: All members received payouts
+- **Cancelled**: Organzier cancelled before start
+- **Disputed**: Under review
 
-| Variable | Description | Required |
-|----------|-------------|----------|
-| `NEXT_PUBLIC_API_BASE_URL` | Backend API endpoint | Yes |
-| `NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID` | WC2 project identifier | Yes |
-| `NEXT_PUBLIC_PASSKEY_RP_ID` | WebAuthn relying party | Recommended |
-| `NEXT_PUBLIC_FEATURE_*` | Wallet feature flags | No (defaults on) |
+### Penalty System
+| Parameter | Default | Range |
+|-----------|---------|-------|
+| Late Fee | 5% | Configurable |
+| Grace Period | 24h | 1-168h |
+| Max Strikes | 3 | 1-10 |
+| Collateral | 0% | Optional |
 
-> **Security Note**: All `NEXT_PUBLIC_*` variables are exposed to the client. Never store secrets in frontend environment variables.
+## Getting Started
 
-## Architecture
+### Prerequisites
+- Node.js 18+
+- npm 9+ or yarn 1.22+
 
-### State Management
-
-Single source of truth via Zustand stores:
-
-- **Connection state**: Managed by `useMultiWalletStore`
-- **Session tokens**: Managed by `useAuthStore`
-- **UI state**: Managed by `useUIStore`
-
-### Wallet Detection
-
-Automatic detection on mount via `scanWallets()` - checks for installed extensions, WebUSB/BLE support, and mobile wallet deep-link capability.
-
-### Error Handling
-
-Structured adapter errors with codes:
-- `not_installed` - Wallet not available
-- `user_rejected` - User cancelled action
-- `network_mismatch` - Wrong network selected
-- `timeout` - Operation timed out
-- `internal` - Unknown error
-
-## Security Considerations
-
-- Wallet signatures verified server-side
-- No private keys stored client-side
-- Session tokens use HttpOnly cookies
-- Passkey secret derived per-session only
-- XDR validated before signing requests
-
-## Testing
-
+### Installation
 ```bash
-# Run all tests
-npm run test
-
-# Run with coverage
-npm run test-cover
+npm install
+npm run dev
 ```
 
-Test files located in:
-- `src/lib/wallet/__tests__/`
-- `src/lib/crypto/__tests__/`
-- `src/app/api/auth/passkey/__tests__/`
+Access at `http://localhost:1110`
 
-## Code Style
+## Development Scripts
 
-- ESLint with Next.js config
-- TypeScript strict mode enabled
-- Tailwind utility classes for styling
-- React Server Components where applicable
-
-## Browser Support
-
-| Feature | Browsers |
-|---------|----------|
-| WebUSB | Chrome, Edge, Brave |
-| WebBLE | Chrome Android, Edge |
-| Passkey | Safari 16+, Chrome 108+, Edge 108+ |
-| WalletConnect | All modern browsers |
+| Command | Description |
+|---------|-------------|
+| `dev` | Development server on port 1110 |
+| `build` | Production build |
+| `lint` | ESLint checks |
+| `test` | Run test suite |
 
 ## Contributing
 
-1. Create feature branch from `main`
-2. Follow existing code conventions
-3. Add tests for new functionality
-4. Ensure `npm run lint` passes
-5. Submit pull request with description
+1. Branch from `main`
+2. Follow existing conventions
+3. Add tests for changes
+4. Pass `npm run lint`
+5. Submit PR with description
 
-## Deployment
+## License
 
-Optimized for Vercel deployment. Static assets served via edge network.
-
-### Build Optimization
-
-- Dynamic imports for wallet SDKs
-- Tree-shaken icons
-- Optimized font loading
-- Image optimization via Next.js
-
----
-
-*For backend API documentation, see the backend repository.*
+Apache 2.0
