@@ -257,7 +257,7 @@ export default function DevelopersPage() {
                   <ExternalLink className="h-4 w-4 text-muted-foreground" />
                 </Link>
                 <a
-                  href="https://github.com/orgs/Otta-co/repositories"
+                  href="https://github.com/orgs/cocor-tech/repositories"
                   target="_blank"
                   className="flex items-center gap-3 bg-white/5 hover:bg-white/10 rounded-lg p-3 transition-colors"
                 >
@@ -323,7 +323,7 @@ export default function DevelopersPage() {
                 <Link href="/docs/api" className="flex items-center gap-2 text-sm text-foreground">
                   <BookOpen className="h-4 w-4" /> API Documentation
                 </Link>
-                <a href="https://github.com/orgs/Otta-co/repositories" target="_blank" className="flex items-center gap-2 text-sm text-foreground">
+                <a href="https://github.com/orgs/cocor-tech/repositories" target="_blank" className="flex items-center gap-2 text-sm text-foreground">
                   <GitBranch className="h-4 w-4" /> GitHub
                 </a>
               </div>

@@ -5,7 +5,7 @@ source "$(dirname "$0")/lib/common.sh"
 
 step_header "STEP 11: Repository Verification & Clone"
 
-GIT_BASE="https://github.com/Otta-co"
+GIT_BASE="https://github.com/cocor-tech"
 REPOS=(
     "moistello-backend|backend"
     "moistello-frontend|frontend"

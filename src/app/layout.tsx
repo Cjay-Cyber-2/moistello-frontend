@@ -107,7 +107,7 @@ export default function RootLayout({
                "alternateName": "Moistello Savings Platform",
                "url": "https://moistello.com",
                "logo": "https://moistello.com/logo.jpg",
-               "sameAs": ["https://github.com/otta-co", "https://x.com/nekwasar"],
+               "sameAs": ["https://github.com/cocor-tech", "https://x.com/nekwasar"],
                "description": "Decentralized rotating savings and credit circles on the Stellar blockchain.",
              }),
            }}
