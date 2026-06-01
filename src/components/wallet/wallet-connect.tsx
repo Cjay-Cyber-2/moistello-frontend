@@ -5,7 +5,7 @@ import { Wallet } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { formatAddress } from "@/lib/formatters";
 import { Button } from "@/components/ui/button";
-import { useWalletStore } from "@/stores/wallet-store";
+import { useMultiWalletStore } from "@/stores/multi-wallet-store";
 
 interface WalletConnectProps {
   className?: string;
@@ -18,14 +18,17 @@ export function WalletConnect({
   variant = "outline",
   size = "sm",
 }: WalletConnectProps) {
-  const { isConnected, address, isConnecting, error, connect } =
-    useWalletStore();
+  const isConnected = useMultiWalletStore((s) => s.isConnected);
+  const address = useMultiWalletStore((s) => s.address);
+  const isConnecting = useMultiWalletStore((s) => s.isConnecting);
+  const error = useMultiWalletStore((s) => s.error);
+  const connect = useMultiWalletStore((s) => s.connect);
   const [localError, setLocalError] = useState<string | null>(null);
 
   const handleConnect = async () => {
     setLocalError(null);
     try {
-      await connect();
+      await connect("freighter");
     } catch (err) {
       if (err instanceof Error) {
         if (err.message.includes("not installed")) {

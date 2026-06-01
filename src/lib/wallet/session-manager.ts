@@ -1,8 +1,12 @@
 import type { WalletAdapter, WalletSession, EncryptedSessionStore, WalletId } from "./types"
+import { hmac } from "@noble/hashes/hmac.js"
+import { sha256 } from "@noble/hashes/sha2.js"
+import { bytesToHex } from "@noble/hashes/utils.js"
 
 const STORAGE_KEY = "moistello_wallet_sessions"
 const SESSION_TTL = 7 * 24 * 60 * 60 * 1000
 const CHANNEL_NAME = "moistello-wallet"
+const HMAC_KEY = new TextEncoder().encode("moistello-hmac-v1")
 
 export class WalletSessionManager {
   private sessions: WalletSession[] = []
@@ -118,13 +122,7 @@ export class WalletSessionManager {
   }
 
   private computeHMAC(data: string): string {
-    let hash = 0
-    for (let i = 0; i < data.length; i++) {
-      const char = data.charCodeAt(i)
-      hash = ((hash << 5) - hash) + char
-      hash = hash & hash
-    }
-    return hash.toString(36)
+    return bytesToHex(hmac(sha256 as never, HMAC_KEY, new TextEncoder().encode(data)))
   }
 
   private broadcast(message: Record<string, unknown>): void {

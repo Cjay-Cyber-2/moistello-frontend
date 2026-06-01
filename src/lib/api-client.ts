@@ -6,6 +6,12 @@ import axios, {
 } from "axios"
 import { API_BASE_URL } from "./constants"
 
+function getCsrfToken(): string {
+  if (typeof document === "undefined") return ""
+  const meta = document.querySelector('meta[name="csrf-token"]')
+  return meta?.getAttribute("content") ?? ""
+}
+
 const apiClient = axios.create({
   baseURL: API_BASE_URL,
   timeout: 30000,
@@ -103,6 +109,15 @@ apiClient.interceptors.request.use(
     if (token) {
       config.headers.Authorization = `Bearer ${token}`
     }
+
+    const method = config.method?.toLowerCase()
+    if (method && ["post", "put", "patch", "delete"].includes(method)) {
+      const csrfToken = getCsrfToken()
+      if (csrfToken) {
+        config.headers["X-CSRF-Token"] = csrfToken
+      }
+    }
+
     return config
   },
   (error: AxiosError) => {

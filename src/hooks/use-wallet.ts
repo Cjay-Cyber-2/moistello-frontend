@@ -1,16 +1,20 @@
 "use client";
 
-import { useWalletStore } from "@/stores/wallet-store";
+import { useMultiWalletStore } from "@/stores/multi-wallet-store";
 
 export function useWallet() {
-  const address = useWalletStore((s) => s.address);
-  const isConnected = useWalletStore((s) => s.isConnected);
-  const balance = useWalletStore((s) => s.balance);
-  const isConnecting = useWalletStore((s) => s.isConnecting);
-  const error = useWalletStore((s) => s.error);
-  const connect = useWalletStore((s) => s.connect);
-  const disconnect = useWalletStore((s) => s.disconnect);
-  const refreshBalance = useWalletStore((s) => s.refreshBalance);
+  const wallets = useMultiWalletStore((s) => s.wallets);
+  const activeWalletId = useMultiWalletStore((s) => s.activeWalletId);
+  const address = useMultiWalletStore((s) => s.address);
+  const isConnected = useMultiWalletStore((s) => s.isConnected);
+  const isConnecting = useMultiWalletStore((s) => s.isConnecting);
+  const error = useMultiWalletStore((s) => s.error);
+  const connect = useMultiWalletStore((s) => s.connect);
+  const disconnect = useMultiWalletStore((s) => s.disconnect);
+  const refreshBalance = useMultiWalletStore((s) => s.refreshBalance);
+
+  const activeEntry = activeWalletId ? wallets[activeWalletId] : null;
+  const balance = activeEntry?.balance ?? null;
 
   return {
     address,

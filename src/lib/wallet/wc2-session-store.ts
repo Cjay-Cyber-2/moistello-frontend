@@ -1,7 +1,11 @@
 import type { NetworkType } from "./types"
+import { hmac } from "@noble/hashes/hmac.js"
+import { sha256 } from "@noble/hashes/sha2.js"
+import { bytesToHex } from "@noble/hashes/utils.js"
 
 const STORAGE_KEY = "moistello_wc2_session"
 const SESSION_TTL = 7 * 24 * 60 * 60 * 1000
+const HMAC_KEY = new TextEncoder().encode("moistello-hmac-v1")
 
 interface WC2SessionData {
   pairingTopic: string
@@ -18,13 +22,7 @@ interface StoredPayload {
 
 function computeHMAC(data: WC2SessionData): string {
   const input = `${data.pairingTopic}|${data.publicKey}|${data.network}|${data.createdAt}|${data.expiresAt}`
-  let hash = 0
-  for (let i = 0; i < input.length; i++) {
-    const char = input.charCodeAt(i)
-    hash = ((hash << 5) - hash) + char
-    hash = hash & hash
-  }
-  return hash.toString(36)
+  return bytesToHex(hmac(sha256 as never, HMAC_KEY, new TextEncoder().encode(input)))
 }
 
 function isBrowser(): boolean {

@@ -46,6 +46,7 @@ interface AuthState {
   token: string | null;
   refreshToken: string | null;
   isLoading: boolean;
+  tokenExpiresAt: number | null;
 }
 
 interface AuthActions {
@@ -64,6 +65,7 @@ export const useAuthStore = create<AuthStore>()((set, get) => ({
   token: getStoredToken(ACCESS_TOKEN_KEY),
   refreshToken: getStoredToken(REFRESH_TOKEN_KEY),
   isLoading: false,
+  tokenExpiresAt: null,
 
   login: async (walletAddress: string, signature: string) => {
     set({ isLoading: true });
@@ -89,6 +91,7 @@ export const useAuthStore = create<AuthStore>()((set, get) => ({
         user,
         token,
         refreshToken,
+        tokenExpiresAt: Date.now() + 15 * 60 * 1000,
         isLoading: false,
       });
     } catch (error) {
@@ -105,6 +108,7 @@ export const useAuthStore = create<AuthStore>()((set, get) => ({
       user: null,
       token: null,
       refreshToken: null,
+      tokenExpiresAt: null,
       isLoading: false,
     });
   },
@@ -112,7 +116,7 @@ export const useAuthStore = create<AuthStore>()((set, get) => ({
   checkAuth: async () => {
     const token = getStoredToken(ACCESS_TOKEN_KEY);
     if (!token) {
-      set({ isAuthenticated: false, user: null, token: null, refreshToken: null, isLoading: false });
+      set({ isAuthenticated: false, user: null, token: null, refreshToken: null, tokenExpiresAt: null, isLoading: false });
       return;
     }
 
@@ -143,12 +147,12 @@ export const useAuthStore = create<AuthStore>()((set, get) => ({
   setTokens: (accessToken: string, refreshToken: string) => {
     setStoredToken(ACCESS_TOKEN_KEY, accessToken);
     setStoredToken(REFRESH_TOKEN_KEY, refreshToken);
-    set({ token: accessToken, refreshToken });
+    set({ token: accessToken, refreshToken, tokenExpiresAt: Date.now() + 15 * 60 * 1000 });
   },
 
   clearTokens: () => {
     removeStoredToken(ACCESS_TOKEN_KEY);
     removeStoredToken(REFRESH_TOKEN_KEY);
-    set({ token: null, refreshToken: null });
+    set({ token: null, refreshToken: null, tokenExpiresAt: null });
   },
 }));

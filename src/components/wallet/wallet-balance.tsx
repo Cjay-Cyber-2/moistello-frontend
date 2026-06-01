@@ -5,21 +5,28 @@ import { Coins, RefreshCw } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Card } from "@/components/ui/card";
-import { useWalletStore } from "@/stores/wallet-store";
+import { useMultiWalletStore } from "@/stores/multi-wallet-store";
 
 interface WalletBalanceProps {
   className?: string;
 }
 
 export function WalletBalance({ className }: WalletBalanceProps) {
-  const { address, balance, isConnected, refreshBalance, isConnecting } =
-    useWalletStore();
+  const address = useMultiWalletStore((s) => s.address);
+  const isConnected = useMultiWalletStore((s) => s.isConnected);
+  const isConnecting = useMultiWalletStore((s) => s.isConnecting);
+  const activeWalletId = useMultiWalletStore((s) => s.activeWalletId);
+  const wallets = useMultiWalletStore((s) => s.wallets);
+  const refreshBalance = useMultiWalletStore((s) => s.refreshBalance);
+
+  const activeEntry = activeWalletId ? wallets[activeWalletId] : null;
+  const balance = activeEntry?.balance ?? null;
 
   useEffect(() => {
     if (isConnected && address && !balance && !isConnecting) {
-      refreshBalance();
+      if (activeWalletId) refreshBalance(activeWalletId);
     }
-  }, [isConnected, address, balance, isConnecting, refreshBalance]);
+  }, [isConnected, address, balance, isConnecting, refreshBalance, activeWalletId]);
 
   if (!isConnected) {
     return (
@@ -50,7 +57,7 @@ export function WalletBalance({ className }: WalletBalanceProps) {
           Wallet Balance
         </h3>
         <button
-          onClick={() => refreshBalance()}
+          onClick={() => activeWalletId && refreshBalance(activeWalletId)}
           className="inline-flex items-center gap-1 text-xs text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 transition-colors"
           aria-label="Refresh balance"
         >

@@ -7,6 +7,7 @@ import { QueryProvider } from "@/providers/query-provider"
 import { ThemeProvider } from "@/providers/theme-provider"
 import { AuthProvider } from "@/providers/auth-provider"
 import { ToastProvider } from "@/providers/toast-provider"
+import { MonitoringProvider } from "@/providers/monitoring-provider"
 
 const spaceGrotesk = Space_Grotesk({
   subsets: ["latin"],
@@ -128,14 +129,19 @@ export default function RootLayout({
              }),
            }}
          />
-       </head>
+        </head>
       <body
         className={`${spaceGrotesk.variable} ${inter.variable} ${jetbrainsMono.variable} font-body bg-[rgb(var(--background))] text-[rgb(var(--foreground))] antialiased`}
       >
         <QueryProvider>
           <ThemeProvider>
             <AuthProvider>
-              <ToastProvider>{children}</ToastProvider>
+              <ToastProvider>
+                <MonitoringProvider>
+                  <meta name="csrf-token" content="" />
+                  {children}
+                </MonitoringProvider>
+              </ToastProvider>
             </AuthProvider>
           </ThemeProvider>
         </QueryProvider>
