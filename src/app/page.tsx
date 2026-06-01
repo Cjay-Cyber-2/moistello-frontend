@@ -59,7 +59,7 @@ export default function Home() {
               Decentralized savings circles on Stellar. Zero intermediaries. Pure smart contracts. Financial sovereignty for the 1.7 billion unbanked.
             </p>
             <div className="mt-10 flex flex-col sm:flex-row items-stretch sm:items-center gap-4">
-              <Link href={Routes.LOGIN} className="gradient-bg-premium h-14 px-10 rounded-2xl text-lg font-heading font-semibold text-white inline-flex items-center justify-center gap-2 holo-glow hover:opacity-90 transition-all shadow-[0_0_40px_rgb(var(--premium-gold)/0.25)]">
+              <Link href={Routes.REGISTER} className="gradient-bg-premium h-14 px-10 rounded-2xl text-lg font-heading font-semibold text-white inline-flex items-center justify-center gap-2 holo-glow hover:opacity-90 transition-all shadow-[0_0_40px_rgb(var(--premium-gold)/0.25)]">
                 Launch App <ArrowRight className="h-5 w-5" />
               </Link>
               <Link href="/how-it-works" className="holo-border h-14 px-10 rounded-2xl text-lg font-heading font-medium text-foreground inline-flex items-center justify-center glass-strong hover:bg-white/[0.06] transition-all">
@@ -120,7 +120,7 @@ export default function Home() {
           <div className="container-premium">
             <h2 className="font-heading text-4xl md:text-6xl gradient-text-extended">Ready to Start?</h2>
             <p className="text-muted-foreground mt-4">Create your first savings circle in under two minutes.</p>
-            <Link href={Routes.LOGIN} className="gradient-bg-premium h-14 px-10 rounded-2xl text-lg font-heading font-semibold text-white inline-flex items-center justify-center gap-2 mt-8 holo-glow hover:opacity-90 transition-all shadow-[0_0_40px_rgb(var(--premium-gold)/0.25)]">
+            <Link href={Routes.REGISTER} className="gradient-bg-premium h-14 px-10 rounded-2xl text-lg font-heading font-semibold text-white inline-flex items-center justify-center gap-2 mt-8 holo-glow hover:opacity-90 transition-all shadow-[0_0_40px_rgb(var(--premium-gold)/0.25)]">
               Launch App <ArrowRight className="h-5 w-5" />
             </Link>
           </div>
