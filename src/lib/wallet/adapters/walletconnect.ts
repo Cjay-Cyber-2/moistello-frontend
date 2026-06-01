@@ -1,5 +1,5 @@
 import type { WalletAdapter, WalletMeta, NetworkType, SignOptions } from "../types"
-import { getRelayMonitor } from "../wc2-relay"
+import { getRelayMonitor, type RelayStatus } from "../wc2-relay"
 import { getWC2SessionStore } from "../wc2-session-store"
 
 const PROJECT_ID = process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID || ""
@@ -13,8 +13,10 @@ const METADATA = {
 
 const SIGN_TIMEOUT = 60_000
 const CONNECT_TIMEOUT = 120_000
+const CONNECT_INIT_TIMEOUT = 30_000
 
 let _onPairingUri: ((uri: string) => void) | null = null
+let _onRelayStatusChange: ((status: RelayStatus) => void) | null = null
 
 export function setOnPairingUri(handler: ((uri: string) => void) | null): void {
   _onPairingUri = handler
@@ -22,6 +24,10 @@ export function setOnPairingUri(handler: ((uri: string) => void) | null): void {
 
 export function getOnPairingUri(): ((uri: string) => void) | null {
   return _onPairingUri
+}
+
+export function setOnRelayStatusChange(handler: ((status: RelayStatus) => void) | null): void {
+  _onRelayStatusChange = handler
 }
 
 function isBrowser(): boolean {
@@ -115,12 +121,36 @@ export function createWalletConnectAdapter(): WalletAdapter {
 
   async function getOrInitSignClient(): Promise<unknown> {
     if (wcSignClient) return wcSignClient
+
     const { SignClient } = await import("@walletconnect/sign-client")
     wcSignClient = await SignClient.init({
       projectId: PROJECT_ID || undefined,
       relayUrl: RELAY_URL,
       metadata: METADATA,
     })
+
+    const stored = getWC2SessionStore().getSession()
+    if (stored) {
+      try {
+        const signClient = wcSignClient as {
+          session: { getAll: () => Array<{ topic: string }> }
+        }
+        const sessions = signClient.session.getAll()
+        const matchingSession = sessions.find((s) => s.topic === stored.pairingTopic)
+        if (!matchingSession) {
+          getWC2SessionStore().clear()
+          connectedPublicKey = null
+          sessionTopic = null
+        } else {
+          connectedPublicKey = stored.publicKey
+          connectedNetwork = stored.network
+          sessionTopic = stored.pairingTopic
+        }
+      } catch {
+        getWC2SessionStore().clear()
+      }
+    }
+
     return wcSignClient
   }
 
@@ -270,11 +300,14 @@ export function createWalletConnectAdapter(): WalletAdapter {
     })
   }
 
+  let wcModalInstance: { openModal: (opts: { uri: string }) => void; closeModal: () => void } | null = null
+
   return {
     meta,
 
     async connect(): Promise<{ publicKey: string }> {
       const relay = getRelayMonitor()
+      if (_onRelayStatusChange) _onRelayStatusChange(relay.status)
       if (relay.status === "down") {
         throw createRelayDownError("walletconnect")
       }
@@ -284,11 +317,9 @@ export function createWalletConnectAdapter(): WalletAdapter {
 
       let settled = false
       const getSettled = () => settled
-      const setSettled = () => {
-        settled = true
-      }
+      const setSettled = () => { settled = true }
 
-      const connectionPromise = new Promise<{ publicKey: string }>((resolve, reject) => {
+      return new Promise<{ publicKey: string }>((resolve, reject) => {
         createSessionHandler(
           signClient as {
             on: (event: string, handler: (...args: unknown[]) => void) => void
@@ -301,9 +332,65 @@ export function createWalletConnectAdapter(): WalletAdapter {
           setSettled,
           startTime,
         )
-      })
 
-      const timeoutPromise = new Promise<never>((_, reject) => {
+        const initConnect = async () => {
+          try {
+            const result = await Promise.race([
+              (signClient as { connect: (opts: Record<string, unknown>) => Promise<{ uri?: string }> }).connect({
+                requiredNamespaces: {
+                  stellar: {
+                    methods: ["stellar_signAndSubmitXDR", "stellar_signXDR"],
+                    chains: ["stellar:testnet", "stellar:pubnet"],
+                    events: [],
+                  },
+                },
+              }),
+              new Promise<never>((_, reject) =>
+                setTimeout(() => reject(createTimeoutError("walletconnect", CONNECT_INIT_TIMEOUT)), CONNECT_INIT_TIMEOUT)
+              ),
+            ])
+
+            const { uri } = result as { uri?: string }
+
+            if (!uri) {
+              if (!getSettled()) {
+                setSettled()
+                reject(createInternalError("walletconnect", "No pairing URI returned from WalletConnect"))
+              }
+              return
+            }
+
+            if (_onPairingUri) {
+              _onPairingUri(uri)
+            }
+
+            if (isBrowser() && !/Android|iPhone|iPad|iPod/i.test(navigator.userAgent)) {
+              if (PROJECT_ID) {
+                try {
+                  const { WalletConnectModal } = await import("@walletconnect/modal")
+                  wcModalInstance = new WalletConnectModal({
+                    projectId: PROJECT_ID,
+                    themeMode: "dark",
+                  })
+                  wcModalInstance.openModal({ uri })
+                } catch {
+                  window.open(`https://walletconnect.com/wc?uri=${encodeURIComponent(uri)}`, "_blank")
+                }
+              } else {
+                window.open(`https://walletconnect.com/wc?uri=${encodeURIComponent(uri)}`, "_blank")
+              }
+            }
+          } catch (err) {
+            if (!getSettled()) {
+              setSettled()
+              relay.recordOutcome(false, performance.now() - startTime)
+              reject(err)
+            }
+          }
+        }
+
+        initConnect()
+
         setTimeout(() => {
           if (!getSettled()) {
             setSettled()
@@ -312,58 +399,6 @@ export function createWalletConnectAdapter(): WalletAdapter {
           }
         }, CONNECT_TIMEOUT)
       })
-
-      ;(signClient as { connect: (opts: Record<string, unknown>) => Promise<{ uri?: string }> }).connect({
-        requiredNamespaces: {
-          stellar: {
-            methods: ["stellar_signAndSubmitXDR", "stellar_signXDR"],
-            chains: ["stellar:testnet", "stellar:pubnet"],
-            events: [],
-          },
-        },
-      })
-        .then((result) => {
-          const { uri } = result as { uri?: string }
-
-          if (!uri) {
-            if (!getSettled()) {
-              setSettled()
-            }
-            return
-          }
-
-          if (_onPairingUri) {
-            _onPairingUri(uri)
-          }
-
-          // Desktop: open modal to let user choose wallet
-          // The session_proposal handler will auto-approve when wallet proposes
-          if (isBrowser() && !/Android|iPhone|iPad|iPod/i.test(navigator.userAgent)) {
-            if (PROJECT_ID) {
-              ;(async () => {
-                try {
-                  const { WalletConnectModal } = await import("@walletconnect/modal")
-                  const wcModal = new WalletConnectModal({
-                    projectId: PROJECT_ID,
-                    themeMode: "dark",
-                  })
-                  wcModal.openModal({ uri })
-                } catch {
-                  window.open(`https://walletconnect.com/wc?uri=${encodeURIComponent(uri)}`, "_blank")
-                }
-              })()
-            } else {
-              window.open(`https://walletconnect.com/wc?uri=${encodeURIComponent(uri)}`, "_blank")
-            }
-          }
-        })
-        .catch(() => {
-          if (!getSettled()) {
-            setSettled()
-          }
-        })
-
-      return Promise.race([connectionPromise, timeoutPromise])
     },
 
     async disconnect(): Promise<void> {
@@ -375,10 +410,7 @@ export function createWalletConnectAdapter(): WalletAdapter {
           // best-effort disconnect
         }
       }
-      connectedPublicKey = null
-      sessionTopic = null
-      wcSignClient = null
-      getWC2SessionStore().clear()
+      resetWcState()
     },
 
     async isConnected(): Promise<boolean> {
@@ -484,8 +516,5 @@ export async function disconnectWc(): Promise<void> {
       // best-effort disconnect
     }
   }
-  connectedPublicKey = null
-  sessionTopic = null
-  wcSignClient = null
-  getWC2SessionStore().clear()
+  resetWcState()
 }

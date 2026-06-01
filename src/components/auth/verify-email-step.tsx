@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react"
 import { ArrowLeft, Loader2, Mail, Shield } from "lucide-react"
 import { cn } from "@/lib/cn"
 import { AuthInput } from "./auth-input"
-import { TurnstileCaptcha } from "./turnstile-captcha"
+import { HCaptchaCaptcha } from "./hcaptcha-captcha"
 import { ErrorDisplay } from "./error-display"
 import type { AuthErrorCode, AuthFlowStatus } from "@/stores/auth-flow-store"
 
@@ -21,7 +21,7 @@ interface VerifyEmailStepProps {
   emailVerification: EmailVerification
   status: AuthFlowStatus
   error: { code: AuthErrorCode | null; message: string | null } | null
-  onSendCode: (email: string) => Promise<void>
+  onSendCode: (email: string, captchaToken?: string) => Promise<void>
   onVerifyCode: (code: string) => Promise<void>
   onResend: () => Promise<void>
   onBack: () => void
@@ -94,9 +94,9 @@ export function VerifyEmailStep({
       return
     }
     setEmailError(null)
-    await onSendCode(email)
+    await onSendCode(email, captchaToken ?? undefined)
     startResendCooldown()
-  }, [email, onSendCode, startResendCooldown])
+  }, [email, captchaToken, onSendCode, startResendCooldown])
 
   const handleCodeDigitChange = useCallback(
     (index: number, value: string) => {
@@ -324,7 +324,7 @@ export function VerifyEmailStep({
           maxLength={254}
         />
 
-        <TurnstileCaptcha
+        <HCaptchaCaptcha
           onVerify={setCaptchaToken}
           onError={() => setCaptchaToken(null)}
         />

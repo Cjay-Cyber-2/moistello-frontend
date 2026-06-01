@@ -64,7 +64,7 @@ describe("AuthFlowStore - sendVerificationCode", () => {
     await useAuthFlowStore.getState().sendVerificationCode("test@example.com")
 
     const state = useAuthFlowStore.getState()
-    expect(mockPost).toHaveBeenCalledWith("/auth/verification/send", { email: "test@example.com" })
+    expect(mockPost).toHaveBeenCalledWith("/auth/verification/send", { email: "test@example.com", captchaToken: undefined })
     expect(state.emailVerification.email).toBe("test@example.com")
     expect(state.emailVerification.verificationId).toBe("vid-123")
     expect(state.emailVerification.codeSent).toBe(true)
@@ -319,7 +319,7 @@ describe("AuthFlowStore - resendCode", () => {
 
     await useAuthFlowStore.getState().resendCode()
 
-    expect(mockPost).toHaveBeenCalledWith("/auth/verification/send", { email: "test@example.com" })
+    expect(mockPost).toHaveBeenCalledWith("/auth/verification/send", { email: "test@example.com", captchaToken: undefined })
   })
 
   it("does nothing if no email is stored", async () => {

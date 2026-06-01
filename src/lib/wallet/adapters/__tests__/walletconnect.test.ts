@@ -30,6 +30,7 @@ vi.mock("../../wc2-relay", () => ({
 const mockSessionStore = {
   saveSession: vi.fn(),
   clear: vi.fn(),
+  getSession: vi.fn().mockReturnValue(null),
 }
 
 vi.mock("../../wc2-session-store", () => ({

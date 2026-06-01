@@ -1,9 +1,9 @@
 "use client"
 
-import { useCallback, useEffect, useMemo, useState } from "react"
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { useRouter } from "next/navigation"
 import dynamic from "next/dynamic"
-import { ArrowLeft, Fingerprint, Loader2, Shield } from "lucide-react"
+import { ArrowLeft, Clock, Fingerprint, Loader2, Mail, Shield } from "lucide-react"
 import { useAuthFlow, AuthFlowProvider } from "@/hooks/auth-flow-context"
 import { useAuthFlowStore } from "@/stores/auth-flow-store"
 import { useMultiWalletStore } from "@/stores/multi-wallet-store"
@@ -22,6 +22,7 @@ import { VerifyEmailStep } from "@/components/auth/verify-email-step"
 import { ProfileStep } from "@/components/auth/profile-step"
 import { SignStep } from "@/components/auth/sign-step"
 import { AuthInput } from "@/components/auth/auth-input"
+import { HCaptchaCaptcha } from "@/components/auth/hcaptcha-captcha"
 import { SessionTimeoutBanner } from "@/components/auth/session-timeout-banner"
 import { PasskeyRevokedBanner } from "@/components/auth/passkey-revoked-banner"
 
@@ -76,6 +77,7 @@ function RegisterPageContent() {
   const setPasskeyPublicKey = useMultiWalletStore((s) => s.setPasskeyPublicKey)
   const setWc2PairingUri = useMultiWalletStore((s) => s.setWc2PairingUri)
   const setWc2PairingState = useMultiWalletStore((s) => s.setWc2PairingState)
+  const setWc2PairingError = useMultiWalletStore((s) => s.setWc2PairingError)
   const clearRegisterError = useMultiWalletStore((s) => s.clearRegisterError)
   const resetWc2Pairing = useMultiWalletStore((s) => s.resetWc2Pairing)
 
@@ -85,10 +87,22 @@ function RegisterPageContent() {
 
   const addToast = useUIStore((s) => s.addToast)
   const [showLedgerPrompt, setShowLedgerPrompt] = useState(false)
+  const [localStep, setLocalStep] = useState<Step>("choose")
+
+  type PasskeyPhase = "email" | "code" | "captcha"
+  const [passkeyPhase, setPasskeyPhase] = useState<PasskeyPhase>("email")
   const [passkeyEmailInput, setPasskeyEmailInput] = useState("")
   const [passkeyEmailError, setPasskeyEmailError] = useState<string | null>(null)
   const [isCreatingPasskey, setIsCreatingPasskey] = useState(false)
-  const [localStep, setLocalStep] = useState<Step>("choose")
+  const [captchaToken, setCaptchaToken] = useState<string | null>(null)
+  const [isSendingCode, setIsSendingCode] = useState(false)
+  const [codeDigits, setCodeDigits] = useState<string[]>(Array(6).fill(""))
+  const [codeError, setCodeError] = useState<string | null>(null)
+  const [isVerifyingCode, setIsVerifyingCode] = useState(false)
+  const [resendCooldown, setResendCooldown] = useState(0)
+  const codeInputRefs = useRef<(HTMLInputElement | null)[]>(Array(6).fill(null))
+  const resendTimerRef = useRef<ReturnType<typeof setInterval> | null>(null)
+  const [countdown, setCountdown] = useState(0)
 
   const effectiveStep = localStep
   const isPasskeyFlow = localStep === "passkey-email"
@@ -109,94 +123,38 @@ function RegisterPageContent() {
     }
   }, [effectiveStep, status])
 
-  const handleSelectWallet = useCallback(
-    async (walletId: string) => {
-      const wallet = detectedWallets.find((w) => w.id === walletId)
+  useEffect(() => {
+    const expiresAt = emailVerification.expiresAt
+    if (!expiresAt) return
+    const interval = setInterval(() => {
+      const remaining = Math.max(0, Math.floor((expiresAt - Date.now()) / 1000))
+      setCountdown(remaining)
+      if (remaining <= 0) clearInterval(interval)
+    }, 1000)
+    return () => clearInterval(interval)
+  }, [emailVerification.expiresAt])
 
-      if (wallet?.category === "hardware") {
-        setShowLedgerPrompt(true)
-        recordMetric("auth.flow.started", 1, { mode: "register", method: walletId })
-        return
-      }
-
-      if (walletId === "passkey") {
-        setLocalStep("passkey-email")
-        recordMetric("auth.flow.started", 1, { mode: "register", method: "passkey" })
-        return
-      }
-
-      connectStart(walletId)
-
-      if (walletId === "walletconnect") {
-        try {
-          const { setOnPairingUri } = await import("@/lib/wallet/adapters/walletconnect")
-          setOnPairingUri((uri: string) => {
-            setWc2PairingUri(uri)
-            setWc2PairingState("awaiting_approval")
-          })
-        } catch {
-          setError("connection_rejected", "Failed to initialize WalletConnect")
-          addToast({ type: "error", title: "WalletConnect Failed", description: "Failed to initialize WalletConnect" })
-          return
-        }
-      }
-
-      try {
-        recordMetric("wallet.connect.attempt", 1, { walletId, mode: "register" })
-        await connect(walletId)
-        const address = useMultiWalletStore.getState().address
-        if (address) {
-          connectSuccess(walletId, address)
-          setLocalStep("profile")
-        }
-      } catch {
-        if (walletId === "walletconnect") {
-          setWc2PairingState("rejected")
-        }
-        const msg = "Connection was cancelled or failed."
-        setError("connection_rejected", msg)
-        addToast({ type: "error", title: "Connection Failed", description: msg })
-      } finally {
-        if (walletId === "walletconnect") {
-          import("@/lib/wallet/adapters/walletconnect").then(({ setOnPairingUri }) => {
-            setOnPairingUri(null)
-          })
-        }
-      }
-    },
-    [detectedWallets, connectStart, connect, connectSuccess, setError, setWc2PairingUri, setWc2PairingState, addToast]
-  )
-
-  const handleLedgerConnected = useCallback(
-    (publicKey: string) => {
-      connectStart("ledger")
-      connectSuccess("ledger", publicKey)
-      setLocalStep("profile")
-      setShowLedgerPrompt(false)
-      addToast({
-        type: "success",
-        title: "Ledger Connected",
-        description: `Connected with address ${publicKey.slice(0, 8)}...${publicKey.slice(-4)}`,
-      })
-    },
-    [connectStart, connectSuccess, addToast]
-  )
-
-  const handleWc2Cancel = useCallback(() => {
-    resetWc2Pairing()
-    const walletId = connection.walletId
-    if (walletId) {
-      useMultiWalletStore.getState().disconnect(walletId)
+  useEffect(() => {
+    return () => {
+      if (resendTimerRef.current) clearInterval(resendTimerRef.current)
     }
-  }, [connection.walletId, resetWc2Pairing])
+  }, [])
 
-  const handleWc2Retry = useCallback(() => {
-    resetWc2Pairing()
-    setLocalStep("choose")
-  }, [resetWc2Pairing])
+  const startResendCooldown = useCallback(() => {
+    setResendCooldown(60)
+    resendTimerRef.current = setInterval(() => {
+      setResendCooldown((prev) => {
+        if (prev <= 1) {
+          if (resendTimerRef.current) clearInterval(resendTimerRef.current)
+          return 0
+        }
+        return prev - 1
+      })
+    }, 1000)
+  }, [])
 
-  const handlePasskeyCreate = useCallback(async () => {
-    if (!passkeyEmailInput || !EMAIL_REGEX.test(passkeyEmailInput)) {
+  const handlePasskeyEmailSubmit = useCallback(async () => {
+    if (!EMAIL_REGEX.test(passkeyEmailInput)) {
       setPasskeyEmailError("Please enter a valid email address")
       return
     }
@@ -204,8 +162,91 @@ function RegisterPageContent() {
       setPasskeyEmailError("Email must be 254 characters or fewer")
       return
     }
-
     setPasskeyEmailError(null)
+    setIsSendingCode(true)
+    try {
+      await sendCode(passkeyEmailInput)
+      setPasskeyPhase("code")
+      startResendCooldown()
+      setTimeout(() => codeInputRefs.current[0]?.focus(), 100)
+    } catch {
+      setPasskeyEmailError("Failed to send verification code. Please try again.")
+    } finally {
+      setIsSendingCode(false)
+    }
+  }, [passkeyEmailInput, sendCode, startResendCooldown])
+
+  const handleCodeVerify = useCallback(async (code: string) => {
+    if (isVerifyingCode) return
+    setIsVerifyingCode(true)
+    try {
+      await verifyEmailCode(code)
+      setPasskeyPhase("captcha")
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "Invalid code. Please try again."
+      setCodeError(message)
+      setCodeDigits(Array(6).fill(""))
+      codeInputRefs.current[0]?.focus()
+    } finally {
+      setIsVerifyingCode(false)
+    }
+  }, [verifyEmailCode, isVerifyingCode])
+
+  const handleCodeDigitChange = useCallback(
+    (index: number, value: string) => {
+      if (value && !/^\d$/.test(value)) return
+      const next = [...codeDigits]
+      next[index] = value
+      setCodeDigits(next)
+      setCodeError(null)
+
+      if (value && index < 5) {
+        codeInputRefs.current[index + 1]?.focus()
+      }
+
+      const fullCode = [...next.slice(0, index), value, ...next.slice(index + 1)].join("")
+      if (fullCode.length === 6 && !next.includes("")) {
+        const allFilled = next.every((d) => d !== "")
+        if (allFilled) {
+          handleCodeVerify(fullCode)
+        }
+      }
+    },
+    [codeDigits, handleCodeVerify]
+  )
+
+  const handleCodeKeyDown = useCallback(
+    (index: number, e: React.KeyboardEvent<HTMLInputElement>) => {
+      if (e.key === "Backspace" && !codeDigits[index] && index > 0) {
+        const next = [...codeDigits]
+        next[index - 1] = ""
+        setCodeDigits(next)
+        codeInputRefs.current[index - 1]?.focus()
+      }
+      if (e.key === "Enter" && codeDigits.every((d) => d !== "")) {
+        handleCodeVerify(codeDigits.join(""))
+      }
+    },
+    [codeDigits, handleCodeVerify]
+  )
+
+  const handleCodePaste = useCallback((e: React.ClipboardEvent<HTMLInputElement>) => {
+    e.preventDefault()
+    const pasted = e.clipboardData.getData("text").replace(/\D/g, "").slice(0, 6)
+    const next = [...codeDigits]
+    for (let i = 0; i < pasted.length; i++) {
+      next[i] = pasted[i]
+    }
+    setCodeDigits(next)
+    if (pasted.length === 6) {
+      handleCodeVerify(pasted)
+    }
+    const focusIdx = Math.min(pasted.length, 5)
+    codeInputRefs.current[focusIdx]?.focus()
+  }, [codeDigits, handleCodeVerify])
+
+  const handlePasskeyContinue = useCallback(async () => {
+    if (!passkeyEmailInput || !captchaToken) return
     setIsCreatingPasskey(true)
     setPasskeyEmail(passkeyEmailInput)
     connectStart("passkey")
@@ -232,7 +273,131 @@ function RegisterPageContent() {
     } finally {
       setIsCreatingPasskey(false)
     }
-  }, [passkeyEmailInput, connect, setPasskeyEmail, setPasskeyPublicKey, connectStart, connectSuccess, addToast])
+  }, [passkeyEmailInput, captchaToken, connect, setPasskeyEmail, setPasskeyPublicKey, connectStart, connectSuccess, addToast])
+
+  const handlePasskeyBack = useCallback(() => {
+    if (passkeyPhase === "code") {
+      setPasskeyPhase("email")
+      setCodeDigits(Array(6).fill(""))
+      setCodeError(null)
+    } else if (passkeyPhase === "captcha") {
+      setPasskeyPhase("code")
+    } else {
+      setLocalStep("choose")
+      setPasskeyEmailError(null)
+      setPasskeyEmailInput("")
+      setCodeDigits(Array(6).fill(""))
+      setCodeError(null)
+      setCaptchaToken(null)
+    }
+  }, [passkeyPhase])
+
+  const handlePasskeyResend = useCallback(async () => {
+    if (resendCooldown > 0) return
+    try {
+      await resendCode()
+      startResendCooldown()
+      setCodeDigits(Array(6).fill(""))
+      setCodeError(null)
+    } catch {
+      addToast({ type: "error", title: "Resend Failed", description: "Could not resend code. Try again." })
+    }
+  }, [resendCooldown, resendCode, startResendCooldown, addToast])
+
+  const handleSelectWallet = useCallback(
+    async (walletId: string) => {
+      const wallet = detectedWallets.find((w) => w.id === walletId)
+
+      if (wallet?.category === "hardware") {
+        setShowLedgerPrompt(true)
+        recordMetric("auth.flow.started", 1, { mode: "register", method: walletId })
+        return
+      }
+
+      if (walletId === "passkey") {
+        setLocalStep("passkey-email")
+        recordMetric("auth.flow.started", 1, { mode: "register", method: "passkey" })
+        return
+      }
+
+      connectStart(walletId)
+
+      if (walletId === "walletconnect") {
+        try {
+          const { setOnPairingUri, setOnRelayStatusChange, resetWcState } = await import("@/lib/wallet/adapters/walletconnect")
+          resetWcState()
+          setOnRelayStatusChange((status) => {
+            useMultiWalletStore.getState().setWc2RelayStatus(status)
+          })
+          setOnPairingUri((uri: string) => {
+            setWc2PairingUri(uri)
+            setWc2PairingState("awaiting_approval")
+          })
+        } catch {
+          setError("connection_rejected", "Failed to initialize WalletConnect")
+          addToast({ type: "error", title: "WalletConnect Failed", description: "Failed to initialize WalletConnect" })
+          return
+        }
+      }
+
+      try {
+        recordMetric("wallet.connect.attempt", 1, { walletId, mode: "register" })
+        await connect(walletId)
+        const address = useMultiWalletStore.getState().address
+        if (address) {
+          connectSuccess(walletId, address)
+          setLocalStep("profile")
+        }
+      } catch (err: unknown) {
+        if (walletId === "walletconnect") {
+          const errMsg = err instanceof Error ? err.message : "Connection cancelled or failed."
+          setWc2PairingError(errMsg)
+        }
+        const msg = err instanceof Error ? err.message : "Connection was cancelled or failed."
+        setError("connection_rejected", msg)
+        addToast({ type: "error", title: "Connection Failed", description: msg })
+      } finally {
+        if (walletId === "walletconnect") {
+          import("@/lib/wallet/adapters/walletconnect").then(({ setOnPairingUri }) => {
+            setOnPairingUri(null)
+          })
+        }
+      }
+    },
+    [detectedWallets, connectStart, connect, connectSuccess, setError, setWc2PairingUri, setWc2PairingState, setWc2PairingError, addToast]
+  )
+
+  const handleLedgerConnected = useCallback(
+    (publicKey: string) => {
+      connectStart("ledger")
+      connectSuccess("ledger", publicKey)
+      setLocalStep("profile")
+      setShowLedgerPrompt(false)
+      addToast({
+        type: "success",
+        title: "Ledger Connected",
+        description: `Connected with address ${publicKey.slice(0, 8)}...${publicKey.slice(-4)}`,
+      })
+    },
+    [connectStart, connectSuccess, addToast]
+  )
+
+  const handleWc2Cancel = useCallback(async () => {
+    resetWc2Pairing()
+    const { resetWcState } = await import("@/lib/wallet/adapters/walletconnect")
+    resetWcState()
+    const walletId = connection.walletId
+    if (walletId) {
+      useMultiWalletStore.getState().disconnect(walletId)
+    }
+  }, [connection.walletId, resetWc2Pairing])
+
+  const handleWc2Retry = useCallback(async () => {
+    resetWc2Pairing()
+    const { resetWcState } = await import("@/lib/wallet/adapters/walletconnect")
+    resetWcState()
+    setLocalStep("choose")
+  }, [resetWc2Pairing])
 
   const handleProfileSubmit = useCallback(() => {
     setLocalStep("sign")
@@ -312,14 +477,11 @@ function RegisterPageContent() {
           />
         )}
 
-        {effectiveStep === "passkey-email" && (
-          <div className="space-y-6" aria-label="Passkey creation form">
+        {effectiveStep === "passkey-email" && passkeyPhase === "email" && (
+          <div className="space-y-6" aria-label="Passkey email step">
             <button
               type="button"
-              onClick={() => {
-                setLocalStep("choose")
-                setPasskeyEmailError(null)
-              }}
+              onClick={handlePasskeyBack}
               className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
               aria-label="Go back"
             >
@@ -353,7 +515,7 @@ function RegisterPageContent() {
                   if (passkeyEmailError) setPasskeyEmailError(null)
                 }}
                 error={passkeyEmailError}
-                disabled={isCreatingPasskey}
+                disabled={isSendingCode}
                 maxLength={254}
               />
 
@@ -365,8 +527,155 @@ function RegisterPageContent() {
 
               <button
                 type="button"
-                onClick={handlePasskeyCreate}
-                disabled={!passkeyEmailInput || isCreatingPasskey}
+                onClick={handlePasskeyEmailSubmit}
+                disabled={!passkeyEmailInput || isSendingCode}
+                className="w-full h-12 rounded-xl gradient-bg-extended text-white text-sm font-heading font-bold transition-all hover:opacity-90 disabled:opacity-50 disabled:pointer-events-none flex items-center justify-center gap-2 shadow-[0_0_24px_rgb(var(--aurora-violet)/0.25)]"
+              >
+                {isSendingCode ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    Sending...
+                  </>
+                ) : (
+                  <>
+                    <Mail className="h-4 w-4" />
+                    Confirm Email
+                  </>
+                )}
+              </button>
+            </div>
+
+            <p className="text-center text-2xs text-muted-foreground">
+              Your wallet is derived from your email and device biometrics.
+              <br />
+              No private keys leave your device.
+            </p>
+          </div>
+        )}
+
+        {effectiveStep === "passkey-email" && passkeyPhase === "code" && (
+          <div className="space-y-6" aria-label="Passkey code verification step">
+            <button
+              type="button"
+              onClick={handlePasskeyBack}
+              className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
+              aria-label="Go back"
+            >
+              <ArrowLeft className="h-3.5 w-3.5" />
+              Back to email
+            </button>
+
+            <div className="text-center space-y-2">
+              <div className="flex justify-center">
+                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-aurora-violet/20">
+                  <Mail className="h-6 w-6 text-aurora-violet" />
+                </div>
+              </div>
+              <p className="font-heading text-lg font-medium text-foreground">Check your inbox</p>
+              <p className="text-sm text-muted-foreground">
+                We sent a code to{" "}
+                <span className="font-medium text-foreground">{passkeyEmailInput}</span>
+              </p>
+            </div>
+
+            <div className="space-y-4">
+              <div className="flex items-center justify-center gap-2">
+                {codeDigits.map((digit, index) => (
+                  <input
+                    key={index}
+                    ref={(el) => { codeInputRefs.current[index] = el }}
+                    type="text"
+                    inputMode="numeric"
+                    maxLength={1}
+                    value={digit}
+                    onChange={(e) => handleCodeDigitChange(index, e.target.value)}
+                    onKeyDown={(e) => handleCodeKeyDown(index, e)}
+                    onPaste={index === 0 ? handleCodePaste : undefined}
+                    disabled={isVerifyingCode}
+                    className="h-12 w-10 rounded-xl border border-white/20 bg-white/5 text-center text-lg font-bold text-foreground outline-none transition-colors focus:border-aurora-violet focus:ring-1 focus:ring-aurora-violet disabled:opacity-50"
+                    aria-label={`Digit ${index + 1} of 6`}
+                  />
+                ))}
+              </div>
+
+              {codeError && (
+                <div className="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-400 text-center" role="alert">
+                  {codeError}
+                </div>
+              )}
+
+              {isVerifyingCode && (
+                <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground" role="status" aria-live="polite">
+                  <Loader2 className="h-3 w-3 animate-spin" />
+                  Verifying code...
+                </div>
+              )}
+
+              {countdown > 0 && (
+                <div className="flex items-center justify-center gap-1.5 text-xs text-muted-foreground">
+                  <Clock className="h-3 w-3" />
+                  Code expires in {Math.floor(countdown / 60)}:{String(countdown % 60).padStart(2, "0")}
+                </div>
+              )}
+
+              <div className="text-center text-xs text-muted-foreground">
+                Didn&apos;t receive it?{" "}
+                {resendCooldown > 0 ? (
+                  <span className="text-muted-foreground/60">Resend in {resendCooldown}s</span>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={handlePasskeyResend}
+                    className="text-aurora-cyan hover:underline"
+                  >
+                    Resend
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {effectiveStep === "passkey-email" && passkeyPhase === "captcha" && (
+          <div className="space-y-6" aria-label="Passkey captcha step">
+            <button
+              type="button"
+              onClick={handlePasskeyBack}
+              className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
+              aria-label="Go back"
+            >
+              <ArrowLeft className="h-3.5 w-3.5" />
+              Back to code verification
+            </button>
+
+            <div className="text-center space-y-2">
+              <div className="flex justify-center">
+                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-emerald-500/20">
+                  <Shield className="h-6 w-6 text-emerald-400" />
+                </div>
+              </div>
+              <p className="font-heading text-lg font-medium text-foreground">Email Verified</p>
+              <p className="text-sm text-muted-foreground">
+                <span className="font-medium text-foreground">{passkeyEmailInput}</span>
+              </p>
+            </div>
+
+            <div className="space-y-4">
+              <HCaptchaCaptcha
+                onVerify={(token) => setCaptchaToken(token)}
+                onError={() => setCaptchaToken(null)}
+              />
+
+              {passkeyEmailError && (
+                <div className="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-400 text-center" role="alert">
+                  {passkeyEmailError}
+                </div>
+              )}
+
+              <button
+                type="button"
+                onClick={handlePasskeyContinue}
+                disabled={!captchaToken || isCreatingPasskey}
                 className="w-full h-12 rounded-xl gradient-bg-extended text-white text-sm font-heading font-bold transition-all hover:opacity-90 disabled:opacity-50 disabled:pointer-events-none flex items-center justify-center gap-2 shadow-[0_0_24px_rgb(var(--aurora-violet)/0.25)]"
               >
                 {isCreatingPasskey ? (
@@ -381,7 +690,7 @@ function RegisterPageContent() {
                 ) : (
                   <>
                     <Shield className="h-4 w-4" />
-                    Create Passkey
+                    Continue
                   </>
                 )}
               </button>
@@ -393,12 +702,6 @@ function RegisterPageContent() {
                 </div>
               )}
             </div>
-
-            <p className="text-center text-2xs text-muted-foreground">
-              Your wallet is derived from your email and device biometrics.
-              <br />
-              No private keys leave your device.
-            </p>
           </div>
         )}
 

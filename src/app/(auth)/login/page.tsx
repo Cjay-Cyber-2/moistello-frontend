@@ -57,6 +57,7 @@ function LoginPageContent() {
   const wc2QrExpiresAt = useMultiWalletStore((s) => s.wc2QrExpiresAt)
   const setWc2PairingUri = useMultiWalletStore((s) => s.setWc2PairingUri)
   const setWc2PairingState = useMultiWalletStore((s) => s.setWc2PairingState)
+  const setWc2PairingError = useMultiWalletStore((s) => s.setWc2PairingError)
   const clearLoginError = useMultiWalletStore((s) => s.clearLoginError)
   const resetWc2Pairing = useMultiWalletStore((s) => s.resetWc2Pairing)
 
@@ -147,7 +148,11 @@ function LoginPageContent() {
 
       if (walletId === "walletconnect") {
         try {
-          const { setOnPairingUri } = await import("@/lib/wallet/adapters/walletconnect")
+          const { setOnPairingUri, setOnRelayStatusChange, resetWcState } = await import("@/lib/wallet/adapters/walletconnect")
+          resetWcState()
+          setOnRelayStatusChange((status) => {
+            useMultiWalletStore.getState().setWc2RelayStatus(status)
+          })
           setOnPairingUri((uri: string) => {
             setWc2PairingUri(uri)
             setWc2PairingState("awaiting_approval")
@@ -167,11 +172,12 @@ function LoginPageContent() {
           connectSuccess(walletId, address)
           setStep("sign")
         }
-      } catch {
+      } catch (err: unknown) {
         if (walletId === "walletconnect") {
-          setWc2PairingState("rejected")
+          const errMsg = err instanceof Error ? err.message : "Connection cancelled or failed."
+          setWc2PairingError(errMsg)
         }
-        const msg = "Connection was cancelled or failed."
+        const msg = err instanceof Error ? err.message : "Connection was cancelled or failed."
         setError("connection_rejected", msg)
         addToast({ type: "error", title: "Connection Failed", description: msg })
       } finally {
@@ -182,7 +188,7 @@ function LoginPageContent() {
         }
       }
     },
-    [detectedWallets, connectStart, connect, connectSuccess, setStep, setError, setWc2PairingUri, setWc2PairingState, addToast]
+    [detectedWallets, connectStart, connect, connectSuccess, setStep, setError, setWc2PairingUri, setWc2PairingState, setWc2PairingError, addToast]
   )
 
   const handleLedgerConnected = useCallback(
@@ -200,16 +206,20 @@ function LoginPageContent() {
     [connectStart, connectSuccess, setStep, addToast]
   )
 
-  const handleWc2Cancel = useCallback(() => {
+  const handleWc2Cancel = useCallback(async () => {
     resetWc2Pairing()
+    const { resetWcState } = await import("@/lib/wallet/adapters/walletconnect")
+    resetWcState()
     const walletId = connection.walletId
     if (walletId) {
       useMultiWalletStore.getState().disconnect(walletId)
     }
   }, [connection.walletId, resetWc2Pairing])
 
-  const handleWc2Retry = useCallback(() => {
+  const handleWc2Retry = useCallback(async () => {
     resetWc2Pairing()
+    const { resetWcState } = await import("@/lib/wallet/adapters/walletconnect")
+    resetWcState()
     setStep("choose")
   }, [resetWc2Pairing, setStep])
 

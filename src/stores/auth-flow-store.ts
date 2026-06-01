@@ -106,7 +106,7 @@ interface AuthFlowActions {
   onConnectionRejected: () => void
   setPairingUri: (uri: string | null) => void
   setRelayStatus: (status: "healthy" | "degraded" | "down") => void
-  sendVerificationCode: (email: string) => Promise<void>
+  sendVerificationCode: (email: string, captchaToken?: string) => Promise<void>
   verifyCode: (code: string) => Promise<void>
   resendCode: () => Promise<void>
   clearEmailVerification: () => void
@@ -270,7 +270,7 @@ export const useAuthFlowStore = create<AuthFlowStore>()(
             connection: { ...state.connection, relayStatus: status },
           })),
 
-        sendVerificationCode: async (email) => {
+        sendVerificationCode: async (email, captchaToken) => {
           set({ status: { status: "sending_code" } })
           try {
             const { mode } = get()
@@ -278,7 +278,7 @@ export const useAuthFlowStore = create<AuthFlowStore>()(
               verificationId: string
               expiresAt: number
               remainingAttempts: number
-            }>("/auth/verification/send", { email })
+            }>("/auth/verification/send", { email, captchaToken })
             recordMetric("auth.email.code_sent", 1, { mode })
             set((state) => ({
               emailVerification: {
