@@ -13,6 +13,7 @@ import { useRedirectIfAuthenticated } from "@/hooks/use-redirect-if-authenticate
 import { useConditionalMediation } from "@/hooks/use-conditional-mediation"
 import { recordMetric } from "@/lib/monitoring"
 import { passkeyEmailStore } from "@/lib/passkey/login-email-store"
+import { getWalletIcon } from "@/lib/wallet/wallet-icons"
 import { AuthLayout } from "@/components/auth/auth-layout"
 import { ChooseWalletStep } from "@/components/auth/choose-wallet-step"
 import { VerifyEmailStep } from "@/components/auth/verify-email-step"
@@ -231,7 +232,7 @@ function LoginPageContent() {
         id: w.id,
         name: w.name,
         category: w.category,
-        icon: <span>{w.icon || w.name.charAt(0)}</span>,
+        icon: getWalletIcon({ id: w.id, name: w.name, size: "md" }),
         description: w.description,
         isRecommended: w.id === "walletconnect",
         installUrl: w.installUrl,

@@ -14,6 +14,7 @@ import { useProfileForm } from "@/hooks/use-profile-form"
 import { useRedirectIfAuthenticated } from "@/hooks/use-redirect-if-authenticated"
 import { useConditionalMediation } from "@/hooks/use-conditional-mediation"
 import { recordMetric } from "@/lib/monitoring"
+import { getWalletIcon } from "@/lib/wallet/wallet-icons"
 import { AuthLayout } from "@/components/auth/auth-layout"
 import { AuthStepIndicator } from "@/components/auth/auth-step-indicator"
 import { ChooseWalletStep } from "@/components/auth/choose-wallet-step"
@@ -256,7 +257,7 @@ function RegisterPageContent() {
         id: w.id,
         name: w.name,
         category: w.category,
-        icon: <span>{w.icon || w.name.charAt(0)}</span>,
+        icon: getWalletIcon({ id: w.id, name: w.name, size: "md" }),
         description: w.description,
         isRecommended: w.id === "passkey",
         installUrl: w.installUrl,
