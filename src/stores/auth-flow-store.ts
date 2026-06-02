@@ -585,19 +585,8 @@ export const useAuthFlowStore = create<AuthFlowStore>()(
     ),
     {
       name: "moistello-auth-flow",
+      version: 2,
       storage: createJSONStorage(() => sessionStorage),
-      // Clear ephemeral verification state on hydration — verificationId
-      // has a 10-min TTL and stale persisted values cause 'Verification
-      // not found' errors when they overwrite in-memory state.
-      onRehydrateStorage: () => {
-        return (_state, error) => {
-          if (!error) {
-            useAuthFlowStore.setState(() => ({
-              emailVerification: initialEmailVerification(),
-            }))
-          }
-        }
-      },
       partialize: (state) => ({
         step: state.step,
         auth: state.auth,
