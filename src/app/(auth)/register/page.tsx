@@ -11,7 +11,6 @@ import { useEmailVerification } from "@/hooks/use-email-verification"
 import { useSignMessage } from "@/hooks/use-sign-message"
 import { useProfileForm } from "@/hooks/use-profile-form"
 import { useRedirectIfAuthenticated } from "@/hooks/use-redirect-if-authenticated"
-import { useConditionalMediation } from "@/hooks/use-conditional-mediation"
 import { recordMetric } from "@/lib/monitoring"
 import { getWalletRegistry } from "@/lib/wallet/registry"
 import { createPasskeyAdapter } from "@/lib/wallet/adapters/passkey"
@@ -49,7 +48,6 @@ getWalletRegistry().register(createPasskeyAdapter())
 function RegisterPageContent() {
   const router = useRouter()
   useRedirectIfAuthenticated()
-  useConditionalMediation()
 
   const status = useAuthFlow((s) => s.status)
   const error = useAuthFlow((s) => s.error)
