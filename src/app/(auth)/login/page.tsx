@@ -1,8 +1,8 @@
 "use client"
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
 import { useRouter } from "next/navigation"
-import dynamic from "next/dynamic"
+import { Shield } from "lucide-react"
 import { useAuthFlow, AuthFlowProvider } from "@/hooks/auth-flow-context"
 import { useAuthFlowStore } from "@/stores/auth-flow-store"
 import { useMultiWalletStore } from "@/stores/multi-wallet-store"
@@ -13,20 +13,13 @@ import { useRedirectIfAuthenticated } from "@/hooks/use-redirect-if-authenticate
 import { useConditionalMediation } from "@/hooks/use-conditional-mediation"
 import { recordMetric } from "@/lib/monitoring"
 import { passkeyEmailStore } from "@/lib/passkey/login-email-store"
-import { WalletIcon } from "@/lib/wallet/wallet-icons"
 import { AuthLayout } from "@/components/auth/auth-layout"
-import { ChooseWalletStep } from "@/components/auth/choose-wallet-step"
 import { VerifyEmailStep } from "@/components/auth/verify-email-step"
 import { SignStep } from "@/components/auth/sign-step"
 import { LoadingOverlay } from "@/components/auth/loading-overlay"
 import { SessionTimeoutBanner } from "@/components/auth/session-timeout-banner"
 import { PasskeyRevokedBanner } from "@/components/auth/passkey-revoked-banner"
 import { PasskeyCaptchaStep } from "@/components/auth/passkey-captcha-step"
-
-const LedgerPrompt = dynamic(
-  () => import("@/components/wallet/ledger-prompt").then((m) => m.LedgerPrompt),
-  { ssr: false }
-)
 
 function LoginPageContent() {
   const router = useRouter()
@@ -43,50 +36,16 @@ function LoginPageContent() {
   const passkeyRevoked = useAuthFlow((s) => s.passkeyRevoked)
 
   const startLoginFlow = useAuthFlow((s) => s.startLoginFlow)
-  const connectStart = useAuthFlow((s) => s.connectStart)
-  const connectSuccess = useAuthFlow((s) => s.connectSuccess)
   const setStep = useAuthFlow((s) => s.setStep)
-  const setError = useAuthFlow((s) => s.setError)
   const goBack = useAuthFlow((s) => s.goBack)
-
-  const detectedWallets = useMultiWalletStore((s) => s.detectedWallets)
-  const isScanning = useMultiWalletStore((s) => s.isScanning)
-  const connect = useMultiWalletStore((s) => s.connect)
-  const wc2PairingUri = useMultiWalletStore((s) => s.wc2PairingUri)
-  const wc2PairingState = useMultiWalletStore((s) => s.wc2PairingState)
-  const wc2PairingError = useMultiWalletStore((s) => s.wc2PairingError)
-  const wc2QrExpiresAt = useMultiWalletStore((s) => s.wc2QrExpiresAt)
-  const setWc2PairingUri = useMultiWalletStore((s) => s.setWc2PairingUri)
-  const setWc2PairingState = useMultiWalletStore((s) => s.setWc2PairingState)
-  const setWc2PairingError = useMultiWalletStore((s) => s.setWc2PairingError)
-  const clearLoginError = useMultiWalletStore((s) => s.clearLoginError)
-  const resetWc2Pairing = useMultiWalletStore((s) => s.resetWc2Pairing)
 
   const { sign } = useSignMessage()
   const { emailVerification, sendCode, verifyCode: verifyEmailCode, resendCode } = useEmailVerification()
 
   const addToast = useUIStore((s) => s.addToast)
-  const [showLedgerPrompt, setShowLedgerPrompt] = useState(false)
   const [showPasskeyCaptcha, setShowPasskeyCaptcha] = useState(false)
 
   const passkeyLoginAttemptedRef = useRef(false)
-
-  useEffect(() => {
-    useMultiWalletStore.getState().scanWallets()
-    clearLoginError()
-    resetWc2Pairing()
-    import("@/lib/wallet/adapters/walletconnect").then(({ resetWcState }) => {
-      resetWcState()
-    })
-  }, [clearLoginError, resetWc2Pairing])
-
-  useEffect(() => {
-    return () => {
-      import("@/lib/wallet/adapters/walletconnect").then(({ resetWcState }) => {
-        resetWcState()
-      })
-    }
-  }, [])
 
   useEffect(() => {
     if (mode !== "login") startLoginFlow()
@@ -152,103 +111,6 @@ function LoginPageContent() {
     doPasskeyAuth()
   }, [step, emailVerification.codeVerified, emailVerification.email, router, addToast])
 
-  const handleSelectWallet = useCallback(
-    async (walletId: string) => {
-      const wallet = detectedWallets.find((w) => w.id === walletId)
-
-      if (wallet?.category === "hardware") {
-        setShowLedgerPrompt(true)
-        recordMetric("auth.flow.started", 1, { mode: "login", method: walletId })
-        return
-      }
-
-      connectStart(walletId)
-
-      if (walletId === "walletconnect") {
-        try {
-          const { setOnPairingUri, setOnRelayStatusChange, resetWcState } = await import("@/lib/wallet/adapters/walletconnect")
-          resetWcState()
-          setOnRelayStatusChange((status) => {
-            useMultiWalletStore.getState().setWc2RelayStatus(status)
-          })
-          setOnPairingUri((uri: string) => {
-            setWc2PairingUri(uri)
-            setWc2PairingState("awaiting_approval")
-          })
-        } catch {
-          setError("connection_rejected", "Failed to initialize WalletConnect")
-          addToast({ type: "error", title: "WalletConnect Failed", description: "Failed to initialize WalletConnect" })
-          return
-        }
-      }
-
-      try {
-        recordMetric("wallet.connect.attempt", 1, { walletId, mode: "login" })
-        await connect(walletId)
-        const address = useMultiWalletStore.getState().address
-        if (address) {
-          connectSuccess(walletId, address)
-          setStep("sign")
-        }
-      } catch (err: unknown) {
-        const msg = (err && typeof err === "object" && "message" in err)
-          ? (err as { message: string }).message
-          : "Connection was cancelled or failed."
-        if (msg === "Connection cancelled by user") {
-          return
-        }
-        if (walletId === "walletconnect") {
-          setWc2PairingError(msg)
-        }
-        setError("connection_rejected", msg)
-        addToast({ type: "error", title: "Connection Failed", description: msg })
-      } finally {
-        if (walletId === "walletconnect") {
-          import("@/lib/wallet/adapters/walletconnect").then(({ setOnPairingUri }) => {
-            setOnPairingUri(null)
-          })
-        }
-      }
-    },
-    [detectedWallets, connectStart, connect, connectSuccess, setStep, setError, setWc2PairingUri, setWc2PairingState, setWc2PairingError, addToast]
-  )
-
-  const handleLedgerConnected = useCallback(
-    (publicKey: string) => {
-      connectStart("ledger")
-      connectSuccess("ledger", publicKey)
-      setStep("sign")
-      setShowLedgerPrompt(false)
-      addToast({
-        type: "success",
-        title: "Ledger Connected",
-        description: `Connected with address ${publicKey.slice(0, 8)}...${publicKey.slice(-4)}`,
-      })
-    },
-    [connectStart, connectSuccess, setStep, addToast]
-  )
-
-  const handleWc2Cancel = useCallback(async () => {
-    resetWc2Pairing()
-    const { resetWcState } = await import("@/lib/wallet/adapters/walletconnect")
-    resetWcState()
-    useAuthFlowStore.getState().clearError()
-    useAuthFlowStore.getState().resetConnection()
-    const walletId = connection.walletId
-    if (walletId) {
-      useMultiWalletStore.getState().disconnect(walletId)
-    }
-  }, [connection.walletId, resetWc2Pairing])
-
-  const handleWc2Retry = useCallback(async () => {
-    resetWc2Pairing()
-    const { resetWcState } = await import("@/lib/wallet/adapters/walletconnect")
-    resetWcState()
-    useAuthFlowStore.getState().clearError()
-    useAuthFlowStore.getState().resetConnection()
-    setStep("choose")
-  }, [resetWc2Pairing, setStep])
-
   const handleSignSubmit = useCallback(async () => {
     await sign()
     const authStatus = useAuthFlowStore.getState().status.status
@@ -261,21 +123,6 @@ function LoginPageContent() {
       router.replace("/dashboard")
     }
   }, [sign, router, addToast])
-
-  const wallets = useMemo(
-    () =>
-      detectedWallets.map((w) => ({
-        id: w.id,
-        name: w.name,
-        category: w.category,
-        icon: <WalletIcon id={w.id} name={w.name} size="md" />,
-        description: w.description,
-        isRecommended: w.id === "walletconnect",
-        installUrl: w.installUrl,
-        status: w.status as "detected" | "not_detected",
-      })),
-    [detectedWallets]
-  )
 
   if (status.status === "authenticated") {
     return (
@@ -316,20 +163,40 @@ function LoginPageContent() {
             onBack={() => setShowPasskeyCaptcha(false)}
           />
         ) : step === "choose" || status.status === "connected" ? (
-          <ChooseWalletStep
-            mode="login"
-            wallets={wallets}
-            isScanning={isScanning}
-            connectingWalletId={connection.walletId}
-            wc2PairingUri={wc2PairingUri}
-            wc2PairingState={wc2PairingState}
-            wc2PairingError={wc2PairingError}
-            wc2QrExpiresAt={wc2QrExpiresAt}
-            onSelectWallet={handleSelectWallet}
-            onWc2Cancel={handleWc2Cancel}
-            onWc2Retry={handleWc2Retry}
-            onPasskeyLogin={handlePasskeyLogin}
-          />
+          <div className="space-y-6">
+            <div className="text-center space-y-2">
+              <div className="flex justify-center">
+                <div className="flex h-14 w-14 items-center justify-center rounded-2xl gradient-bg-extended">
+                  <Shield className="h-7 w-7 text-white" />
+                </div>
+              </div>
+              <p className="font-heading text-lg font-medium text-foreground">Sign In to Moistello</p>
+              <p className="text-sm text-muted-foreground">
+                Use your passkey to securely access your account.
+              </p>
+            </div>
+
+            {error && (
+              <div className="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-400" role="alert">
+                {error.message}
+              </div>
+            )}
+
+            <button
+              type="button"
+              onClick={handlePasskeyLogin}
+              className="w-full h-12 rounded-xl gradient-bg-extended text-white text-sm font-heading font-bold transition-all hover:opacity-90 disabled:opacity-50 disabled:pointer-events-none flex items-center justify-center gap-2 shadow-[0_0_24px_rgb(var(--aurora-violet)/0.25)]"
+            >
+              <Shield className="h-4 w-4" />
+              Sign in with Passkey
+            </button>
+
+            <p className="text-center text-2xs text-muted-foreground">
+              Authenticate with your device biometrics.
+              <br />
+              Your email and device are your keys.
+            </p>
+          </div>
         ) : step === "verify-email" ? (
           <VerifyEmailStep
             emailVerification={emailVerification}
@@ -354,12 +221,6 @@ function LoginPageContent() {
           />
         ) : null}
       </AuthLayout>
-
-      <LedgerPrompt
-        isOpen={showLedgerPrompt}
-        onClose={() => setShowLedgerPrompt(false)}
-        onConnected={handleLedgerConnected}
-      />
     </>
   )
 }

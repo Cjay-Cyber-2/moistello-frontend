@@ -1,8 +1,7 @@
 "use client"
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
 import { useRouter } from "next/navigation"
-import dynamic from "next/dynamic"
 import { ArrowLeft, Clock, Fingerprint, Loader2, Mail, Shield } from "lucide-react"
 import { useAuthFlow, AuthFlowProvider } from "@/hooks/auth-flow-context"
 import { useAuthFlowStore } from "@/stores/auth-flow-store"
@@ -14,10 +13,8 @@ import { useProfileForm } from "@/hooks/use-profile-form"
 import { useRedirectIfAuthenticated } from "@/hooks/use-redirect-if-authenticated"
 import { useConditionalMediation } from "@/hooks/use-conditional-mediation"
 import { recordMetric } from "@/lib/monitoring"
-import { WalletIcon } from "@/lib/wallet/wallet-icons"
 import { AuthLayout } from "@/components/auth/auth-layout"
 import { AuthStepIndicator } from "@/components/auth/auth-step-indicator"
-import { ChooseWalletStep } from "@/components/auth/choose-wallet-step"
 import { VerifyEmailStep } from "@/components/auth/verify-email-step"
 import { ProfileStep } from "@/components/auth/profile-step"
 import { SignStep } from "@/components/auth/sign-step"
@@ -26,15 +23,10 @@ import { HCaptchaCaptcha } from "@/components/auth/hcaptcha-captcha"
 import { SessionTimeoutBanner } from "@/components/auth/session-timeout-banner"
 import { PasskeyRevokedBanner } from "@/components/auth/passkey-revoked-banner"
 
-const LedgerPrompt = dynamic(
-  () => import("@/components/wallet/ledger-prompt").then((m) => m.LedgerPrompt),
-  { ssr: false }
-)
-
 type Step = "choose" | "passkey-email" | "verify-email" | "profile" | "sign"
 
 const STEPS = [
-  { key: "choose", label: "Choose", number: 1 },
+  { key: "choose", label: "Create", number: 1 },
   { key: "verify-email", label: "Verify", number: 2 },
   { key: "profile", label: "Profile", number: 3 },
   { key: "sign", label: "Sign", number: 4 },
@@ -63,30 +55,17 @@ function RegisterPageContent() {
   const startRegisterFlow = useAuthFlow((s) => s.startRegisterFlow)
   const connectStart = useAuthFlow((s) => s.connectStart)
   const connectSuccess = useAuthFlow((s) => s.connectSuccess)
-  const setError = useAuthFlow((s) => s.setError)
 
-  const detectedWallets = useMultiWalletStore((s) => s.detectedWallets)
-  const isScanning = useMultiWalletStore((s) => s.isScanning)
   const connect = useMultiWalletStore((s) => s.connect)
-  const wc2PairingUri = useMultiWalletStore((s) => s.wc2PairingUri)
-  const wc2PairingState = useMultiWalletStore((s) => s.wc2PairingState)
-  const wc2PairingError = useMultiWalletStore((s) => s.wc2PairingError)
-  const wc2QrExpiresAt = useMultiWalletStore((s) => s.wc2QrExpiresAt)
   const passkeyState = useMultiWalletStore((s) => s.passkeyState)
   const setPasskeyEmail = useMultiWalletStore((s) => s.setPasskeyEmail)
   const setPasskeyPublicKey = useMultiWalletStore((s) => s.setPasskeyPublicKey)
-  const setWc2PairingUri = useMultiWalletStore((s) => s.setWc2PairingUri)
-  const setWc2PairingState = useMultiWalletStore((s) => s.setWc2PairingState)
-  const setWc2PairingError = useMultiWalletStore((s) => s.setWc2PairingError)
-  const clearRegisterError = useMultiWalletStore((s) => s.clearRegisterError)
-  const resetWc2Pairing = useMultiWalletStore((s) => s.resetWc2Pairing)
 
   const { emailVerification, sendCode, verifyCode: verifyEmailCode, resendCode } = useEmailVerification()
   const { sign } = useSignMessage()
   const { profile, updateField, setFieldError } = useProfileForm()
 
   const addToast = useUIStore((s) => s.addToast)
-  const [showLedgerPrompt, setShowLedgerPrompt] = useState(false)
   const [localStep, setLocalStep] = useState<Step>("choose")
 
   type PasskeyPhase = "email" | "code" | "captcha"
@@ -106,23 +85,6 @@ function RegisterPageContent() {
 
   const effectiveStep = localStep
   const isPasskeyFlow = localStep === "passkey-email"
-
-  useEffect(() => {
-    useMultiWalletStore.getState().scanWallets()
-    clearRegisterError()
-    resetWc2Pairing()
-    import("@/lib/wallet/adapters/walletconnect").then(({ resetWcState }) => {
-      resetWcState()
-    })
-  }, [clearRegisterError, resetWc2Pairing])
-
-  useEffect(() => {
-    return () => {
-      import("@/lib/wallet/adapters/walletconnect").then(({ resetWcState }) => {
-        resetWcState()
-      })
-    }
-  }, [])
 
   useEffect(() => {
     if (mode !== "register") startRegisterFlow()
@@ -316,108 +278,10 @@ function RegisterPageContent() {
     }
   }, [resendCooldown, resendCode, startResendCooldown, addToast])
 
-  const handleSelectWallet = useCallback(
-    async (walletId: string) => {
-      const wallet = detectedWallets.find((w) => w.id === walletId)
-
-      if (wallet?.category === "hardware") {
-        setShowLedgerPrompt(true)
-        recordMetric("auth.flow.started", 1, { mode: "register", method: walletId })
-        return
-      }
-
-      if (walletId === "passkey") {
-        setLocalStep("passkey-email")
-        recordMetric("auth.flow.started", 1, { mode: "register", method: "passkey" })
-        return
-      }
-
-      connectStart(walletId)
-
-      if (walletId === "walletconnect") {
-        try {
-          const { setOnPairingUri, setOnRelayStatusChange, resetWcState } = await import("@/lib/wallet/adapters/walletconnect")
-          resetWcState()
-          setOnRelayStatusChange((status) => {
-            useMultiWalletStore.getState().setWc2RelayStatus(status)
-          })
-          setOnPairingUri((uri: string) => {
-            setWc2PairingUri(uri)
-            setWc2PairingState("awaiting_approval")
-          })
-        } catch {
-          setError("connection_rejected", "Failed to initialize WalletConnect")
-          addToast({ type: "error", title: "WalletConnect Failed", description: "Failed to initialize WalletConnect" })
-          return
-        }
-      }
-
-      try {
-        recordMetric("wallet.connect.attempt", 1, { walletId, mode: "register" })
-        await connect(walletId)
-        const address = useMultiWalletStore.getState().address
-        if (address) {
-          connectSuccess(walletId, address)
-          setLocalStep("profile")
-        }
-      } catch (err: unknown) {
-        const msg = (err && typeof err === "object" && "message" in err)
-          ? (err as { message: string }).message
-          : "Connection was cancelled or failed."
-        if (msg === "Connection cancelled by user") {
-          return
-        }
-        if (walletId === "walletconnect") {
-          setWc2PairingError(msg)
-        }
-        setError("connection_rejected", msg)
-        addToast({ type: "error", title: "Connection Failed", description: msg })
-      } finally {
-        if (walletId === "walletconnect") {
-          import("@/lib/wallet/adapters/walletconnect").then(({ setOnPairingUri }) => {
-            setOnPairingUri(null)
-          })
-        }
-      }
-    },
-    [detectedWallets, connectStart, connect, connectSuccess, setError, setWc2PairingUri, setWc2PairingState, setWc2PairingError, addToast]
-  )
-
-  const handleLedgerConnected = useCallback(
-    (publicKey: string) => {
-      connectStart("ledger")
-      connectSuccess("ledger", publicKey)
-      setLocalStep("profile")
-      setShowLedgerPrompt(false)
-      addToast({
-        type: "success",
-        title: "Ledger Connected",
-        description: `Connected with address ${publicKey.slice(0, 8)}...${publicKey.slice(-4)}`,
-      })
-    },
-    [connectStart, connectSuccess, addToast]
-  )
-
-  const handleWc2Cancel = useCallback(async () => {
-    resetWc2Pairing()
-    const { resetWcState } = await import("@/lib/wallet/adapters/walletconnect")
-    resetWcState()
-    useAuthFlowStore.getState().clearError()
-    useAuthFlowStore.getState().resetConnection()
-    const walletId = connection.walletId
-    if (walletId) {
-      useMultiWalletStore.getState().disconnect(walletId)
-    }
-  }, [connection.walletId, resetWc2Pairing])
-
-  const handleWc2Retry = useCallback(async () => {
-    resetWc2Pairing()
-    const { resetWcState } = await import("@/lib/wallet/adapters/walletconnect")
-    resetWcState()
-    useAuthFlowStore.getState().clearError()
-    useAuthFlowStore.getState().resetConnection()
-    setLocalStep("choose")
-  }, [resetWc2Pairing, setLocalStep])
+  const handlePasskeyStart = useCallback(() => {
+    recordMetric("auth.flow.started", 1, { mode: "register", method: "passkey" })
+    setLocalStep("passkey-email")
+  }, [])
 
   const handleProfileSubmit = useCallback(() => {
     setLocalStep("sign")
@@ -435,21 +299,6 @@ function RegisterPageContent() {
       router.replace("/dashboard")
     }
   }, [sign, router, addToast])
-
-  const wallets = useMemo(
-    () =>
-      detectedWallets.map((w) => ({
-        id: w.id,
-        name: w.name,
-        category: w.category,
-        icon: <WalletIcon id={w.id} name={w.name} size="md" />,
-        description: w.description,
-        isRecommended: w.id === "passkey",
-        installUrl: w.installUrl,
-        status: w.status as "detected" | "not_detected",
-      })),
-    [detectedWallets]
-  )
 
   const currentSteps = isPasskeyFlow ? PASSKEY_STEPS : STEPS
   const currentStepForIndicator = effectiveStep === "passkey-email" ? "verify-email" : effectiveStep
@@ -482,19 +331,42 @@ function RegisterPageContent() {
         {passkeyRevoked && <PasskeyRevokedBanner />}
 
         {effectiveStep === "choose" && (
-          <ChooseWalletStep
-            mode="register"
-            wallets={wallets}
-            isScanning={isScanning}
-            connectingWalletId={connection.walletId}
-            wc2PairingUri={wc2PairingUri}
-            wc2PairingState={wc2PairingState}
-            wc2PairingError={wc2PairingError}
-            wc2QrExpiresAt={wc2QrExpiresAt}
-            onSelectWallet={handleSelectWallet}
-            onWc2Cancel={handleWc2Cancel}
-            onWc2Retry={handleWc2Retry}
-          />
+          <div className="space-y-6" aria-label="Create wallet step">
+            <div className="text-center space-y-2">
+              <div className="flex justify-center">
+                <div className="flex h-14 w-14 items-center justify-center rounded-2xl gradient-bg-extended">
+                  <Fingerprint className="h-7 w-7 text-white" />
+                </div>
+              </div>
+              <p className="font-heading text-lg font-medium text-foreground">Create Your Wallet</p>
+              <p className="text-sm text-muted-foreground">
+                Generate a secure passkey wallet from your email.
+                <br />
+                No crypto knowledge needed.
+              </p>
+            </div>
+
+            {error && (
+              <div className="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-400" role="alert">
+                {error.message}
+              </div>
+            )}
+
+            <button
+              type="button"
+              onClick={handlePasskeyStart}
+              className="w-full h-12 rounded-xl gradient-bg-extended text-white text-sm font-heading font-bold transition-all hover:opacity-90 disabled:opacity-50 disabled:pointer-events-none flex items-center justify-center gap-2 shadow-[0_0_24px_rgb(var(--aurora-violet)/0.25)]"
+            >
+              <Shield className="h-4 w-4" />
+              Create Wallet
+            </button>
+
+            <p className="text-center text-2xs text-muted-foreground">
+              Your wallet is derived from your email and device biometrics.
+              <br />
+              No private keys leave your device.
+            </p>
+          </div>
         )}
 
         {effectiveStep === "passkey-email" && passkeyPhase === "email" && (
@@ -506,7 +378,7 @@ function RegisterPageContent() {
               aria-label="Go back"
             >
               <ArrowLeft className="h-3.5 w-3.5" />
-              Back to wallet options
+              Back to email entry
             </button>
 
             <div className="text-center space-y-2">
@@ -761,12 +633,6 @@ function RegisterPageContent() {
           />
         )}
       </AuthLayout>
-
-      <LedgerPrompt
-        isOpen={showLedgerPrompt}
-        onClose={() => setShowLedgerPrompt(false)}
-        onConnected={handleLedgerConnected}
-      />
     </>
   )
 }
