@@ -128,11 +128,13 @@ export function createWalletConnectAdapter(): WalletAdapter {
     if (wcSignClient) return wcSignClient
 
     const { SignClient } = await import("@walletconnect/sign-client")
+    const initStart = performance.now()
     wcSignClient = await SignClient.init({
       projectId: PROJECT_ID || undefined,
       relayUrl: RELAY_URL,
       metadata: METADATA,
     })
+    getRelayMonitor().recordOutcome(true, performance.now() - initStart)
 
     const stored = getWC2SessionStore().getSession()
     if (stored) {
@@ -169,7 +171,7 @@ export function createWalletConnectAdapter(): WalletAdapter {
     if (!wcSignClient) {
       throw createNotConnectedError("walletconnect")
     }
-    if (relay.status === "down") {
+    if (relay.isDownForSign) {
       throw createRelayDownError("walletconnect")
     }
 
@@ -326,9 +328,6 @@ export function createWalletConnectAdapter(): WalletAdapter {
 
       const relay = getRelayMonitor()
       if (_onRelayStatusChange) _onRelayStatusChange(relay.status)
-      if (relay.status === "down") {
-        throw createRelayDownError("walletconnect")
-      }
 
       const startTime = performance.now()
       const signClient = await getOrInitSignClient()
@@ -379,10 +378,13 @@ export function createWalletConnectAdapter(): WalletAdapter {
             if (!uri) {
               if (!getSettled()) {
                 setSettled()
+                relay.recordOutcome(false, performance.now() - startTime)
                 reject(createInternalError("walletconnect", "No pairing URI returned from WalletConnect"))
               }
               return
             }
+
+            relay.recordOutcome(true, performance.now() - startTime)
 
             if (_wcConnectCancelled) return
 
@@ -442,7 +444,7 @@ export function createWalletConnectAdapter(): WalletAdapter {
       }
 
       const relay = getRelayMonitor()
-      if (relay.status === "down") {
+      if (relay.isDownForSign) {
         throw createRelayDownError("walletconnect")
       }
 
@@ -465,7 +467,7 @@ export function createWalletConnectAdapter(): WalletAdapter {
       }
 
       const relay = getRelayMonitor()
-      if (relay.status === "down") {
+      if (relay.isDownForSign) {
         throw createRelayDownError("walletconnect")
       }
 
@@ -556,6 +558,7 @@ export function resetWcState(): void {
   wcSignClient = null
   _sessionProposalHandler = null
   _sessionDeleteHandler = null
+  getRelayMonitor().reset()
   cleanupWcOverlays()
   getWC2SessionStore().clear()
 }

@@ -18,8 +18,15 @@ vi.mock("@walletconnect/sign-client", () => ({
 }))
 
 const mockRelay = {
-  status: "healthy",
+  status: "healthy" as const,
   recordOutcome: vi.fn(),
+  reset: vi.fn(),
+  get isDownForConnect(): boolean {
+    return this.status === "down"
+  },
+  get isDownForSign(): boolean {
+    return this.status === "down"
+  },
 }
 
 vi.mock("../../wc2-relay", () => ({
@@ -38,7 +45,7 @@ vi.mock("../../wc2-session-store", () => ({
   WC2SessionStore: vi.fn(),
 }))
 
-import { createWalletConnectAdapter, setOnPairingUri } from "../walletconnect"
+import { createWalletConnectAdapter, setOnPairingUri, resetWcState } from "../walletconnect"
 
 describe("WalletConnect Adapter", () => {
   let adapter: ReturnType<typeof createWalletConnectAdapter>
@@ -48,6 +55,11 @@ describe("WalletConnect Adapter", () => {
     adapter = createWalletConnectAdapter()
     mockRelay.status = "healthy"
     setOnPairingUri(null)
+    mockSignClient.connect.mockResolvedValue({ uri: "wc:test" })
+    mockSignClient.session.getAll.mockReturnValue([])
+    mockSignClient.approve.mockResolvedValue({})
+    mockSignClient.disconnect.mockResolvedValue(undefined)
+    mockSignClient.request.mockResolvedValue({ signedXdr: "mockxdr" })
   })
 
   afterEach(() => {
@@ -140,31 +152,20 @@ describe("WalletConnect Adapter", () => {
   })
 
   describe("connect — error paths", () => {
-    it("throws relay_down error when relay is down", async () => {
+    it("connect does not throw synchronously when relay is flagged down", async () => {
       mockRelay.status = "down"
-      try {
-        await adapter.connect()
-        expect.unreachable("Should have thrown")
-      } catch (err: unknown) {
-        const e = err as { code: string }
-        expect(e.code).toBe("internal")
-        expect(e.message).toContain("relay")
-      }
+      let promise: Promise<unknown> | undefined
+      expect(() => { promise = adapter.connect() }).not.toThrow()
+      expect(promise).toBeInstanceOf(Promise)
+      // Wait for connect() async body to set _pendingReject (via
+      // getOrInitSignClient resolving the mocked SignClient.init),
+      // then cancel and consume the rejection so nothing leaks.
+      await new Promise<void>((resolve) => setTimeout(resolve, 20))
+      resetWcState()
+      try { await promise! } catch { /* expected — resetWcState rejected it */ }
     })
 
-    it("throws relay error for connect when relay is down", async () => {
-      mockRelay.status = "down"
-      try {
-        await adapter.connect()
-        expect.unreachable("Should have thrown")
-      } catch (err: unknown) {
-        const e = err as { code: string }
-        expect(e.code).toBe("internal")
-        expect(e.message).toContain("relay")
-      }
-    })
-
-    it("throws not_installed for methods when not connected (regardless of relay)", async () => {
+    it("throws not_installed for signMessage when not connected (regardless of relay)", async () => {
       mockRelay.status = "down"
       try {
         await adapter.signMessage("test")
@@ -175,21 +176,23 @@ describe("WalletConnect Adapter", () => {
       }
     })
 
-    it.skip("throws timeout error when connect takes too long", () => {
-      // Requires real WC2 relay interaction — tested in integration tests
-    })
-
     it("throws internal error when connect returns no URI", async () => {
+      // Ensure clean state before starting
+      resetWcState()
       mockSignClient.connect.mockResolvedValue({})
 
       try {
         await adapter.connect()
         expect.unreachable("Should have thrown")
       } catch (err: unknown) {
-        const e = err as { code: string }
+        const e = err as { code: string; message: string }
         expect(e.code).toBe("internal")
         expect(e.message).toContain("URI")
       }
+    })
+
+    it.skip("throws timeout error when connect takes too long", () => {
+      // Requires real WC2 relay interaction — tested in integration tests
     })
   })
 

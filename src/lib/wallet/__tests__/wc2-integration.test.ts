@@ -15,10 +15,16 @@ vi.mock("../wc2-relay", () => ({
   WCRelayMonitor: vi.fn().mockImplementation(() => ({
     status: "healthy",
     recordOutcome: vi.fn(),
+    reset: vi.fn(),
+    isDownForConnect: false,
+    isDownForSign: false,
   })),
   getRelayMonitor: vi.fn().mockReturnValue({
     status: "healthy",
     recordOutcome: vi.fn(),
+    reset: vi.fn(),
+    isDownForConnect: false,
+    isDownForSign: false,
   }),
 }))
 

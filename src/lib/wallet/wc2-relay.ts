@@ -11,6 +11,8 @@ const DEGRADED_THRESHOLD = 0.5
 const HEALTHY_LATENCY = 2000
 const RECOVERY_CONSECUTIVE_SUCCESS = 3
 const HEALTHY_CONSECUTIVE_SUCCESS = 5
+const MIN_WINDOW_DOWN = 3
+const MIN_WINDOW_SIGN_BLOCK = 5
 
 export class WCRelayMonitor {
   private window: RelayEntry[] = []
@@ -34,6 +36,26 @@ export class WCRelayMonitor {
     }
 
     this.recalculate()
+  }
+
+  reset(): void {
+    this.window = []
+    this.consecutiveSuccesses = 0
+    this._status = "healthy"
+  }
+
+  get isDownForConnect(): boolean {
+    if (this.window.length < MIN_WINDOW_DOWN) return false
+    const successCount = this.window.filter((e) => e.success).length
+    const successRate = successCount / this.window.length
+    return this._status === "down" && successRate < DEGRADED_THRESHOLD
+  }
+
+  get isDownForSign(): boolean {
+    if (this.window.length < MIN_WINDOW_SIGN_BLOCK) return false
+    const successCount = this.window.filter((e) => e.success).length
+    const successRate = successCount / this.window.length
+    return this._status === "down" && successRate < DEGRADED_THRESHOLD
   }
 
   private recalculate(): void {
