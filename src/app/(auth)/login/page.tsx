@@ -53,6 +53,7 @@ function LoginPageContent() {
 
   const doPasskeyAuthenticate = useCallback(async () => {
     const store = useAuthFlowStore.getState()
+    if (store.status.status === "connecting" || store.status.status === "signing") return
     store.connectStart("passkey")
 
     try {

@@ -229,7 +229,7 @@ function RegisterPageContent() {
   }, [codeDigits, handleCodeVerify])
 
   const handlePasskeyContinue = useCallback(async () => {
-    if (!passkeyEmailInput || !captchaToken) return
+    if (!passkeyEmailInput || !captchaToken || isCreatingPasskey) return
     setIsCreatingPasskey(true)
     setPasskeyEmail(passkeyEmailInput)
     connectStart("passkey")
