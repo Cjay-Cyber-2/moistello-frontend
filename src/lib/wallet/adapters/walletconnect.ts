@@ -108,6 +108,7 @@ let connectedPublicKey: string | null = null
 let connectedNetwork: NetworkType = "testnet"
 let sessionTopic: string | null = null
 let wcSignClient: unknown = null
+let wcModalInstance: { openModal: (opts: { uri: string }) => void; closeModal: () => void } | null = null
 
 export function createWalletConnectAdapter(): WalletAdapter {
   const meta: WalletMeta = {
@@ -312,8 +313,6 @@ export function createWalletConnectAdapter(): WalletAdapter {
     }
     signClient.on("session_delete", _sessionDeleteHandler)
   }
-
-  let wcModalInstance: { openModal: (opts: { uri: string }) => void; closeModal: () => void } | null = null
 
   return {
     meta,
@@ -520,6 +519,10 @@ export function resetWcState(): void {
   wcSignClient = null
   _sessionProposalHandler = null
   _sessionDeleteHandler = null
+  if (wcModalInstance) {
+    try { wcModalInstance.closeModal() } catch {}
+    wcModalInstance = null
+  }
   getWC2SessionStore().clear()
 }
 

@@ -351,10 +351,14 @@ function RegisterPageContent() {
         }
       } catch (err: unknown) {
         if (walletId === "walletconnect") {
-          const errMsg = err instanceof Error ? err.message : "Connection cancelled or failed."
+          const errMsg = (err && typeof err === "object" && "message" in err)
+            ? (err as { message: string }).message
+            : "Connection cancelled or failed."
           setWc2PairingError(errMsg)
         }
-        const msg = err instanceof Error ? err.message : "Connection was cancelled or failed."
+        const msg = (err && typeof err === "object" && "message" in err)
+          ? (err as { message: string }).message
+          : "Connection was cancelled or failed."
         setError("connection_rejected", msg)
         addToast({ type: "error", title: "Connection Failed", description: msg })
       } finally {
@@ -387,6 +391,7 @@ function RegisterPageContent() {
     resetWc2Pairing()
     const { resetWcState } = await import("@/lib/wallet/adapters/walletconnect")
     resetWcState()
+    useAuthFlowStore.getState().clearError()
     const walletId = connection.walletId
     if (walletId) {
       useMultiWalletStore.getState().disconnect(walletId)
@@ -397,8 +402,9 @@ function RegisterPageContent() {
     resetWc2Pairing()
     const { resetWcState } = await import("@/lib/wallet/adapters/walletconnect")
     resetWcState()
+    useAuthFlowStore.getState().clearError()
     setLocalStep("choose")
-  }, [resetWc2Pairing])
+  }, [resetWc2Pairing, setLocalStep])
 
   const handleProfileSubmit = useCallback(() => {
     setLocalStep("sign")
