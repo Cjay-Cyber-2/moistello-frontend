@@ -1,25 +1,21 @@
 "use client"
 
-import { useCallback, useEffect, useRef, useState } from "react"
+import { useCallback, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { Shield } from "lucide-react"
 import { useAuthFlow, AuthFlowProvider } from "@/hooks/auth-flow-context"
 import { useAuthFlowStore } from "@/stores/auth-flow-store"
 import { useUIStore } from "@/stores/ui-store"
 import { useSignMessage } from "@/hooks/use-sign-message"
-import { useEmailVerification } from "@/hooks/use-email-verification"
 import { useRedirectIfAuthenticated } from "@/hooks/use-redirect-if-authenticated"
 import { useConditionalMediation } from "@/hooks/use-conditional-mediation"
 import { recordMetric } from "@/lib/monitoring"
 import { getWalletRegistry } from "@/lib/wallet/registry"
-import { passkeyEmailStore } from "@/lib/passkey/login-email-store"
 import { AuthLayout } from "@/components/auth/auth-layout"
-import { VerifyEmailStep } from "@/components/auth/verify-email-step"
 import { SignStep } from "@/components/auth/sign-step"
 import { LoadingOverlay } from "@/components/auth/loading-overlay"
 import { SessionTimeoutBanner } from "@/components/auth/session-timeout-banner"
 import { PasskeyRevokedBanner } from "@/components/auth/passkey-revoked-banner"
-import { PasskeyCaptchaStep } from "@/components/auth/passkey-captcha-step"
 
 function LoginPageContent() {
   const router = useRouter()
@@ -37,15 +33,10 @@ function LoginPageContent() {
 
   const startLoginFlow = useAuthFlow((s) => s.startLoginFlow)
   const setStep = useAuthFlow((s) => s.setStep)
-  const goBack = useAuthFlow((s) => s.goBack)
 
   const { sign } = useSignMessage()
-  const { emailVerification, sendCode, verifyCode: verifyEmailCode, resendCode } = useEmailVerification()
 
   const addToast = useUIStore((s) => s.addToast)
-  const [showPasskeyCaptcha, setShowPasskeyCaptcha] = useState(false)
-
-  const passkeyLoginAttemptedRef = useRef(false)
 
   useEffect(() => {
     if (mode !== "login") startLoginFlow()
@@ -57,64 +48,37 @@ function LoginPageContent() {
     })
   }, [])
 
+  const doPasskeyAuthenticate = useCallback(async () => {
+    const store = useAuthFlowStore.getState()
+    store.connectStart("passkey")
+
+    try {
+      const adapter = getWalletRegistry().getAdapter("passkey")
+      if (!adapter) throw new Error("Passkey adapter not found")
+      const { publicKey } = await adapter.connect()
+      if (!publicKey) {
+        throw new Error("Could not retrieve passkey address")
+      }
+      store.connectSuccess("passkey", publicKey)
+      const authStatus = useAuthFlowStore.getState().status.status
+      if (authStatus !== "authenticated") {
+        await useAuthFlowStore.getState().signAndSubmit()
+      }
+      if (useAuthFlowStore.getState().status.status === "authenticated") {
+        addToast({ type: "success", title: "Welcome back!", description: "You are now signed in." })
+        router.replace("/dashboard")
+      }
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Passkey authentication failed"
+      store.setError("connection_rejected", msg)
+      addToast({ type: "error", title: "Passkey Login Failed", description: msg })
+    }
+  }, [router, addToast])
+
   const handlePasskeyLogin = useCallback(() => {
     recordMetric("auth.flow.started", 1, { mode: "login", method: "passkey" })
-    setShowPasskeyCaptcha(true)
-  }, [])
-
-  const handlePasskeyCaptchaVerified = useCallback((captchaToken: string) => {
-    const savedEmail = passkeyEmailStore.get()
-    if (savedEmail) {
-      useAuthFlowStore.getState().sendVerificationCode(savedEmail, captchaToken)
-    }
-    setShowPasskeyCaptcha(false)
-    setStep("verify-email")
-  }, [setStep])
-
-  useEffect(() => {
-    if (step !== "verify-email" || !emailVerification.codeVerified || passkeyLoginAttemptedRef.current) return
-
-    passkeyLoginAttemptedRef.current = true
-
-    const doPasskeyAuth = async () => {
-      const store = useAuthFlowStore.getState()
-
-      passkeyEmailStore.save(emailVerification.email)
-      store.connectStart("passkey")
-
-      try {
-        const adapter = getWalletRegistry().getAdapter("passkey")
-        if (!adapter) throw new Error("Passkey adapter not found")
-        const { publicKey } = await adapter.connect()
-        if (publicKey) {
-          store.connectSuccess("passkey", publicKey)
-          const authStatus = useAuthFlowStore.getState().status.status
-          if (authStatus !== "authenticated") {
-            await useAuthFlowStore.getState().signAndSubmit()
-          }
-          const finalStatus = useAuthFlowStore.getState().status.status
-          if (finalStatus === "authenticated") {
-            addToast({
-              type: "success",
-              title: "Welcome back!",
-              description: "You are now signed in.",
-            })
-            router.replace("/dashboard")
-          }
-        } else {
-          const msg = "Could not retrieve passkey address."
-          store.setError("connection_rejected", msg)
-          addToast({ type: "error", title: "Passkey Login Failed", description: msg })
-        }
-      } catch {
-        const msg = "Passkey authentication failed."
-        store.setError("connection_rejected", msg)
-        addToast({ type: "error", title: "Passkey Login Failed", description: msg })
-      }
-    }
-
-    doPasskeyAuth()
-  }, [step, emailVerification.codeVerified, emailVerification.email, router, addToast])
+    doPasskeyAuthenticate()
+  }, [doPasskeyAuthenticate])
 
   const handleSignSubmit = useCallback(async () => {
     await sign()
@@ -161,13 +125,7 @@ function LoginPageContent() {
           />
         )}
 
-        {showPasskeyCaptcha ? (
-          <PasskeyCaptchaStep
-            email={passkeyEmailStore.get()}
-            onVerified={handlePasskeyCaptchaVerified}
-            onBack={() => setShowPasskeyCaptcha(false)}
-          />
-        ) : step === "choose" || status.status === "connected" ? (
+        {step === "choose" || status.status === "connected" ? (
           <div className="space-y-6">
             <div className="text-center space-y-2">
               <div className="flex justify-center">
@@ -202,16 +160,6 @@ function LoginPageContent() {
               Your email and device are your keys.
             </p>
           </div>
-        ) : step === "verify-email" ? (
-          <VerifyEmailStep
-            emailVerification={emailVerification}
-            status={status}
-            error={error}
-            onSendCode={sendCode}
-            onVerifyCode={verifyEmailCode}
-            onResend={resendCode}
-            onBack={goBack}
-          />
         ) : step === "sign" ? (
           <SignStep
             mode="login"
