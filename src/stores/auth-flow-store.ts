@@ -486,6 +486,7 @@ export const useAuthFlowStore = create<AuthFlowStore>()(
               if (profile.countryCode) body.countryCode = profile.countryCode
               if (profile.language) body.preferredLanguage = profile.language
               if (state.captchaToken) body.captchaToken = state.captchaToken
+              if (state.emailVerification.verificationId) body.verificationId = state.emailVerification.verificationId
             }
 
             const authResponse = await post<{
