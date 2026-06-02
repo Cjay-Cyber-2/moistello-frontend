@@ -99,6 +99,7 @@ interface AuthFlowActions {
   goBack: () => void
   setError: (code: AuthErrorCode, message: string) => void
   clearError: () => void
+  resetConnection: () => void
   connect: (walletId: string) => Promise<void>
   connectStart: (walletId: string) => void
   connectSuccess: (walletId: string, address: string) => void
@@ -225,6 +226,17 @@ export const useAuthFlowStore = create<AuthFlowStore>()(
           }),
 
         clearError: () => set({ error: null, status: { status: "idle" } }),
+
+        resetConnection: () =>
+          set((state) => ({
+            connection: {
+              ...state.connection,
+              walletId: null,
+              address: null,
+              pairingUri: null,
+              protocol: null,
+            },
+          })),
 
         connect: async (_walletId) => {
           set({ status: { status: "connecting", walletId: _walletId } })

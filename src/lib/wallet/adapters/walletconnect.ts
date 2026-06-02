@@ -13,13 +13,15 @@ const METADATA = {
 
 const SIGN_TIMEOUT = 60_000
 const CONNECT_TIMEOUT = 120_000
-const CONNECT_INIT_TIMEOUT = 30_000
+const CONNECT_INIT_TIMEOUT = 60_000
 
 let _onPairingUri: ((uri: string) => void) | null = null
 let _onRelayStatusChange: ((status: RelayStatus) => void) | null = null
 let _sessionProposalHandler: ((...args: unknown[]) => void) | null = null
 let _sessionDeleteHandler: ((...args: unknown[]) => void) | null = null
 let _wcConnectCancelled = false
+let _pendingSetSettled: (() => void) | null = null
+let _pendingReject: ((reason: unknown) => void) | null = null
 
 export function setOnPairingUri(handler: ((uri: string) => void) | null): void {
   _onPairingUri = handler
@@ -319,6 +321,8 @@ export function createWalletConnectAdapter(): WalletAdapter {
 
     async connect(): Promise<{ publicKey: string }> {
       _wcConnectCancelled = false
+      _pendingSetSettled = null
+      _pendingReject = null
 
       const relay = getRelayMonitor()
       if (_onRelayStatusChange) _onRelayStatusChange(relay.status)
@@ -334,6 +338,9 @@ export function createWalletConnectAdapter(): WalletAdapter {
       const setSettled = () => { settled = true }
 
       return new Promise<{ publicKey: string }>((resolve, reject) => {
+        _pendingSetSettled = setSettled
+        _pendingReject = reject
+
         createSessionHandler(
           signClient as {
             on: (event: string, handler: (...args: unknown[]) => void) => void
@@ -365,6 +372,8 @@ export function createWalletConnectAdapter(): WalletAdapter {
               ),
             ])
 
+            if (_wcConnectCancelled) return
+
             const { uri } = result as { uri?: string }
 
             if (!uri) {
@@ -381,7 +390,7 @@ export function createWalletConnectAdapter(): WalletAdapter {
               _onPairingUri(uri)
             }
           } catch (err) {
-            if (!getSettled()) {
+            if (!getSettled() && !_wcConnectCancelled) {
               setSettled()
               relay.recordOutcome(false, performance.now() - startTime)
               reject(err)
@@ -392,7 +401,7 @@ export function createWalletConnectAdapter(): WalletAdapter {
         initConnect()
 
         setTimeout(() => {
-          if (!getSettled()) {
+          if (!getSettled() && !_wcConnectCancelled) {
             setSettled()
             relay.recordOutcome(false, performance.now() - startTime)
             reject(createTimeoutError("walletconnect", CONNECT_TIMEOUT))
@@ -533,6 +542,14 @@ export function cleanupWcOverlays(): void {
 
 export function resetWcState(): void {
   _wcConnectCancelled = true
+  if (_pendingSetSettled) {
+    try { _pendingSetSettled() } catch {}
+  }
+  if (_pendingReject) {
+    try { _pendingReject(createInternalError("walletconnect", "Connection cancelled by user")) } catch {}
+  }
+  _pendingSetSettled = null
+  _pendingReject = null
   connectedPublicKey = null
   connectedNetwork = "testnet"
   sessionTopic = null

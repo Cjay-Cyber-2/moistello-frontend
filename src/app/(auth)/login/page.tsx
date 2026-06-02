@@ -191,15 +191,15 @@ function LoginPageContent() {
           setStep("sign")
         }
       } catch (err: unknown) {
-        if (walletId === "walletconnect") {
-          const errMsg = (err && typeof err === "object" && "message" in err)
-            ? (err as { message: string }).message
-            : "Connection cancelled or failed."
-          setWc2PairingError(errMsg)
-        }
         const msg = (err && typeof err === "object" && "message" in err)
           ? (err as { message: string }).message
           : "Connection was cancelled or failed."
+        if (msg === "Connection cancelled by user") {
+          return
+        }
+        if (walletId === "walletconnect") {
+          setWc2PairingError(msg)
+        }
         setError("connection_rejected", msg)
         addToast({ type: "error", title: "Connection Failed", description: msg })
       } finally {
@@ -233,6 +233,7 @@ function LoginPageContent() {
     const { resetWcState } = await import("@/lib/wallet/adapters/walletconnect")
     resetWcState()
     useAuthFlowStore.getState().clearError()
+    useAuthFlowStore.getState().resetConnection()
     const walletId = connection.walletId
     if (walletId) {
       useMultiWalletStore.getState().disconnect(walletId)
@@ -244,6 +245,7 @@ function LoginPageContent() {
     const { resetWcState } = await import("@/lib/wallet/adapters/walletconnect")
     resetWcState()
     useAuthFlowStore.getState().clearError()
+    useAuthFlowStore.getState().resetConnection()
     setStep("choose")
   }, [resetWc2Pairing, setStep])
 
