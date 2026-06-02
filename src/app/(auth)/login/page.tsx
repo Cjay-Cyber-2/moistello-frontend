@@ -5,13 +5,13 @@ import { useRouter } from "next/navigation"
 import { Shield } from "lucide-react"
 import { useAuthFlow, AuthFlowProvider } from "@/hooks/auth-flow-context"
 import { useAuthFlowStore } from "@/stores/auth-flow-store"
-import { useMultiWalletStore } from "@/stores/multi-wallet-store"
 import { useUIStore } from "@/stores/ui-store"
 import { useSignMessage } from "@/hooks/use-sign-message"
 import { useEmailVerification } from "@/hooks/use-email-verification"
 import { useRedirectIfAuthenticated } from "@/hooks/use-redirect-if-authenticated"
 import { useConditionalMediation } from "@/hooks/use-conditional-mediation"
 import { recordMetric } from "@/lib/monitoring"
+import { getWalletRegistry } from "@/lib/wallet/registry"
 import { passkeyEmailStore } from "@/lib/passkey/login-email-store"
 import { AuthLayout } from "@/components/auth/auth-layout"
 import { VerifyEmailStep } from "@/components/auth/verify-email-step"
@@ -72,17 +72,16 @@ function LoginPageContent() {
 
     const doPasskeyAuth = async () => {
       const store = useAuthFlowStore.getState()
-      const mwState = useMultiWalletStore.getState()
 
       passkeyEmailStore.save(emailVerification.email)
       store.connectStart("passkey")
 
       try {
-        await mwState.connect("passkey")
-        const updatedMw = useMultiWalletStore.getState()
-        const address = updatedMw.address
-        if (address) {
-          store.connectSuccess("passkey", address)
+        const adapter = getWalletRegistry().getAdapter("passkey")
+        if (!adapter) throw new Error("Passkey adapter not found")
+        const { publicKey } = await adapter.connect()
+        if (publicKey) {
+          store.connectSuccess("passkey", publicKey)
           const authStatus = useAuthFlowStore.getState().status.status
           if (authStatus !== "authenticated") {
             await useAuthFlowStore.getState().signAndSubmit()

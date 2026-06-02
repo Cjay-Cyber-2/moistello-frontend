@@ -13,6 +13,7 @@ import { useProfileForm } from "@/hooks/use-profile-form"
 import { useRedirectIfAuthenticated } from "@/hooks/use-redirect-if-authenticated"
 import { useConditionalMediation } from "@/hooks/use-conditional-mediation"
 import { recordMetric } from "@/lib/monitoring"
+import { getWalletRegistry } from "@/lib/wallet/registry"
 import { AuthLayout } from "@/components/auth/auth-layout"
 import { AuthStepIndicator } from "@/components/auth/auth-step-indicator"
 import { VerifyEmailStep } from "@/components/auth/verify-email-step"
@@ -56,7 +57,6 @@ function RegisterPageContent() {
   const connectStart = useAuthFlow((s) => s.connectStart)
   const connectSuccess = useAuthFlow((s) => s.connectSuccess)
 
-  const connect = useMultiWalletStore((s) => s.connect)
   const passkeyState = useMultiWalletStore((s) => s.passkeyState)
   const setPasskeyEmail = useMultiWalletStore((s) => s.setPasskeyEmail)
   const setPasskeyPublicKey = useMultiWalletStore((s) => s.setPasskeyPublicKey)
@@ -227,13 +227,11 @@ function RegisterPageContent() {
     try {
       useAuthFlowStore.getState().setCaptchaToken(captchaToken)
       recordMetric("auth.flow.started", 1, { mode: "register", method: "passkey" })
-      await connect("passkey")
-      const mwAddress = useMultiWalletStore.getState().address
-      if (!mwAddress) {
-        throw new Error("Failed to get wallet address from passkey")
-      }
-      setPasskeyPublicKey(mwAddress)
-      connectSuccess("passkey", mwAddress)
+      const adapter = getWalletRegistry().getAdapter("passkey")
+      if (!adapter) throw new Error("Passkey adapter not found")
+      const { publicKey } = await (adapter as { connect: (email: string) => Promise<{ publicKey: string }> }).connect(passkeyEmailInput)
+      setPasskeyPublicKey(publicKey)
+      connectSuccess("passkey", publicKey)
       setLocalStep("profile")
       addToast({
         type: "success",
@@ -247,7 +245,7 @@ function RegisterPageContent() {
     } finally {
       setIsCreatingPasskey(false)
     }
-  }, [passkeyEmailInput, captchaToken, connect, setPasskeyEmail, setPasskeyPublicKey, connectStart, connectSuccess, addToast])
+  }, [passkeyEmailInput, captchaToken, setPasskeyEmail, connectStart, connectSuccess, setPasskeyPublicKey, addToast])
 
   const handlePasskeyBack = useCallback(() => {
     if (passkeyPhase === "code") {
