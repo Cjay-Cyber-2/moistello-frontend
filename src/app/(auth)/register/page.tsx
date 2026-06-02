@@ -256,6 +256,7 @@ function RegisterPageContent() {
       setCodeError(null)
     } else if (passkeyPhase === "captcha") {
       setPasskeyPhase("code")
+      setCaptchaToken(null)
     } else {
       setLocalStep("choose")
       setPasskeyEmailError(null)
@@ -369,232 +370,247 @@ function RegisterPageContent() {
           </div>
         )}
 
-        {effectiveStep === "passkey-email" && passkeyPhase === "email" && (
-          <div className="space-y-6" aria-label="Passkey email step">
-            <button
-              type="button"
-              onClick={handlePasskeyBack}
-              className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
-              aria-label="Go back"
-            >
-              <ArrowLeft className="h-3.5 w-3.5" />
-              Back to email entry
-            </button>
-
-            <div className="text-center space-y-2">
-              <div className="flex justify-center">
-                <div className="flex h-14 w-14 items-center justify-center rounded-2xl gradient-bg-extended">
-                  <Fingerprint className="h-7 w-7 text-white" />
-                </div>
-              </div>
-              <p className="font-heading text-lg font-medium text-foreground">Create Your Wallet</p>
-              <p className="text-sm text-muted-foreground">
-                Enter your email to create a passkey wallet.
-                <br />
-                No crypto knowledge needed.
-              </p>
-            </div>
-
-            <div className="space-y-4">
-              <AuthInput
-                label="Email address"
-                type="email"
-                autoCompleteType="email"
-                placeholder="you@example.com"
-                value={passkeyEmailInput}
-                onChange={(e) => {
-                  setPasskeyEmailInput(e.target.value)
-                  if (passkeyEmailError) setPasskeyEmailError(null)
-                }}
-                error={passkeyEmailError}
-                disabled={isSendingCode}
-                maxLength={254}
-              />
-
-              {error && (
-                <div className="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-400" role="alert">
-                  {error.message}
-                </div>
-              )}
-
-              <button
-                type="button"
-                onClick={handlePasskeyEmailSubmit}
-                disabled={!passkeyEmailInput || isSendingCode}
-                className="w-full h-12 rounded-xl gradient-bg-extended text-white text-sm font-heading font-bold transition-all hover:opacity-90 disabled:opacity-50 disabled:pointer-events-none flex items-center justify-center gap-2 shadow-[0_0_24px_rgb(var(--aurora-violet)/0.25)]"
+        {effectiveStep === "passkey-email" && (
+          <>
+            {/* Pre-load hCaptcha during code entry — runs in background */}
+            {passkeyPhase !== "email" && (
+              <div
+                style={
+                  passkeyPhase === "code"
+                    ? { position: "absolute", left: "-9999px", width: "100%" }
+                    : undefined
+                }
               >
-                {isSendingCode ? (
-                  <>
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                    Sending...
-                  </>
-                ) : (
-                  <>
-                    <Mail className="h-4 w-4" />
-                    Confirm Email
-                  </>
-                )}
-              </button>
-            </div>
-
-            <p className="text-center text-2xs text-muted-foreground">
-              Your wallet is derived from your email and device biometrics.
-              <br />
-              No private keys leave your device.
-            </p>
-          </div>
-        )}
-
-        {effectiveStep === "passkey-email" && passkeyPhase === "code" && (
-          <div className="space-y-6" aria-label="Passkey code verification step">
-            <button
-              type="button"
-              onClick={handlePasskeyBack}
-              className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
-              aria-label="Go back"
-            >
-              <ArrowLeft className="h-3.5 w-3.5" />
-              Back to email
-            </button>
-
-            <div className="text-center space-y-2">
-              <div className="flex justify-center">
-                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-aurora-violet/20">
-                  <Mail className="h-6 w-6 text-aurora-violet" />
-                </div>
+                <HCaptchaCaptcha
+                  onVerify={(token) => setCaptchaToken(token)}
+                  onError={() => setCaptchaToken(null)}
+                />
               </div>
-              <p className="font-heading text-lg font-medium text-foreground">Check your inbox</p>
-              <p className="text-sm text-muted-foreground">
-                We sent a code to{" "}
-                <span className="font-medium text-foreground">{passkeyEmailInput}</span>
-              </p>
-            </div>
+            )}
 
-            <div className="space-y-4">
-              <div className="flex items-center justify-center gap-2">
-                {codeDigits.map((digit, index) => (
-                  <input
-                    key={index}
-                    ref={(el) => { codeInputRefs.current[index] = el }}
-                    type="text"
-                    inputMode="numeric"
-                    maxLength={1}
-                    value={digit}
-                    onChange={(e) => handleCodeDigitChange(index, e.target.value)}
-                    onKeyDown={(e) => handleCodeKeyDown(index, e)}
-                    onPaste={index === 0 ? handleCodePaste : undefined}
-                    disabled={isVerifyingCode}
-                    className="h-12 w-10 rounded-xl border border-white/20 bg-white/5 text-center text-lg font-bold text-foreground outline-none transition-colors focus:border-aurora-violet focus:ring-1 focus:ring-aurora-violet disabled:opacity-50"
-                    aria-label={`Digit ${index + 1} of 6`}
+            {passkeyPhase === "email" && (
+              <div className="space-y-6" aria-label="Passkey email step">
+                <button
+                  type="button"
+                  onClick={handlePasskeyBack}
+                  className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
+                  aria-label="Go back"
+                >
+                  <ArrowLeft className="h-3.5 w-3.5" />
+                  Back to email entry
+                </button>
+
+                <div className="text-center space-y-2">
+                  <div className="flex justify-center">
+                    <div className="flex h-14 w-14 items-center justify-center rounded-2xl gradient-bg-extended">
+                      <Fingerprint className="h-7 w-7 text-white" />
+                    </div>
+                  </div>
+                  <p className="font-heading text-lg font-medium text-foreground">Create Your Wallet</p>
+                  <p className="text-sm text-muted-foreground">
+                    Enter your email to create a passkey wallet.
+                    <br />
+                    No crypto knowledge needed.
+                  </p>
+                </div>
+
+                <div className="space-y-4">
+                  <AuthInput
+                    label="Email address"
+                    type="email"
+                    autoCompleteType="email"
+                    placeholder="you@example.com"
+                    value={passkeyEmailInput}
+                    onChange={(e) => {
+                      setPasskeyEmailInput(e.target.value)
+                      if (passkeyEmailError) setPasskeyEmailError(null)
+                    }}
+                    error={passkeyEmailError}
+                    disabled={isSendingCode}
+                    maxLength={254}
                   />
-                ))}
-              </div>
 
-              {codeError && (
-                <div className="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-400 text-center" role="alert">
-                  {codeError}
-                </div>
-              )}
+                  {error && (
+                    <div className="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-400" role="alert">
+                      {error.message}
+                    </div>
+                  )}
 
-              {isVerifyingCode && (
-                <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground" role="status" aria-live="polite">
-                  <Loader2 className="h-3 w-3 animate-spin" />
-                  Verifying code...
-                </div>
-              )}
-
-              {countdown > 0 && (
-                <div className="flex items-center justify-center gap-1.5 text-xs text-muted-foreground">
-                  <Clock className="h-3 w-3" />
-                  Code expires in {Math.floor(countdown / 60)}:{String(countdown % 60).padStart(2, "0")}
-                </div>
-              )}
-
-              <div className="text-center text-xs text-muted-foreground">
-                Didn&apos;t receive it?{" "}
-                {resendCooldown > 0 ? (
-                  <span className="text-muted-foreground/60">Resend in {resendCooldown}s</span>
-                ) : (
                   <button
                     type="button"
-                    onClick={handlePasskeyResend}
-                    className="text-aurora-cyan hover:underline"
+                    onClick={handlePasskeyEmailSubmit}
+                    disabled={!passkeyEmailInput || isSendingCode}
+                    className="w-full h-12 rounded-xl gradient-bg-extended text-white text-sm font-heading font-bold transition-all hover:opacity-90 disabled:opacity-50 disabled:pointer-events-none flex items-center justify-center gap-2 shadow-[0_0_24px_rgb(var(--aurora-violet)/0.25)]"
                   >
-                    Resend
+                    {isSendingCode ? (
+                      <>
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                        Sending...
+                      </>
+                    ) : (
+                      <>
+                        <Mail className="h-4 w-4" />
+                        Confirm Email
+                      </>
+                    )}
                   </button>
-                )}
+                </div>
+
+                <p className="text-center text-2xs text-muted-foreground">
+                  Your wallet is derived from your email and device biometrics.
+                  <br />
+                  No private keys leave your device.
+                </p>
               </div>
-            </div>
-          </div>
-        )}
+            )}
 
-        {effectiveStep === "passkey-email" && passkeyPhase === "captcha" && (
-          <div className="space-y-6" aria-label="Passkey captcha step">
-            <button
-              type="button"
-              onClick={handlePasskeyBack}
-              className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
-              aria-label="Go back"
-            >
-              <ArrowLeft className="h-3.5 w-3.5" />
-              Back to code verification
-            </button>
+            {passkeyPhase === "code" && (
+              <div className="space-y-6" aria-label="Passkey code verification step">
+                <button
+                  type="button"
+                  onClick={handlePasskeyBack}
+                  className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
+                  aria-label="Go back"
+                >
+                  <ArrowLeft className="h-3.5 w-3.5" />
+                  Back to email
+                </button>
 
-            <div className="text-center space-y-2">
-              <div className="flex justify-center">
-                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-emerald-500/20">
-                  <Shield className="h-6 w-6 text-emerald-400" />
+                <div className="text-center space-y-2">
+                  <div className="flex justify-center">
+                    <div className="flex h-12 w-12 items-center justify-center rounded-full bg-aurora-violet/20">
+                      <Mail className="h-6 w-6 text-aurora-violet" />
+                    </div>
+                  </div>
+                  <p className="font-heading text-lg font-medium text-foreground">Check your inbox</p>
+                  <p className="text-sm text-muted-foreground">
+                    We sent a code to{" "}
+                    <span className="font-medium text-foreground">{passkeyEmailInput}</span>
+                  </p>
+                </div>
+
+                <div className="space-y-4">
+                  <div className="flex items-center justify-center gap-2">
+                    {codeDigits.map((digit, index) => (
+                      <input
+                        key={index}
+                        ref={(el) => { codeInputRefs.current[index] = el }}
+                        type="text"
+                        inputMode="numeric"
+                        maxLength={1}
+                        value={digit}
+                        onChange={(e) => handleCodeDigitChange(index, e.target.value)}
+                        onKeyDown={(e) => handleCodeKeyDown(index, e)}
+                        onPaste={index === 0 ? handleCodePaste : undefined}
+                        disabled={isVerifyingCode}
+                        className="h-12 w-10 rounded-xl border border-white/20 bg-white/5 text-center text-lg font-bold text-foreground outline-none transition-colors focus:border-aurora-violet focus:ring-1 focus:ring-aurora-violet disabled:opacity-50"
+                        aria-label={`Digit ${index + 1} of 6`}
+                      />
+                    ))}
+                  </div>
+
+                  {codeError && (
+                    <div className="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-400 text-center" role="alert">
+                      {codeError}
+                    </div>
+                  )}
+
+                  {isVerifyingCode && (
+                    <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground" role="status" aria-live="polite">
+                      <Loader2 className="h-3 w-3 animate-spin" />
+                      Verifying code...
+                    </div>
+                  )}
+
+                  {countdown > 0 && (
+                    <div className="flex items-center justify-center gap-1.5 text-xs text-muted-foreground">
+                      <Clock className="h-3 w-3" />
+                      Code expires in {Math.floor(countdown / 60)}:{String(countdown % 60).padStart(2, "0")}
+                    </div>
+                  )}
+
+                  <div className="text-center text-xs text-muted-foreground">
+                    Didn&apos;t receive it?{" "}
+                    {resendCooldown > 0 ? (
+                      <span className="text-muted-foreground/60">Resend in {resendCooldown}s</span>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={handlePasskeyResend}
+                        className="text-aurora-cyan hover:underline"
+                      >
+                        Resend
+                      </button>
+                    )}
+                  </div>
                 </div>
               </div>
-              <p className="font-heading text-lg font-medium text-foreground">Email Verified</p>
-              <p className="text-sm text-muted-foreground">
-                <span className="font-medium text-foreground">{passkeyEmailInput}</span>
-              </p>
-            </div>
+            )}
 
-            <div className="space-y-4">
-              <HCaptchaCaptcha
-                onVerify={(token) => setCaptchaToken(token)}
-                onError={() => setCaptchaToken(null)}
-              />
+            {passkeyPhase === "captcha" && (
+              <div className="space-y-6" aria-label="Passkey captcha step">
+                <button
+                  type="button"
+                  onClick={handlePasskeyBack}
+                  className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
+                  aria-label="Go back"
+                >
+                  <ArrowLeft className="h-3.5 w-3.5" />
+                  Back to code verification
+                </button>
 
-              {passkeyEmailError && (
-                <div className="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-400 text-center" role="alert">
-                  {passkeyEmailError}
+                <div className="text-center space-y-2">
+                  <div className="flex justify-center">
+                    <div className="flex h-12 w-12 items-center justify-center rounded-full bg-emerald-500/20">
+                      <Shield className="h-6 w-6 text-emerald-400" />
+                    </div>
+                  </div>
+                  <p className="font-heading text-lg font-medium text-foreground">Email Verified</p>
+                  <p className="text-sm text-muted-foreground">
+                    <span className="font-medium text-foreground">{passkeyEmailInput}</span>
+                  </p>
                 </div>
-              )}
 
-              <button
-                type="button"
-                onClick={handlePasskeyContinue}
-                disabled={!captchaToken || isCreatingPasskey}
-                className="w-full h-12 rounded-xl gradient-bg-extended text-white text-sm font-heading font-bold transition-all hover:opacity-90 disabled:opacity-50 disabled:pointer-events-none flex items-center justify-center gap-2 shadow-[0_0_24px_rgb(var(--aurora-violet)/0.25)]"
-              >
-                {isCreatingPasskey ? (
-                  <>
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                    {passkeyState === "registering" || passkeyState === "deriving"
-                      ? "Creating passkey..."
-                      : passkeyState === "awaiting_biometric"
-                        ? "Scan biometric..."
-                        : "Setting up wallet..."}
-                  </>
-                ) : (
-                  <>
-                    <Shield className="h-4 w-4" />
-                    Continue
-                  </>
-                )}
-              </button>
+                <div className="space-y-4">
+                  {passkeyEmailError && (
+                    <div className="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-400 text-center" role="alert">
+                      {passkeyEmailError}
+                    </div>
+                  )}
 
-              {isCreatingPasskey && (
-                <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground">
-                  <Loader2 className="h-3 w-3 animate-spin" />
-                  Your browser will ask for biometric verification
+                  <button
+                    type="button"
+                    onClick={handlePasskeyContinue}
+                    disabled={!captchaToken || isCreatingPasskey}
+                    className="w-full h-12 rounded-xl gradient-bg-extended text-white text-sm font-heading font-bold transition-all hover:opacity-90 disabled:opacity-50 disabled:pointer-events-none flex items-center justify-center gap-2 shadow-[0_0_24px_rgb(var(--aurora-violet)/0.25)]"
+                  >
+                    {isCreatingPasskey ? (
+                      <>
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                        {passkeyState === "registering" || passkeyState === "deriving"
+                          ? "Creating passkey..."
+                          : passkeyState === "awaiting_biometric"
+                            ? "Scan biometric..."
+                            : "Setting up wallet..."}
+                      </>
+                    ) : (
+                      <>
+                        <Shield className="h-4 w-4" />
+                        Continue
+                      </>
+                    )}
+                  </button>
+
+                  {isCreatingPasskey && (
+                    <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground">
+                      <Loader2 className="h-3 w-3 animate-spin" />
+                      Your browser will ask for biometric verification
+                    </div>
+                  )}
                 </div>
-              )}
-            </div>
-          </div>
+              </div>
+            )}
+          </>
         )}
 
         {effectiveStep === "verify-email" && (
