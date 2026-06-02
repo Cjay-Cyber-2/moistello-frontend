@@ -22,9 +22,8 @@ export async function POST(req: NextRequest) {
         userID: new TextEncoder().encode(email),
         attestationType: "none",
         authenticatorSelection: {
-          authenticatorAttachment: "platform",
           userVerification: "required",
-          residentKey: "required",
+          residentKey: "preferred",
         },
         timeout: 120_000,
       })

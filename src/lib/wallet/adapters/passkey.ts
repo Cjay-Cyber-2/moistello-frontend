@@ -154,7 +154,8 @@ export function createPasskeyAdapter(): WalletAdapter {
         if (err instanceof Error && err.name === "NotAllowedError") {
           throw { adapter: "passkey", code: "user_rejected" as const, message: "Registration cancelled" }
         }
-        throw { adapter: "passkey", code: "internal" as const, message: "Passkey creation failed", cause: String(err) }
+        const cause = err instanceof Error ? err.message : String(err)
+        throw { adapter: "passkey", code: "internal" as const, message: `Passkey creation failed: ${cause}`, cause: String(err) }
       }
 
       const attestationRecord = attestation as { rawId?: string; id?: string }
