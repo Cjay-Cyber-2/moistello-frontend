@@ -314,6 +314,7 @@ export const useAuthFlowStore = create<AuthFlowStore>()(
               status: { status: "error", code: "email_send_failed", message: msg, canRetry: true },
               error: { code: "email_send_failed", message: msg },
             })
+            throw new Error(msg)
           }
         },
 

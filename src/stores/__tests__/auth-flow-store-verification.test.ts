@@ -75,7 +75,7 @@ describe("AuthFlowStore - sendVerificationCode", () => {
   it("sets error state on API failure", async () => {
     mockPost.mockRejectedValueOnce(new Error("Network error"))
 
-    await useAuthFlowStore.getState().sendVerificationCode("test@example.com")
+    await expect(useAuthFlowStore.getState().sendVerificationCode("test@example.com")).rejects.toThrow()
 
     const state = useAuthFlowStore.getState()
     expect(state.status).toEqual({
