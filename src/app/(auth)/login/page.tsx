@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation"
 import { Shield } from "lucide-react"
 import { useAuthFlow, AuthFlowProvider } from "@/hooks/auth-flow-context"
 import { useAuthFlowStore } from "@/stores/auth-flow-store"
+import { useMultiWalletStore } from "@/stores/multi-wallet-store"
 import { useUIStore } from "@/stores/ui-store"
 import { useSignMessage } from "@/hooks/use-sign-message"
 import { useRedirectIfAuthenticated } from "@/hooks/use-redirect-if-authenticated"
@@ -67,6 +68,12 @@ function LoginPageContent() {
         throw new Error("Could not retrieve passkey address")
       }
       store.connectSuccess("passkey", publicKey)
+      useMultiWalletStore.setState((s) => ({
+        wallets: {
+          ...s.wallets,
+          passkey: { ...s.wallets.passkey, adapter, publicKey, status: "connected" as const },
+        },
+      }))
       const authStatus = useAuthFlowStore.getState().status.status
       if (authStatus !== "authenticated") {
         await useAuthFlowStore.getState().signAndSubmit()

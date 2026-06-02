@@ -242,6 +242,12 @@ function RegisterPageContent() {
       const { publicKey } = await (adapter as { connect: (email: string) => Promise<{ publicKey: string }> }).connect(passkeyEmailInput)
       setPasskeyPublicKey(publicKey)
       connectSuccess("passkey", publicKey)
+      useMultiWalletStore.setState((s) => ({
+        wallets: {
+          ...s.wallets,
+          passkey: { ...s.wallets.passkey, adapter, publicKey, status: "connected" as const },
+        },
+      }))
       setLocalStep("profile")
       addToast({
         type: "success",
