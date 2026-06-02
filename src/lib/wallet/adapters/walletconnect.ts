@@ -19,6 +19,7 @@ let _onPairingUri: ((uri: string) => void) | null = null
 let _onRelayStatusChange: ((status: RelayStatus) => void) | null = null
 let _sessionProposalHandler: ((...args: unknown[]) => void) | null = null
 let _sessionDeleteHandler: ((...args: unknown[]) => void) | null = null
+let _wcConnectCancelled = false
 
 export function setOnPairingUri(handler: ((uri: string) => void) | null): void {
   _onPairingUri = handler
@@ -226,7 +227,7 @@ export function createWalletConnectAdapter(): WalletAdapter {
     }
 
     _sessionProposalHandler = async (proposal: unknown) => {
-      if (getSettled()) return
+      if (getSettled() || _wcConnectCancelled) return
 
       try {
         const prop = proposal as {
@@ -317,6 +318,8 @@ export function createWalletConnectAdapter(): WalletAdapter {
     meta,
 
     async connect(): Promise<{ publicKey: string }> {
+      _wcConnectCancelled = false
+
       const relay = getRelayMonitor()
       if (_onRelayStatusChange) _onRelayStatusChange(relay.status)
       if (relay.status === "down") {
@@ -371,6 +374,8 @@ export function createWalletConnectAdapter(): WalletAdapter {
               }
               return
             }
+
+            if (_wcConnectCancelled) return
 
             if (_onPairingUri) {
               _onPairingUri(uri)
@@ -527,6 +532,7 @@ export function cleanupWcOverlays(): void {
 }
 
 export function resetWcState(): void {
+  _wcConnectCancelled = true
   connectedPublicKey = null
   connectedNetwork = "testnet"
   sessionTopic = null
