@@ -588,7 +588,6 @@ export const useAuthFlowStore = create<AuthFlowStore>()(
       storage: createJSONStorage(() => sessionStorage),
       partialize: (state) => ({
         step: state.step,
-        emailVerification: state.emailVerification,
         auth: state.auth,
         profile: state.profile,
         passkeyVersion: state.passkeyVersion,
