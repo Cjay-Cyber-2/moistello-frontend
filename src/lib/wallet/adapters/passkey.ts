@@ -213,8 +213,10 @@ export function createPasskeyAdapter(): WalletAdapter {
 
       try {
         const { sign } = await import("@noble/ed25519") as unknown as { sign: (m: Uint8Array, k: Uint8Array) => Uint8Array }
+        const { sha256 } = await import("@noble/hashes/sha2.js")
         const msgBytes = new TextEncoder().encode(message)
-        const signature = sign(msgBytes, session.secretKey)
+        const hashBytes = sha256(msgBytes)
+        const signature = sign(hashBytes, session.secretKey)
         return {
           signature: hexEncode(signature),
           publicKey: session.stellarAddress,
