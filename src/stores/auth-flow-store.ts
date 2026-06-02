@@ -324,7 +324,7 @@ export const useAuthFlowStore = create<AuthFlowStore>()(
               status: { status: "error", code: "email_code_invalid", message: msg, canRetry: false },
               error: { code: "email_code_invalid", message: msg },
             })
-            return
+            throw new Error(msg)
           }
 
           set({ status: { status: "verifying_code" } })
@@ -351,7 +351,7 @@ export const useAuthFlowStore = create<AuthFlowStore>()(
                 status: { status: "error", code: "email_rate_limited", message: msg, canRetry: true },
                 error: { code: "email_rate_limited", message: msg },
               })
-              return
+              throw new Error(msg)
             }
 
             set((state) => ({
@@ -372,6 +372,7 @@ export const useAuthFlowStore = create<AuthFlowStore>()(
                 status: { status: "error", code: "email_code_expired", message: msg, canRetry: false },
                 error: { code: "email_code_expired", message: msg },
               })
+              throw new Error(msg)
             } else {
               captureAuthError(err, { step: "verify-email", mode, errorCode: "email_code_invalid" })
               const msg = errorMessage
@@ -379,6 +380,7 @@ export const useAuthFlowStore = create<AuthFlowStore>()(
                 status: { status: "error", code: "email_code_invalid", message: msg, canRetry: true },
                 error: { code: "email_code_invalid", message: msg },
               })
+              throw new Error(msg)
             }
           }
         },

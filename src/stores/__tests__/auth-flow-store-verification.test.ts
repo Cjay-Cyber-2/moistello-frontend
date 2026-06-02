@@ -165,7 +165,7 @@ describe("AuthFlowStore - verifyCode", () => {
       },
     })
 
-    await useAuthFlowStore.getState().verifyCode("abc")
+    await expect(useAuthFlowStore.getState().verifyCode("abc")).rejects.toThrow("Invalid code format.")
 
     expect(mockPost).not.toHaveBeenCalled()
     const state = useAuthFlowStore.getState()
@@ -191,7 +191,7 @@ describe("AuthFlowStore - verifyCode", () => {
 
     mockPost.mockRejectedValueOnce(makeAxiosError(429))
 
-    await useAuthFlowStore.getState().verifyCode("123456")
+    await expect(useAuthFlowStore.getState().verifyCode("123456")).rejects.toThrow()
 
     const state = useAuthFlowStore.getState()
     expect(state.status).toEqual({
@@ -216,7 +216,7 @@ describe("AuthFlowStore - verifyCode", () => {
 
     mockPost.mockRejectedValueOnce(makeAxiosError(400, { error: "Invalid code. 2 attempt(s) remaining." }))
 
-    await useAuthFlowStore.getState().verifyCode("000000")
+    await expect(useAuthFlowStore.getState().verifyCode("000000")).rejects.toThrow()
 
     const state = useAuthFlowStore.getState()
     expect(state.emailVerification.remainingAttempts).toBe(2)
@@ -236,7 +236,7 @@ describe("AuthFlowStore - verifyCode", () => {
 
     mockPost.mockRejectedValueOnce(makeAxiosError(410, { error: "expired" }))
 
-    await useAuthFlowStore.getState().verifyCode("123456")
+    await expect(useAuthFlowStore.getState().verifyCode("123456")).rejects.toThrow()
 
     const state = useAuthFlowStore.getState()
     expect(state.status).toEqual({
@@ -261,7 +261,7 @@ describe("AuthFlowStore - verifyCode", () => {
 
     mockPost.mockRejectedValueOnce(makeAxiosError(400, { error: "Invalid code format" }))
 
-    await useAuthFlowStore.getState().verifyCode("000000")
+    await expect(useAuthFlowStore.getState().verifyCode("000000")).rejects.toThrow("Invalid code format")
 
     const state = useAuthFlowStore.getState()
     expect(state.status).toEqual({
@@ -286,7 +286,7 @@ describe("AuthFlowStore - verifyCode", () => {
 
     mockPost.mockRejectedValueOnce(makeAxiosError(429))
 
-    await useAuthFlowStore.getState().verifyCode("123456")
+    await expect(useAuthFlowStore.getState().verifyCode("123456")).rejects.toThrow()
 
     const state = useAuthFlowStore.getState()
     expect(state.emailVerification.remainingAttempts).toBe(1)
