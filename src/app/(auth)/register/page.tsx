@@ -19,7 +19,7 @@ import { VerifyEmailStep } from "@/components/auth/verify-email-step"
 import { ProfileStep } from "@/components/auth/profile-step"
 import { SignStep } from "@/components/auth/sign-step"
 import { AuthInput } from "@/components/auth/auth-input"
-import { HCaptchaCaptcha } from "@/components/auth/hcaptcha-captcha"
+import { TurnstileCaptcha } from "@/components/auth/turnstile-captcha"
 import { SessionTimeoutBanner } from "@/components/auth/session-timeout-banner"
 import { PasskeyRevokedBanner } from "@/components/auth/passkey-revoked-banner"
 
@@ -553,7 +553,7 @@ function RegisterPageContent() {
             </div>
 
             <div className="space-y-4">
-              <HCaptchaCaptcha
+              <TurnstileCaptcha
                 onVerify={(token) => setCaptchaToken(token)}
                 onError={() => setCaptchaToken(null)}
               />
