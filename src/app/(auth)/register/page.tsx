@@ -52,6 +52,7 @@ function RegisterPageContent() {
   const mode = useAuthFlow((s) => s.mode)
   const rateLimit = useAuthFlow((s) => s.rateLimit)
   const passkeyRevoked = useAuthFlow((s) => s.passkeyRevoked)
+  const codeVerified = useAuthFlow((s) => s.emailVerification.codeVerified)
   const startRegisterFlow = useAuthFlow((s) => s.startRegisterFlow)
   const connectStart = useAuthFlow((s) => s.connectStart)
   const connectSuccess = useAuthFlow((s) => s.connectSuccess)
@@ -152,11 +153,16 @@ function RegisterPageContent() {
   const handleCodeVerify = useCallback(async (code: string) => {
     if (isVerifyingCode) return
     setIsVerifyingCode(true)
+    // Transition instantly — code verification runs in background
+    // while user interacts with the hCaptcha checkbox.
+    setPasskeyPhase("captcha")
     try {
       await verifyEmailCode(code)
-      setPasskeyPhase("captcha")
+      // codeVerified is set in the store on success
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : "Invalid code. Please try again."
+      setPasskeyPhase("code")
+      setCaptchaToken(null)
       setCodeError(message)
       setCodeDigits(Array(6).fill(""))
       codeInputRefs.current[0]?.focus()
@@ -256,6 +262,7 @@ function RegisterPageContent() {
       setCodeError(null)
     } else if (passkeyPhase === "captcha") {
       setPasskeyPhase("code")
+      setCaptchaToken(null)
     } else {
       setLocalStep("choose")
       setPasskeyEmailError(null)
@@ -542,11 +549,17 @@ function RegisterPageContent() {
 
             <div className="text-center space-y-2">
               <div className="flex justify-center">
-                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-emerald-500/20">
-                  <Shield className="h-6 w-6 text-emerald-400" />
+                <div className={`flex h-12 w-12 items-center justify-center rounded-full ${codeVerified ? "bg-emerald-500/20" : "bg-aurora-violet/20"}`}>
+                  {codeVerified ? (
+                    <Shield className="h-6 w-6 text-emerald-400" />
+                  ) : (
+                    <Loader2 className="h-6 w-6 text-aurora-violet animate-spin" />
+                  )}
                 </div>
               </div>
-              <p className="font-heading text-lg font-medium text-foreground">Email Verified</p>
+              <p className="font-heading text-lg font-medium text-foreground">
+                {codeVerified ? "Email Verified" : "Verifying your email..."}
+              </p>
               <p className="text-sm text-muted-foreground">
                 <span className="font-medium text-foreground">{passkeyEmailInput}</span>
               </p>
@@ -567,7 +580,7 @@ function RegisterPageContent() {
               <button
                 type="button"
                 onClick={handlePasskeyContinue}
-                disabled={!captchaToken || isCreatingPasskey}
+                  disabled={!captchaToken || !codeVerified || isCreatingPasskey}
                 className="w-full h-12 rounded-xl gradient-bg-extended text-white text-sm font-heading font-bold transition-all hover:opacity-90 disabled:opacity-50 disabled:pointer-events-none flex items-center justify-center gap-2 shadow-[0_0_24px_rgb(var(--aurora-violet)/0.25)]"
               >
                 {isCreatingPasskey ? (
