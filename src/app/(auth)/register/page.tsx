@@ -111,7 +111,18 @@ function RegisterPageContent() {
     useMultiWalletStore.getState().scanWallets()
     clearRegisterError()
     resetWc2Pairing()
+    import("@/lib/wallet/adapters/walletconnect").then(({ resetWcState }) => {
+      resetWcState()
+    })
   }, [clearRegisterError, resetWc2Pairing])
+
+  useEffect(() => {
+    return () => {
+      import("@/lib/wallet/adapters/walletconnect").then(({ resetWcState }) => {
+        resetWcState()
+      })
+    }
+  }, [])
 
   useEffect(() => {
     if (mode !== "register") startRegisterFlow()

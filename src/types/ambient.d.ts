@@ -98,11 +98,4 @@ declare module "@walletconnect/sign-client" {
   }
 }
 
-declare module "@walletconnect/modal" {
-  export class WalletConnectModal {
-    constructor(opts: { projectId: string; themeMode?: string })
-    openModal(opts?: { uri: string }): Promise<void>
-    closeModal(): void
-    subscribeModal(callback: (state: { open: boolean }) => void): void
-  }
-}
+

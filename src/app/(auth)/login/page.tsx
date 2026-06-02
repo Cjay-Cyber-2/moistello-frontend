@@ -75,7 +75,18 @@ function LoginPageContent() {
     useMultiWalletStore.getState().scanWallets()
     clearLoginError()
     resetWc2Pairing()
+    import("@/lib/wallet/adapters/walletconnect").then(({ resetWcState }) => {
+      resetWcState()
+    })
   }, [clearLoginError, resetWc2Pairing])
+
+  useEffect(() => {
+    return () => {
+      import("@/lib/wallet/adapters/walletconnect").then(({ resetWcState }) => {
+        resetWcState()
+      })
+    }
+  }, [])
 
   useEffect(() => {
     if (mode !== "login") startLoginFlow()

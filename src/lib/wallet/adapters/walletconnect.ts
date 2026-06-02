@@ -108,7 +108,6 @@ let connectedPublicKey: string | null = null
 let connectedNetwork: NetworkType = "testnet"
 let sessionTopic: string | null = null
 let wcSignClient: unknown = null
-let wcModalInstance: { openModal: (opts: { uri: string }) => void; closeModal: () => void } | null = null
 
 export function createWalletConnectAdapter(): WalletAdapter {
   const meta: WalletMeta = {
@@ -376,23 +375,6 @@ export function createWalletConnectAdapter(): WalletAdapter {
             if (_onPairingUri) {
               _onPairingUri(uri)
             }
-
-            if (isBrowser() && !/Android|iPhone|iPad|iPod/i.test(navigator.userAgent)) {
-              if (PROJECT_ID) {
-                try {
-                  const { WalletConnectModal } = await import("@walletconnect/modal")
-                  wcModalInstance = new WalletConnectModal({
-                    projectId: PROJECT_ID,
-                    themeMode: "dark",
-                  })
-                  wcModalInstance.openModal({ uri })
-                } catch {
-                  window.open(`https://walletconnect.com/wc?uri=${encodeURIComponent(uri)}`, "_blank")
-                }
-              } else {
-                window.open(`https://walletconnect.com/wc?uri=${encodeURIComponent(uri)}`, "_blank")
-              }
-            }
           } catch (err) {
             if (!getSettled()) {
               setSettled()
@@ -512,6 +494,38 @@ async function createAuthXDR(message: string): Promise<{ xdr: string; hash: stri
   return { xdr, hash }
 }
 
+export function cleanupWcOverlays(): void {
+  if (typeof document === "undefined") return
+
+  document.querySelectorAll(
+    'wcm-modal, ' +
+    '[data-walletconnect-modal], ' +
+    '[data-wcm-modal], ' +
+    'iframe[src*="walletconnect"], ' +
+    'iframe[src*="wc.dialog"], ' +
+    'iframe[src*="reown"], ' +
+    '.walletconnect-modal__base, ' +
+    '.walletconnect-qrcode__backdrop, ' +
+    '[class*="wcm-backdrop"], ' +
+    '[class*="walletconnect-modal"]'
+  ).forEach((el) => {
+    try { el.remove() } catch {}
+  })
+
+  const bodyEl = document.body
+  if (bodyEl.style.overflow === "hidden") {
+    bodyEl.style.overflow = ""
+  }
+  if (bodyEl.style.position === "fixed" && bodyEl.hasAttribute("data-scroll-top")) {
+    const savedTop = bodyEl.getAttribute("data-scroll-top")
+    bodyEl.style.position = ""
+    bodyEl.style.top = ""
+    bodyEl.style.width = ""
+    if (savedTop) window.scrollTo(0, parseInt(savedTop, 10))
+    bodyEl.removeAttribute("data-scroll-top")
+  }
+}
+
 export function resetWcState(): void {
   connectedPublicKey = null
   connectedNetwork = "testnet"
@@ -519,10 +533,7 @@ export function resetWcState(): void {
   wcSignClient = null
   _sessionProposalHandler = null
   _sessionDeleteHandler = null
-  if (wcModalInstance) {
-    try { wcModalInstance.closeModal() } catch {}
-    wcModalInstance = null
-  }
+  cleanupWcOverlays()
   getWC2SessionStore().clear()
 }
 
