@@ -91,6 +91,12 @@ function RegisterPageContent() {
   }, [mode, startRegisterFlow])
 
   useEffect(() => {
+    import("@/lib/wallet/adapters/passkey").then(({ createPasskeyAdapter }) => {
+      getWalletRegistry().register(createPasskeyAdapter())
+    })
+  }, [])
+
+  useEffect(() => {
     if (effectiveStep === "choose" && status.status === "connected") {
       setLocalStep("profile")
     }

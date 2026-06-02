@@ -51,6 +51,12 @@ function LoginPageContent() {
     if (mode !== "login") startLoginFlow()
   }, [mode, startLoginFlow])
 
+  useEffect(() => {
+    import("@/lib/wallet/adapters/passkey").then(({ createPasskeyAdapter }) => {
+      getWalletRegistry().register(createPasskeyAdapter())
+    })
+  }, [])
+
   const handlePasskeyLogin = useCallback(() => {
     recordMetric("auth.flow.started", 1, { mode: "login", method: "passkey" })
     setShowPasskeyCaptcha(true)
