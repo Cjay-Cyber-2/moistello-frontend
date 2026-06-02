@@ -56,12 +56,14 @@ describe("AuthFlowStore - sendVerificationCode", () => {
 
   it("sends code and updates verification state on success", async () => {
     mockPost.mockResolvedValueOnce({
-      verificationId: "vid-123",
-      expiresAt: Date.now() + 600000,
-      remainingAttempts: 3,
+      data: {
+        verificationId: "vid-123",
+        expiresAt: Date.now() + 600000,
+        remainingAttempts: 3,
+      },
     })
 
-    await useAuthFlowStore.getState().sendVerificationCode("test@example.com")
+    await expect(useAuthFlowStore.getState().sendVerificationCode("test@example.com")).resolves.toBeUndefined()
 
     const state = useAuthFlowStore.getState()
     expect(mockPost).toHaveBeenCalledWith("/auth/verification/send", { email: "test@example.com", captchaToken: undefined })
@@ -91,9 +93,11 @@ describe("AuthFlowStore - sendVerificationCode", () => {
       const state = useAuthFlowStore.getState()
       expect(state.status).toEqual({ status: "sending_code" })
       return Promise.resolve({
-        verificationId: "vid-1",
-        expiresAt: Date.now() + 600000,
-        remainingAttempts: 3,
+        data: {
+          verificationId: "vid-1",
+          expiresAt: Date.now() + 600000,
+          remainingAttempts: 3,
+        },
       })
     })
 
@@ -102,18 +106,14 @@ describe("AuthFlowStore - sendVerificationCode", () => {
 
   it("resets codeSent when resending", async () => {
     mockPost.mockResolvedValueOnce({
-      verificationId: "vid-1",
-      expiresAt: Date.now() + 600000,
-      remainingAttempts: 3,
+      data: { verificationId: "vid-1", expiresAt: Date.now() + 600000, remainingAttempts: 3 },
     })
-    await useAuthFlowStore.getState().sendVerificationCode("first@test.com")
+    await expect(useAuthFlowStore.getState().sendVerificationCode("first@test.com")).resolves.toBeUndefined()
 
     mockPost.mockResolvedValueOnce({
-      verificationId: "vid-2",
-      expiresAt: Date.now() + 600000,
-      remainingAttempts: 2,
+      data: { verificationId: "vid-2", expiresAt: Date.now() + 600000, remainingAttempts: 2 },
     })
-    await useAuthFlowStore.getState().sendVerificationCode("second@test.com")
+    await expect(useAuthFlowStore.getState().sendVerificationCode("second@test.com")).resolves.toBeUndefined()
 
     const state = useAuthFlowStore.getState()
     expect(state.emailVerification.email).toBe("second@test.com")
@@ -312,9 +312,7 @@ describe("AuthFlowStore - resendCode", () => {
     })
 
     mockPost.mockResolvedValueOnce({
-      verificationId: "vid-new",
-      expiresAt: Date.now() + 600000,
-      remainingAttempts: 3,
+      data: { verificationId: "vid-new", expiresAt: Date.now() + 600000, remainingAttempts: 3 },
     })
 
     await useAuthFlowStore.getState().resendCode()

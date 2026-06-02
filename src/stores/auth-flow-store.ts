@@ -290,20 +290,22 @@ export const useAuthFlowStore = create<AuthFlowStore>()(
           try {
             const { mode } = get()
             const response = await post<{
-              verificationId: string
-              expiresAt: number
-              remainingAttempts: number
+              success: boolean
+              data: {
+                verificationId: string
+                expiresAt: number
+                remainingAttempts: number
+              }
             }>("/auth/verification/send", { email, captchaToken })
             recordMetric("auth.email.code_sent", 1, { mode })
-            console.log("[sendCode] setting verificationId:", response.verificationId)
             set((state) => ({
               emailVerification: {
                 ...state.emailVerification,
                 email,
-                verificationId: response.verificationId,
+                verificationId: response.data.verificationId,
                 codeSent: true,
-                expiresAt: response.expiresAt,
-                remainingAttempts: response.remainingAttempts,
+                expiresAt: response.data.expiresAt,
+                remainingAttempts: response.data.remainingAttempts,
               },
               status: { status: "code_sent" },
             }))
@@ -333,7 +335,6 @@ export const useAuthFlowStore = create<AuthFlowStore>()(
 
           try {
             const { mode, emailVerification } = get()
-            console.log("[verifyCode] emailVerification:", JSON.stringify(emailVerification))
             await post("/auth/verification/verify", {
               verificationId: emailVerification.verificationId,
               code,
