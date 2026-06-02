@@ -17,6 +17,8 @@ const CONNECT_INIT_TIMEOUT = 30_000
 
 let _onPairingUri: ((uri: string) => void) | null = null
 let _onRelayStatusChange: ((status: RelayStatus) => void) | null = null
+let _sessionProposalHandler: ((...args: unknown[]) => void) | null = null
+let _sessionDeleteHandler: ((...args: unknown[]) => void) | null = null
 
 export function setOnPairingUri(handler: ((uri: string) => void) | null): void {
   _onPairingUri = handler
@@ -206,6 +208,7 @@ export function createWalletConnectAdapter(): WalletAdapter {
   function createSessionHandler(
     signClient: {
       on: (event: string, handler: (...args: unknown[]) => void) => void
+      off?: (event: string, handler: (...args: unknown[]) => void) => void
       approve: (opts: Record<string, unknown>) => Promise<unknown>
       session: { getAll: () => Array<{ topic: string; namespaces: Record<string, unknown> }> }
     },
@@ -215,7 +218,14 @@ export function createWalletConnectAdapter(): WalletAdapter {
     setSettled: () => void,
     startTime: number,
   ) {
-    signClient.on("session_proposal", async (proposal: unknown) => {
+    if (_sessionProposalHandler) {
+      try { signClient.off?.("session_proposal", _sessionProposalHandler) } catch {}
+    }
+    if (_sessionDeleteHandler) {
+      try { signClient.off?.("session_delete", _sessionDeleteHandler) } catch {}
+    }
+
+    _sessionProposalHandler = async (proposal: unknown) => {
       if (getSettled()) return
 
       try {
@@ -290,14 +300,17 @@ export function createWalletConnectAdapter(): WalletAdapter {
           )
         }
       }
-    })
+    }
 
-    signClient.on("session_delete", () => {
+    signClient.on("session_proposal", _sessionProposalHandler)
+
+    _sessionDeleteHandler = () => {
       connectedPublicKey = null
       sessionTopic = null
       wcSignClient = null
       getWC2SessionStore().clear()
-    })
+    }
+    signClient.on("session_delete", _sessionDeleteHandler)
   }
 
   let wcModalInstance: { openModal: (opts: { uri: string }) => void; closeModal: () => void } | null = null
@@ -323,6 +336,7 @@ export function createWalletConnectAdapter(): WalletAdapter {
         createSessionHandler(
           signClient as {
             on: (event: string, handler: (...args: unknown[]) => void) => void
+            off?: (event: string, handler: (...args: unknown[]) => void) => void
             approve: (opts: Record<string, unknown>) => Promise<unknown>
             session: { getAll: () => Array<{ topic: string; namespaces: Record<string, unknown> }> }
           },
@@ -504,6 +518,8 @@ export function resetWcState(): void {
   connectedNetwork = "testnet"
   sessionTopic = null
   wcSignClient = null
+  _sessionProposalHandler = null
+  _sessionDeleteHandler = null
   getWC2SessionStore().clear()
 }
 

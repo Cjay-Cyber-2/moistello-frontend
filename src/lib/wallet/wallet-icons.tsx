@@ -1,5 +1,6 @@
-import { type ReactNode } from "react"
-import Image from "next/image"
+"use client"
+
+import { useState, type ReactNode } from "react"
 import { QrCode, Usb, Fingerprint, Wallet, type LucideIcon } from "lucide-react"
 
 const LUCIDE_ICONS: Record<string, LucideIcon> = {
@@ -12,9 +13,7 @@ const LUCIDE_ICONS: Record<string, LucideIcon> = {
   albedo: Wallet,
 }
 
-const SVG_ICONS: Record<string, string> = {}
-
-interface GetWalletIconOptions {
+interface WalletIconProps {
   id: string
   name: string
   className?: string
@@ -33,28 +32,33 @@ const ICON_SIZE = {
   lg: "h-7 w-7",
 }
 
-export function getWalletIcon({ id, name, className, size = "md" }: GetWalletIconOptions): ReactNode {
+export function WalletIcon({ id, name, className, size = "md" }: WalletIconProps): ReactNode {
+  const [svgFailed, setSvgFailed] = useState(false)
   const LucideIcon = LUCIDE_ICONS[id]
 
   if (LucideIcon) {
     return (
-      <span className={`flex ${WRAPPER_SIZE[size]} items-center justify-center rounded-full bg-white/10 ${className ?? ""}`}>
-        <LucideIcon className={ICON_SIZE[size]} />
+      <span className={`flex ${WRAPPER_SIZE[size]} items-center justify-center rounded-full bg-white/10 ${className ?? ""}`} aria-hidden="true">
+        <LucideIcon className={ICON_SIZE[size]} aria-hidden="true" />
       </span>
     )
   }
 
-  const svgPath = SVG_ICONS[id]
-  if (svgPath) {
+  if (!svgFailed) {
     return (
-      <span className={`flex ${WRAPPER_SIZE[size]} items-center justify-center rounded-full bg-white/10 ${className ?? ""}`}>
-        <Image src={svgPath} alt={name} width={20} height={20} className={ICON_SIZE[size]} />
+      <span className={`flex ${WRAPPER_SIZE[size]} items-center justify-center rounded-full bg-white/10 ${className ?? ""}`} aria-hidden="true">
+        <img
+          src={`/icons/wallets/${id}.svg`}
+          alt={name}
+          className={ICON_SIZE[size]}
+          onError={() => setSvgFailed(true)}
+        />
       </span>
     )
   }
 
   return (
-    <span className={`flex ${WRAPPER_SIZE[size]} items-center justify-center rounded-full bg-white/10 text-lg font-bold text-foreground ${className ?? ""}`}>
+    <span className={`flex ${WRAPPER_SIZE[size]} items-center justify-center rounded-full bg-white/10 text-lg font-bold text-foreground ${className ?? ""}`} aria-hidden="true">
       {name ? name.charAt(0).toUpperCase() : "?"}
     </span>
   )

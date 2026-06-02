@@ -4,10 +4,13 @@ import { useEffect, useRef, useState, useImperativeHandle, forwardRef, useCallba
 import { cn } from "@/lib/cn"
 import { Loader2, Check, X, ShieldAlert } from "lucide-react"
 
+const MAX_RETRIES = 3
+
 interface HCaptchaCaptchaProps {
   onVerify: (token: string) => void
   onExpire?: () => void
   onError?: (error: string) => void
+  onFocusNext?: () => void
   className?: string
 }
 
@@ -15,7 +18,7 @@ export interface HCaptchaCaptchaHandle {
   reset: () => void
 }
 
-type CaptchaState = "unloaded" | "loading" | "ready" | "verifying" | "verified" | "expired" | "error"
+type CaptchaState = "unloaded" | "loading" | "ready" | "verifying" | "verified" | "expired" | "error" | "init_failed"
 
 interface HCaptchaAPI {
   render: (container: string | HTMLElement, options: Record<string, unknown>) => string
@@ -65,10 +68,12 @@ function loadScript(): Promise<void> {
 }
 
 export const HCaptchaCaptcha = forwardRef<HCaptchaCaptchaHandle, HCaptchaCaptchaProps>(
-  function HCaptchaCaptcha({ onVerify, onExpire, onError, className }, ref) {
+  function HCaptchaCaptcha({ onVerify, onExpire, onError, onFocusNext, className }, ref) {
     const invisibleContainerRef = useRef<HTMLDivElement>(null)
     const widgetIdRef = useRef<string | null>(null)
+    const retryCountRef = useRef(0)
     const [state, setState] = useState<CaptchaState>("unloaded")
+    const [retryKey, setRetryKey] = useState(0)
     const siteKey = getSiteKey()
 
     useImperativeHandle(ref, () => ({
@@ -95,6 +100,11 @@ export const HCaptchaCaptcha = forwardRef<HCaptchaCaptchaHandle, HCaptchaCaptcha
 
           if (!mounted || !window.hcaptcha || !invisibleContainerRef.current) return
 
+          if (widgetIdRef.current) {
+            try { window.hcaptcha.remove(widgetIdRef.current) } catch {}
+            widgetIdRef.current = null
+          }
+
           const widgetId = window.hcaptcha.render(invisibleContainerRef.current, {
             sitekey: siteKey,
             size: "invisible",
@@ -102,6 +112,7 @@ export const HCaptchaCaptcha = forwardRef<HCaptchaCaptchaHandle, HCaptchaCaptcha
               if (!mounted) return
               setState("verified")
               onVerify(token)
+              onFocusNext?.()
             },
             "expired-callback": () => {
               if (!mounted) return
@@ -116,10 +127,16 @@ export const HCaptchaCaptcha = forwardRef<HCaptchaCaptchaHandle, HCaptchaCaptcha
           })
 
           widgetIdRef.current = widgetId
+          retryCountRef.current = 0
           setState("ready")
         } catch {
           if (mounted) {
-            setState("error")
+            retryCountRef.current++
+            if (retryCountRef.current >= MAX_RETRIES) {
+              setState("init_failed")
+            } else {
+              setState("error")
+            }
             onError?.("Failed to load hCaptcha")
           }
         }
@@ -138,10 +155,11 @@ export const HCaptchaCaptcha = forwardRef<HCaptchaCaptchaHandle, HCaptchaCaptcha
           widgetIdRef.current = null
         }
       }
-    }, [siteKey, onVerify, onExpire, onError])
+    }, [siteKey, onVerify, onExpire, onError, onFocusNext, retryKey])
 
     const handleClick = useCallback(async () => {
-      if (!widgetIdRef.current || !window.hcaptcha || state !== "ready") return
+      if (!widgetIdRef.current || !window.hcaptcha) return
+      if (state !== "ready") return
       setState("verifying")
       try {
         await window.hcaptcha.execute(widgetIdRef.current)
@@ -150,6 +168,17 @@ export const HCaptchaCaptcha = forwardRef<HCaptchaCaptchaHandle, HCaptchaCaptcha
         onError?.("hCaptcha challenge failed")
       }
     }, [state, onError])
+
+    const handleRetry = useCallback(() => {
+      if (widgetIdRef.current && window.hcaptcha) {
+        try {
+          window.hcaptcha.remove(widgetIdRef.current)
+        } catch {}
+        widgetIdRef.current = null
+      }
+      setState("unloaded")
+      setRetryKey((k) => k + 1)
+    }, [])
 
     if (!siteKey) {
       return (
@@ -167,9 +196,16 @@ export const HCaptchaCaptcha = forwardRef<HCaptchaCaptchaHandle, HCaptchaCaptcha
     return (
       <div className={cn("flex items-center justify-center", className)}>
         <div className="flex items-center gap-3">
-          {state === "loading" && (
+          {state === "unloaded" && (
             <div className="flex items-center gap-2 text-xs text-muted-foreground" role="status" aria-live="polite">
               <Loader2 className="h-4 w-4 animate-spin" />
+              Loading verification...
+            </div>
+          )}
+
+          {state === "loading" && (
+            <div className="flex items-center gap-2 text-xs text-muted-foreground" role="status" aria-live="polite">
+              <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
               Loading verification...
             </div>
           )}
@@ -181,14 +217,14 @@ export const HCaptchaCaptcha = forwardRef<HCaptchaCaptchaHandle, HCaptchaCaptcha
               className="flex items-center gap-2 rounded-lg border border-white/20 bg-background/50 px-3 py-2 text-xs text-muted-foreground hover:border-aurora-violet/40 hover:text-foreground transition-all"
               aria-label="Verify you are human"
             >
-              <span className="flex h-4 w-4 items-center justify-center rounded border border-white/30 bg-transparent" />
+              <span className="flex h-4 w-4 items-center justify-center rounded border border-white/30 bg-transparent" aria-hidden="true" />
               Verify you are human
             </button>
           )}
 
           {state === "verifying" && (
             <div className="flex items-center gap-2 text-xs text-muted-foreground" role="status" aria-live="polite">
-              <Loader2 className="h-4 w-4 animate-spin text-aurora-violet" />
+              <Loader2 className="h-4 w-4 animate-spin text-aurora-violet" aria-hidden="true" />
               Verifying...
             </div>
           )}
@@ -196,7 +232,7 @@ export const HCaptchaCaptcha = forwardRef<HCaptchaCaptchaHandle, HCaptchaCaptcha
           {state === "verified" && (
             <div className="flex items-center gap-2 text-xs text-emerald-400">
               <span className="flex h-4 w-4 items-center justify-center rounded bg-emerald-500/20">
-                <Check className="h-3 w-3" />
+                <Check className="h-3 w-3" aria-hidden="true" />
               </span>
               Verified
             </div>
@@ -204,7 +240,7 @@ export const HCaptchaCaptcha = forwardRef<HCaptchaCaptchaHandle, HCaptchaCaptcha
 
           {state === "expired" && (
             <div className="flex items-center gap-2 text-xs text-amber-400">
-              <ShieldAlert className="h-4 w-4" />
+              <ShieldAlert className="h-4 w-4" aria-hidden="true" />
               Verification expired
               <button
                 type="button"
@@ -215,6 +251,7 @@ export const HCaptchaCaptcha = forwardRef<HCaptchaCaptchaHandle, HCaptchaCaptcha
                   setState("ready")
                 }}
                 className="ml-1 text-aurora-cyan hover:underline"
+                ref={(el) => el?.focus()}
               >
                 Retry
               </button>
@@ -222,15 +259,31 @@ export const HCaptchaCaptcha = forwardRef<HCaptchaCaptchaHandle, HCaptchaCaptcha
           )}
 
           {state === "error" && (
-            <div className="flex items-center gap-2 text-xs text-red-400">
-              <X className="h-4 w-4" />
+            <div className="flex items-center gap-2 text-xs text-red-400" role="alert">
+              <X className="h-4 w-4" aria-hidden="true" />
               Verification unavailable
               <button
                 type="button"
-                onClick={() => setState("unloaded")}
+                onClick={handleRetry}
                 className="ml-1 text-aurora-cyan hover:underline"
+                autoFocus
               >
                 Retry
+              </button>
+            </div>
+          )}
+
+          {state === "init_failed" && (
+            <div className="flex items-center gap-2 text-xs text-red-400" role="alert">
+              <X className="h-4 w-4" aria-hidden="true" />
+              Unable to load captcha. Disable ad blocker or try a different browser.
+              <button
+                type="button"
+                onClick={handleRetry}
+                className="ml-1 text-aurora-cyan hover:underline"
+                autoFocus
+              >
+                Try Again
               </button>
             </div>
           )}

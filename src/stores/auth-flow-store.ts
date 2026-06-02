@@ -88,6 +88,7 @@ export interface AuthFlowState {
   rateLimit: RateLimitState
   passkeyVersion: number
   passkeyRevoked: boolean
+  captchaToken: string | null
 }
 
 interface AuthFlowActions {
@@ -122,6 +123,7 @@ interface AuthFlowActions {
   canProceed: () => boolean
   currentStepIndex: () => number
   totalSteps: () => number
+  setCaptchaToken: (token: string | null) => void
 }
 
 export type AuthFlowStore = AuthFlowState & AuthFlowActions
@@ -174,6 +176,7 @@ function createInitialState(): AuthFlowState {
     rateLimit: initialRateLimit(),
     passkeyVersion: 0,
     passkeyRevoked: false,
+    captchaToken: null,
   }
 }
 
@@ -377,6 +380,8 @@ export const useAuthFlowStore = create<AuthFlowStore>()(
 
         clearEmailVerification: () => set({ emailVerification: initialEmailVerification() }),
 
+        setCaptchaToken: (token) => set({ captchaToken: token }),
+
         updateProfileField: (field, value) =>
           set((state) => ({
             profile: { ...state.profile, [field]: value },
@@ -462,6 +467,7 @@ export const useAuthFlowStore = create<AuthFlowStore>()(
               if (profile.email) body.email = profile.email.trim()
               if (profile.countryCode) body.countryCode = profile.countryCode
               if (profile.language) body.preferredLanguage = profile.language
+              if (state.captchaToken) body.captchaToken = state.captchaToken
             }
 
             const authResponse = await post<{

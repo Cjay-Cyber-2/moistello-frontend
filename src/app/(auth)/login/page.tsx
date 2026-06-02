@@ -13,7 +13,7 @@ import { useRedirectIfAuthenticated } from "@/hooks/use-redirect-if-authenticate
 import { useConditionalMediation } from "@/hooks/use-conditional-mediation"
 import { recordMetric } from "@/lib/monitoring"
 import { passkeyEmailStore } from "@/lib/passkey/login-email-store"
-import { getWalletIcon } from "@/lib/wallet/wallet-icons"
+import { WalletIcon } from "@/lib/wallet/wallet-icons"
 import { AuthLayout } from "@/components/auth/auth-layout"
 import { ChooseWalletStep } from "@/components/auth/choose-wallet-step"
 import { VerifyEmailStep } from "@/components/auth/verify-email-step"
@@ -21,6 +21,7 @@ import { SignStep } from "@/components/auth/sign-step"
 import { LoadingOverlay } from "@/components/auth/loading-overlay"
 import { SessionTimeoutBanner } from "@/components/auth/session-timeout-banner"
 import { PasskeyRevokedBanner } from "@/components/auth/passkey-revoked-banner"
+import { PasskeyCaptchaStep } from "@/components/auth/passkey-captcha-step"
 
 const LedgerPrompt = dynamic(
   () => import("@/components/wallet/ledger-prompt").then((m) => m.LedgerPrompt),
@@ -66,6 +67,7 @@ function LoginPageContent() {
 
   const addToast = useUIStore((s) => s.addToast)
   const [showLedgerPrompt, setShowLedgerPrompt] = useState(false)
+  const [showPasskeyCaptcha, setShowPasskeyCaptcha] = useState(false)
 
   const passkeyLoginAttemptedRef = useRef(false)
 
@@ -81,10 +83,15 @@ function LoginPageContent() {
 
   const handlePasskeyLogin = useCallback(() => {
     recordMetric("auth.flow.started", 1, { mode: "login", method: "passkey" })
+    setShowPasskeyCaptcha(true)
+  }, [])
+
+  const handlePasskeyCaptchaVerified = useCallback((captchaToken: string) => {
     const savedEmail = passkeyEmailStore.get()
     if (savedEmail) {
-      useAuthFlowStore.getState().sendVerificationCode(savedEmail)
+      useAuthFlowStore.getState().sendVerificationCode(savedEmail, captchaToken)
     }
+    setShowPasskeyCaptcha(false)
     setStep("verify-email")
   }, [setStep])
 
@@ -242,7 +249,7 @@ function LoginPageContent() {
         id: w.id,
         name: w.name,
         category: w.category,
-        icon: getWalletIcon({ id: w.id, name: w.name, size: "md" }),
+        icon: <WalletIcon id={w.id} name={w.name} size="md" />,
         description: w.description,
         isRecommended: w.id === "walletconnect",
         installUrl: w.installUrl,
@@ -283,7 +290,13 @@ function LoginPageContent() {
           />
         )}
 
-        {step === "choose" || status.status === "connected" ? (
+        {showPasskeyCaptcha ? (
+          <PasskeyCaptchaStep
+            email={passkeyEmailStore.get()}
+            onVerified={handlePasskeyCaptchaVerified}
+            onBack={() => setShowPasskeyCaptcha(false)}
+          />
+        ) : step === "choose" || status.status === "connected" ? (
           <ChooseWalletStep
             mode="login"
             wallets={wallets}
