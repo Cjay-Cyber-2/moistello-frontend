@@ -1,6 +1,6 @@
 "use client"
 
-import { useCallback, useEffect } from "react"
+import { useCallback, useEffect, useRef } from "react"
 import { useRouter } from "next/navigation"
 import { Shield } from "lucide-react"
 import { useAuthFlow, AuthFlowProvider } from "@/hooks/auth-flow-context"
@@ -40,6 +40,7 @@ function LoginPageContent() {
   const { sign } = useSignMessage()
 
   const addToast = useUIStore((s) => s.addToast)
+  const authenticatingRef = useRef(false)
 
   useEffect(() => {
     if (mode !== "login") startLoginFlow()
@@ -52,8 +53,10 @@ function LoginPageContent() {
   }, [])
 
   const doPasskeyAuthenticate = useCallback(async () => {
+    if (authenticatingRef.current) return
     const store = useAuthFlowStore.getState()
     if (store.status.status === "connecting" || store.status.status === "signing") return
+    authenticatingRef.current = true
     store.connectStart("passkey")
 
     try {
@@ -69,10 +72,12 @@ function LoginPageContent() {
         await useAuthFlowStore.getState().signAndSubmit()
       }
       if (useAuthFlowStore.getState().status.status === "authenticated") {
+        authenticatingRef.current = false
         addToast({ type: "success", title: "Welcome back!", description: "You are now signed in." })
         router.replace("/dashboard")
       }
     } catch (err: unknown) {
+      authenticatingRef.current = false
       const msg = (err && typeof err === "object" && "message" in err)
         ? (err as { message: string }).message
         : "Passkey authentication failed"

@@ -77,6 +77,7 @@ function RegisterPageContent() {
   const [passkeyEmailInput, setPasskeyEmailInput] = useState("")
   const [passkeyEmailError, setPasskeyEmailError] = useState<string | null>(null)
   const [isCreatingPasskey, setIsCreatingPasskey] = useState(false)
+  const creatingPasskeyRef = useRef(false)
   const [captchaToken, setCaptchaToken] = useState<string | null>(null)
   const [isSendingCode, setIsSendingCode] = useState(false)
   const [codeDigits, setCodeDigits] = useState<string[]>(Array(6).fill(""))
@@ -229,7 +230,8 @@ function RegisterPageContent() {
   }, [codeDigits, handleCodeVerify])
 
   const handlePasskeyContinue = useCallback(async () => {
-    if (!passkeyEmailInput || !captchaToken || isCreatingPasskey) return
+    if (!passkeyEmailInput || !captchaToken || creatingPasskeyRef.current) return
+    creatingPasskeyRef.current = true
     setIsCreatingPasskey(true)
     setPasskeyEmail(passkeyEmailInput)
     connectStart("passkey")
@@ -256,6 +258,7 @@ function RegisterPageContent() {
       addToast({ type: "error", title: "Passkey Setup Failed", description: message })
     } finally {
       setIsCreatingPasskey(false)
+      creatingPasskeyRef.current = false
     }
   }, [passkeyEmailInput, captchaToken, setPasskeyEmail, connectStart, connectSuccess, setPasskeyPublicKey, addToast])
 
