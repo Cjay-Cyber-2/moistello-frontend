@@ -561,6 +561,26 @@ export function resetWcState(): void {
   getRelayMonitor().reset()
   cleanupWcOverlays()
   getWC2SessionStore().clear()
+  clearWcIndexedDB()
+}
+
+export async function clearWcIndexedDB(): Promise<void> {
+  if (typeof indexedDB === "undefined") return
+  try {
+    const dbs = await indexedDB.databases()
+    for (const db of dbs) {
+      if (db.name?.startsWith("wc@2:")) {
+        try { indexedDB.deleteDatabase(db.name) } catch {}
+      }
+    }
+  } catch {
+    // indexedDB.databases() not available in older browsers —
+    // delete the known WalletConnect databases by name
+    const knownNames = ["wc@2:client:0.3", "wc@2:core:0.3"]
+    for (const name of knownNames) {
+      try { indexedDB.deleteDatabase(name) } catch {}
+    }
+  }
 }
 
 export async function disconnectWc(): Promise<void> {
