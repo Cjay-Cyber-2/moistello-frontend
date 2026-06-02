@@ -14,6 +14,7 @@ import { useRedirectIfAuthenticated } from "@/hooks/use-redirect-if-authenticate
 import { useConditionalMediation } from "@/hooks/use-conditional-mediation"
 import { recordMetric } from "@/lib/monitoring"
 import { getWalletRegistry } from "@/lib/wallet/registry"
+import { createPasskeyAdapter } from "@/lib/wallet/adapters/passkey"
 import { AuthLayout } from "@/components/auth/auth-layout"
 import { AuthStepIndicator } from "@/components/auth/auth-step-indicator"
 import { VerifyEmailStep } from "@/components/auth/verify-email-step"
@@ -25,6 +26,8 @@ import { SessionTimeoutBanner } from "@/components/auth/session-timeout-banner"
 import { PasskeyRevokedBanner } from "@/components/auth/passkey-revoked-banner"
 
 type Step = "choose" | "passkey-email" | "verify-email" | "profile" | "sign"
+
+type PasskeyPhase = "email" | "code" | "captcha"
 
 const STEPS = [
   { key: "choose", label: "Create", number: 1 },
@@ -40,6 +43,8 @@ const PASSKEY_STEPS = [
 ]
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+
+getWalletRegistry().register(createPasskeyAdapter())
 
 function RegisterPageContent() {
   const router = useRouter()
@@ -68,7 +73,6 @@ function RegisterPageContent() {
   const addToast = useUIStore((s) => s.addToast)
   const [localStep, setLocalStep] = useState<Step>("choose")
 
-  type PasskeyPhase = "email" | "code" | "captcha"
   const [passkeyPhase, setPasskeyPhase] = useState<PasskeyPhase>("email")
   const [passkeyEmailInput, setPasskeyEmailInput] = useState("")
   const [passkeyEmailError, setPasskeyEmailError] = useState<string | null>(null)

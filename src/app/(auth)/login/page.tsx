@@ -11,11 +11,14 @@ import { useRedirectIfAuthenticated } from "@/hooks/use-redirect-if-authenticate
 import { useConditionalMediation } from "@/hooks/use-conditional-mediation"
 import { recordMetric } from "@/lib/monitoring"
 import { getWalletRegistry } from "@/lib/wallet/registry"
+import { createPasskeyAdapter } from "@/lib/wallet/adapters/passkey"
 import { AuthLayout } from "@/components/auth/auth-layout"
 import { SignStep } from "@/components/auth/sign-step"
 import { LoadingOverlay } from "@/components/auth/loading-overlay"
 import { SessionTimeoutBanner } from "@/components/auth/session-timeout-banner"
 import { PasskeyRevokedBanner } from "@/components/auth/passkey-revoked-banner"
+
+getWalletRegistry().register(createPasskeyAdapter())
 
 function LoginPageContent() {
   const router = useRouter()
