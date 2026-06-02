@@ -19,7 +19,7 @@ import { VerifyEmailStep } from "@/components/auth/verify-email-step"
 import { ProfileStep } from "@/components/auth/profile-step"
 import { SignStep } from "@/components/auth/sign-step"
 import { AuthInput } from "@/components/auth/auth-input"
-// import { HCaptchaCaptcha } from "@/components/auth/hcaptcha-captcha" // captcha step commented out
+import { HCaptchaCaptcha } from "@/components/auth/hcaptcha-captcha"
 import { SessionTimeoutBanner } from "@/components/auth/session-timeout-banner"
 import { PasskeyRevokedBanner } from "@/components/auth/passkey-revoked-banner"
 
@@ -57,6 +57,7 @@ function RegisterPageContent() {
   const connectSuccess = useAuthFlow((s) => s.connectSuccess)
 
   const connect = useMultiWalletStore((s) => s.connect)
+  const passkeyState = useMultiWalletStore((s) => s.passkeyState)
   const setPasskeyEmail = useMultiWalletStore((s) => s.setPasskeyEmail)
   const setPasskeyPublicKey = useMultiWalletStore((s) => s.setPasskeyPublicKey)
 
@@ -71,12 +72,13 @@ function RegisterPageContent() {
   const [passkeyPhase, setPasskeyPhase] = useState<PasskeyPhase>("email")
   const [passkeyEmailInput, setPasskeyEmailInput] = useState("")
   const [passkeyEmailError, setPasskeyEmailError] = useState<string | null>(null)
+  const [isCreatingPasskey, setIsCreatingPasskey] = useState(false)
+  const [captchaToken, setCaptchaToken] = useState<string | null>(null)
   const [isSendingCode, setIsSendingCode] = useState(false)
   const [codeDigits, setCodeDigits] = useState<string[]>(Array(6).fill(""))
   const [codeError, setCodeError] = useState<string | null>(null)
   const [isVerifyingCode, setIsVerifyingCode] = useState(false)
   const [resendCooldown, setResendCooldown] = useState(0)
-  const [showSlowNetwork, setShowSlowNetwork] = useState(false)
   const codeInputRefs = useRef<(HTMLInputElement | null)[]>(Array(6).fill(null))
   const resendTimerRef = useRef<ReturnType<typeof setInterval> | null>(null)
   const [countdown, setCountdown] = useState(0)
@@ -110,15 +112,6 @@ function RegisterPageContent() {
       if (resendTimerRef.current) clearInterval(resendTimerRef.current)
     }
   }, [])
-
-  useEffect(() => {
-    if (!isVerifyingCode) {
-      setShowSlowNetwork(false)
-      return
-    }
-    const tid = setTimeout(() => setShowSlowNetwork(true), 7000)
-    return () => clearTimeout(tid)
-  }, [isVerifyingCode])
 
   const startResendCooldown = useCallback(() => {
     setResendCooldown(60)
@@ -161,29 +154,7 @@ function RegisterPageContent() {
     setIsVerifyingCode(true)
     try {
       await verifyEmailCode(code)
-      // Code verified — skip captcha and go directly to passkey creation
-      setPasskeyEmail(passkeyEmailInput)
-      connectStart("passkey")
-      try {
-        recordMetric("auth.flow.started", 1, { mode: "register", method: "passkey" })
-        await connect("passkey")
-        const mwAddress = useMultiWalletStore.getState().address
-        if (!mwAddress) {
-          throw new Error("Failed to get wallet address from passkey")
-        }
-        setPasskeyPublicKey(mwAddress)
-        connectSuccess("passkey", mwAddress)
-        setLocalStep("profile")
-        addToast({
-          type: "success",
-          title: "Passkey Created",
-          description: "Your wallet is ready. Now set up your profile.",
-        })
-      } catch (passkeyErr: unknown) {
-        const message = passkeyErr instanceof Error ? passkeyErr.message : "Passkey setup failed"
-        setPasskeyEmailError(message)
-        addToast({ type: "error", title: "Passkey Setup Failed", description: message })
-      }
+      setPasskeyPhase("captcha")
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : "Invalid code. Please try again."
       setCodeError(message)
@@ -192,7 +163,7 @@ function RegisterPageContent() {
     } finally {
       setIsVerifyingCode(false)
     }
-  }, [verifyEmailCode, isVerifyingCode, passkeyEmailInput, setPasskeyEmail, connectStart, connect, setPasskeyPublicKey, connectSuccess, addToast])
+  }, [verifyEmailCode, isVerifyingCode])
 
   const handleCodeDigitChange = useCallback(
     (index: number, value: string) => {
@@ -247,6 +218,37 @@ function RegisterPageContent() {
     codeInputRefs.current[focusIdx]?.focus()
   }, [codeDigits, handleCodeVerify])
 
+  const handlePasskeyContinue = useCallback(async () => {
+    if (!passkeyEmailInput || !captchaToken) return
+    setIsCreatingPasskey(true)
+    setPasskeyEmail(passkeyEmailInput)
+    connectStart("passkey")
+
+    try {
+      useAuthFlowStore.getState().setCaptchaToken(captchaToken)
+      recordMetric("auth.flow.started", 1, { mode: "register", method: "passkey" })
+      await connect("passkey")
+      const mwAddress = useMultiWalletStore.getState().address
+      if (!mwAddress) {
+        throw new Error("Failed to get wallet address from passkey")
+      }
+      setPasskeyPublicKey(mwAddress)
+      connectSuccess("passkey", mwAddress)
+      setLocalStep("profile")
+      addToast({
+        type: "success",
+        title: "Passkey Created",
+        description: "Your wallet is ready. Now set up your profile.",
+      })
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "Passkey setup failed"
+      setPasskeyEmailError(message)
+      addToast({ type: "error", title: "Passkey Setup Failed", description: message })
+    } finally {
+      setIsCreatingPasskey(false)
+    }
+  }, [passkeyEmailInput, captchaToken, connect, setPasskeyEmail, setPasskeyPublicKey, connectStart, connectSuccess, addToast])
+
   const handlePasskeyBack = useCallback(() => {
     if (passkeyPhase === "code") {
       setPasskeyPhase("email")
@@ -260,6 +262,7 @@ function RegisterPageContent() {
       setPasskeyEmailInput("")
       setCodeDigits(Array(6).fill(""))
       setCodeError(null)
+      setCaptchaToken(null)
     }
   }, [passkeyPhase])
 
@@ -494,16 +497,9 @@ function RegisterPageContent() {
               )}
 
               {isVerifyingCode && (
-                <div className="flex flex-col items-center justify-center gap-1 text-xs text-muted-foreground" role="status" aria-live="polite">
-                  <div className="flex items-center gap-2">
-                    <Loader2 className="h-3 w-3 animate-spin" />
-                    Verifying code...
-                  </div>
-                  {showSlowNetwork && (
-                    <p className="text-2xs text-muted-foreground/60 mt-1">
-                      Slow network? Still connecting &mdash; please wait a moment...
-                    </p>
-                  )}
+                <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground" role="status" aria-live="polite">
+                  <Loader2 className="h-3 w-3 animate-spin" />
+                  Verifying code...
                 </div>
               )}
 
@@ -532,12 +528,6 @@ function RegisterPageContent() {
           </div>
         )}
 
-        {/* Captcha step commented out — user goes directly from code verification
-            to passkey creation in handleCodeVerify. To restore the captcha, uncomment
-            this block and change handleCodeVerify to setPasskeyPhase("captcha") instead
-            of calling passkey creation directly.
-        */}
-        {/*
         {effectiveStep === "passkey-email" && passkeyPhase === "captcha" && (
           <div className="space-y-6" aria-label="Passkey captcha step">
             <button
@@ -577,7 +567,7 @@ function RegisterPageContent() {
               <button
                 type="button"
                 onClick={handlePasskeyContinue}
-                  disabled={!captchaToken || isCreatingPasskey}
+                disabled={!captchaToken || isCreatingPasskey}
                 className="w-full h-12 rounded-xl gradient-bg-extended text-white text-sm font-heading font-bold transition-all hover:opacity-90 disabled:opacity-50 disabled:pointer-events-none flex items-center justify-center gap-2 shadow-[0_0_24px_rgb(var(--aurora-violet)/0.25)]"
               >
                 {isCreatingPasskey ? (
@@ -606,7 +596,6 @@ function RegisterPageContent() {
             </div>
           </div>
         )}
-        */}
 
         {effectiveStep === "verify-email" && (
           <VerifyEmailStep
