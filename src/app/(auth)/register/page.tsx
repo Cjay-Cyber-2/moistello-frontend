@@ -249,7 +249,9 @@ function RegisterPageContent() {
         description: "Your wallet is ready. Now set up your profile.",
       })
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : "Passkey setup failed"
+      const message = (err && typeof err === "object" && "message" in err)
+        ? (err as { message: string }).message
+        : "Passkey setup failed"
       setPasskeyEmailError(message)
       addToast({ type: "error", title: "Passkey Setup Failed", description: message })
     } finally {

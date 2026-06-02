@@ -72,7 +72,9 @@ function LoginPageContent() {
         router.replace("/dashboard")
       }
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : "Passkey authentication failed"
+      const msg = (err && typeof err === "object" && "message" in err)
+        ? (err as { message: string }).message
+        : "Passkey authentication failed"
       store.setError("connection_rejected", msg)
       addToast({ type: "error", title: "Passkey Login Failed", description: msg })
     }
