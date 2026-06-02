@@ -74,6 +74,15 @@ export const HCaptchaCaptcha = forwardRef<HCaptchaCaptchaHandle, HCaptchaCaptcha
     const [retryKey, setRetryKey] = useState(0)
     const siteKey = getSiteKey()
 
+    // Store callbacks in refs to prevent useEffect re-runs
+    // when parent passes inline functions (every React render).
+    const onVerifyRef = useRef(onVerify)
+    onVerifyRef.current = onVerify
+    const onErrorRef = useRef(onError)
+    onErrorRef.current = onError
+    const onFocusNextRef = useRef(onFocusNext)
+    onFocusNextRef.current = onFocusNext
+
     useImperativeHandle(ref, () => ({
       reset: () => {
         if (widgetIdRef.current && window.hcaptcha) {
@@ -82,7 +91,9 @@ export const HCaptchaCaptcha = forwardRef<HCaptchaCaptchaHandle, HCaptchaCaptcha
       },
     }), [])
 
-    // Init: load script, render checkbox widget in normal flow
+    // Init: load script, render checkbox widget in normal flow.
+    // Only re-runs when siteKey or retryKey changes — callback refs
+    // absorb unstable parent function references.
     useEffect(() => {
       if (!siteKey) {
         setState("error")
@@ -109,18 +120,18 @@ export const HCaptchaCaptcha = forwardRef<HCaptchaCaptchaHandle, HCaptchaCaptcha
             callback: (token: string) => {
               if (cancelled) return
               setState("verified")
-              onVerify(token)
-              onFocusNext?.()
+              onVerifyRef.current(token)
+              onFocusNextRef.current?.()
             },
             "expired-callback": () => {
               if (cancelled) return
               setState("error")
-              onError?.("Verification expired. Please try again.")
+              onErrorRef.current?.("Verification expired. Please try again.")
             },
             "error-callback": (error: string) => {
               if (cancelled) return
               setState("error")
-              onError?.(error)
+              onErrorRef.current?.(error)
             },
           })
 
@@ -130,7 +141,7 @@ export const HCaptchaCaptcha = forwardRef<HCaptchaCaptchaHandle, HCaptchaCaptcha
           retryCountRef.current++
           if (retryCountRef.current >= MAX_RETRIES) {
             setState("error")
-            onError?.("Failed to load verification widget")
+            onErrorRef.current?.("Failed to load verification widget")
           } else {
             setRetryKey((k) => k + 1)
           }
@@ -146,7 +157,7 @@ export const HCaptchaCaptcha = forwardRef<HCaptchaCaptchaHandle, HCaptchaCaptcha
           widgetIdRef.current = null
         }
       }
-    }, [siteKey, onVerify, onError, onFocusNext, retryKey])
+    }, [siteKey, retryKey])
 
     const handleRetry = useCallback(() => {
       if (widgetIdRef.current && window.hcaptcha) {
@@ -174,7 +185,7 @@ export const HCaptchaCaptcha = forwardRef<HCaptchaCaptchaHandle, HCaptchaCaptcha
           </div>
         )}
 
-        <div ref={containerRef} />
+        <div ref={containerRef} style={{ minHeight: 78 }} />
 
         {state === "verified" && (
           <div className="flex items-center gap-2 text-xs text-emerald-400">
