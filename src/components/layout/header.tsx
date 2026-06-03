@@ -9,10 +9,6 @@ import {
   X,
   Wallet,
   Bell,
-  Settings,
-  LogOut,
-  Sun,
-  Moon,
   Home,
   CircleDot,
   Compass,
@@ -20,11 +16,7 @@ import {
 import { cn } from "@/lib/cn";
 import { formatAddress } from "@/lib/formatters";
 import { Routes } from "@/lib/constants";
-import { Avatar } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { Dropdown, DropdownItem } from "@/components/ui/dropdown";
-import { useUIStore } from "@/stores/ui-store";
-import { useAuthStore } from "@/stores/auth-store";
 import { useMultiWallet } from "@/hooks/use-multi-wallet";
 import { useNotificationStore } from "@/stores/notification-store";
 
@@ -41,21 +33,9 @@ interface HeaderProps {
 
 export function Header({ onToggleMobileMenu, isMobileMenuOpen }: HeaderProps) {
   const pathname = usePathname();
-  const { theme, toggleTheme } = useUIStore();
-  const { isAuthenticated, user, logout } = useAuthStore();
   const { isConnected, address } = useMultiWallet();
   const { unreadCount } = useNotificationStore();
   const [showConnectModal, setShowConnectModal] = useState(false);
-
-  const isDark = theme === "dark";
-
-  const userFallback = user?.displayName
-    ? user.displayName.charAt(0).toUpperCase()
-    : user?.walletAddress
-      ? user.walletAddress.slice(0, 2).toUpperCase()
-      : "U";
-
-  const handleLogout = () => logout();
 
   const isActive = (href: string) => {
     if (href === Routes.DASHBOARD) return pathname === Routes.DASHBOARD;
@@ -78,45 +58,8 @@ export function Header({ onToggleMobileMenu, isMobileMenuOpen }: HeaderProps) {
         )}
       >
         <div className="relative flex h-full items-center justify-between px-4 lg:px-6">
-          {/* Left: Mobile hamburger + Logo */}
+          {/* Left: Logo */}
           <div className="flex items-center gap-3">
-            <motion.button
-              onClick={onToggleMobileMenu}
-              whileHover={{ scale: 1.08 }}
-              whileTap={{ scale: 0.92 }}
-              className={cn(
-                "inline-flex h-9 w-9 items-center justify-center rounded-xl",
-                "text-muted-foreground transition-all duration-300",
-                "hover:text-foreground hover:glass-whisper",
-                "lg:hidden",
-              )}
-              aria-label={isMobileMenuOpen ? "Close menu" : "Open menu"}
-            >
-              <AnimatePresence mode="wait">
-                {isMobileMenuOpen ? (
-                  <motion.span
-                    key="x"
-                    initial={{ rotate: -90, opacity: 0 }}
-                    animate={{ rotate: 0, opacity: 1 }}
-                    exit={{ rotate: 90, opacity: 0 }}
-                    transition={{ duration: 0.2 }}
-                  >
-                    <X className="h-5 w-5" />
-                  </motion.span>
-                ) : (
-                  <motion.span
-                    key="menu"
-                    initial={{ rotate: 90, opacity: 0 }}
-                    animate={{ rotate: 0, opacity: 1 }}
-                    exit={{ rotate: -90, opacity: 0 }}
-                    transition={{ duration: 0.2 }}
-                  >
-                    <Menu className="h-5 w-5" />
-                  </motion.span>
-                )}
-              </AnimatePresence>
-            </motion.button>
-
             <Link href="/" className="flex items-center gap-2 select-none">
               <motion.span
                 initial={{ opacity: 0, x: -12 }}
@@ -173,42 +116,39 @@ export function Header({ onToggleMobileMenu, isMobileMenuOpen }: HeaderProps) {
 
           {/* Right: actions */}
           <div className="flex items-center gap-1.5">
-            {/* Theme toggle */}
+            {/* Mobile hamburger (on right) */}
             <motion.button
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: 0.1, duration: 0.4 }}
-              whileHover={{ scale: 1.1, rotate: 15 }}
-              whileTap={{ scale: 0.9, rotate: -15 }}
-              onClick={toggleTheme}
+              onClick={onToggleMobileMenu}
+              whileHover={{ scale: 1.08 }}
+              whileTap={{ scale: 0.92 }}
               className={cn(
-                "inline-flex h-9 w-9 items-center justify-center rounded-full",
-                "glass-whisper text-muted-foreground",
-                "transition-all duration-300 hover:text-foreground",
-                "hover:shadow-[0_0_18px_rgb(var(--aurora-violet)/0.2)]",
+                "inline-flex h-9 w-9 items-center justify-center rounded-xl",
+                "text-muted-foreground transition-all duration-300",
+                "hover:text-foreground hover:glass-whisper",
+                "lg:hidden",
               )}
-              aria-label="Toggle theme"
+              aria-label={isMobileMenuOpen ? "Close menu" : "Open menu"}
             >
               <AnimatePresence mode="wait">
-                {isDark ? (
+                {isMobileMenuOpen ? (
                   <motion.span
-                    key="sun"
-                    initial={{ rotate: -90, scale: 0 }}
-                    animate={{ rotate: 0, scale: 1 }}
-                    exit={{ rotate: 90, scale: 0 }}
-                    transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
+                    key="x"
+                    initial={{ rotate: -90, opacity: 0 }}
+                    animate={{ rotate: 0, opacity: 1 }}
+                    exit={{ rotate: 90, opacity: 0 }}
+                    transition={{ duration: 0.2 }}
                   >
-                    <Sun className="h-4 w-4 text-amber-400" />
+                    <X className="h-5 w-5" />
                   </motion.span>
                 ) : (
                   <motion.span
-                    key="moon"
-                    initial={{ rotate: 90, scale: 0 }}
-                    animate={{ rotate: 0, scale: 1 }}
-                    exit={{ rotate: -90, scale: 0 }}
-                    transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
+                    key="menu"
+                    initial={{ rotate: 90, opacity: 0 }}
+                    animate={{ rotate: 0, opacity: 1 }}
+                    exit={{ rotate: -90, opacity: 0 }}
+                    transition={{ duration: 0.2 }}
                   >
-                    <Moon className="h-4 w-4 text-indigo-400" />
+                    <Menu className="h-5 w-5" />
                   </motion.span>
                 )}
               </AnimatePresence>
@@ -290,71 +230,6 @@ export function Header({ onToggleMobileMenu, isMobileMenuOpen }: HeaderProps) {
                   </AnimatePresence>
                 </motion.div>
               </Link>
-            </motion.div>
-
-            {/* User avatar + dropdown */}
-            <motion.div
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.25, duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-            >
-              {isAuthenticated ? (
-                <Dropdown
-                  align="right"
-                  trigger={
-                    <motion.div
-                      whileHover={{ scale: 1.08, y: -1 }}
-                      whileTap={{ scale: 0.95 }}
-                      className={cn(
-                        "inline-flex h-9 w-9 items-center justify-center rounded-full cursor-pointer",
-                        "border border-white/10 glass-whisper",
-                        "transition-all duration-300",
-                        "hover:shadow-[0_0_20px_rgb(var(--aurora-violet)/0.2)]",
-                      )}
-                    >
-                      <Avatar
-                        src={user?.avatarIpfsHash ?? undefined}
-                        fallback={userFallback}
-                        size="sm"
-                        className="ring-0 bg-transparent"
-                      />
-                    </motion.div>
-                  }
-                >
-                  <div className="px-4 py-3 border-b border-white/[0.06]">
-                    <p className="text-sm font-body font-semibold text-foreground truncate max-w-[180px]">
-                      {user?.displayName ?? "User"}
-                    </p>
-                    <p className="text-xs text-muted-foreground font-mono truncate max-w-[180px] mt-0.5">
-                      {user?.walletAddress
-                        ? formatAddress(user.walletAddress, 8, 6)
-                        : "No wallet"}
-                    </p>
-                  </div>
-                  <DropdownItem
-                    icon={
-                      isDark ? (
-                        <Sun className="h-4 w-4" />
-                      ) : (
-                        <Moon className="h-4 w-4" />
-                      )
-                    }
-                    onClick={toggleTheme}
-                  >
-                    {isDark ? "Light Mode" : "Dark Mode"}
-                  </DropdownItem>
-                  <DropdownItem icon={<Settings className="h-4 w-4" />}>
-                    Settings
-                  </DropdownItem>
-                  <DropdownItem
-                    icon={<LogOut className="h-4 w-4" />}
-                    destructive
-                    onClick={handleLogout}
-                  >
-                    Logout
-                  </DropdownItem>
-                </Dropdown>
-              ) : null}
             </motion.div>
           </div>
         </div>
