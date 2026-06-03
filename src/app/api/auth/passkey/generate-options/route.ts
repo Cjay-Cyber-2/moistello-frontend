@@ -19,7 +19,7 @@ export async function POST(req: NextRequest) {
         rpName: RP_NAME,
         rpID,
         userName: email,
-        userID: crypto.randomUUID ? new TextEncoder().encode(crypto.randomUUID()) : new TextEncoder().encode(email + "-" + Date.now()),
+        userID: new TextEncoder().encode(email),
         attestationType: "none",
         authenticatorSelection: {
           userVerification: "required",
