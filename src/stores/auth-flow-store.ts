@@ -312,7 +312,8 @@ export const useAuthFlowStore = create<AuthFlowStore>()(
           } catch (err) {
             const { mode } = get()
             captureAuthError(err, { step: "verify-email", mode, errorCode: "email_send_failed" })
-            const msg = "Failed to send verification code. Please try again."
+            const axiosErr = err as { response?: { status?: number; data?: { error?: string } } }
+            const msg = axiosErr?.response?.data?.error ?? "Failed to send verification code. Please try again."
             set({
               status: { status: "error", code: "email_send_failed", message: msg, canRetry: true },
               error: { code: "email_send_failed", message: msg },
