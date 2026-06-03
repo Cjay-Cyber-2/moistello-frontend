@@ -11,6 +11,7 @@ interface CredentialRecord {
   publicKey: Uint8Array
   counter: number
   transports?: string[]
+  email?: string
 }
 
 const challengeStore = new Map<string, ChallengeEntry>()
@@ -37,18 +38,37 @@ export function setChallenge(key: string, challenge: string, email: string): voi
   })
 }
 
+export function setTempChallenge(challenge: string): string {
+  const key = "tmp-" + crypto.randomUUID()
+  challengeStore.set(key, {
+    challenge,
+    email: "",
+    expiresAt: Date.now() + CHALLENGE_TTL_MS,
+  })
+  return key
+}
+
+export function getAndVerifyTempChallenge(key: string, challenge: string): boolean {
+  const entry = challengeStore.get(key)
+  if (!entry) return false
+  challengeStore.delete(key)
+  if (isExpired(entry)) return false
+  if (entry.challenge !== challenge) return false
+  return true
+}
+
 export function getAndVerifyChallenge(key: string, challenge: string, email: string): boolean {
   const entry = challengeStore.get(key)
   if (!entry) return false
   challengeStore.delete(key)
   if (isExpired(entry)) return false
   if (entry.challenge !== challenge) return false
-  if (entry.email !== email) return false
+  if (email && entry.email && entry.email !== email) return false
   return true
 }
 
-export function storeCredential(credentialId: string, record: CredentialRecord): void {
-  credentialStore.set(credentialId, record)
+export function storeCredential(credentialId: string, record: Omit<CredentialRecord, "credentialId"> & { email?: string }): void {
+  credentialStore.set(credentialId, { ...record, credentialId })
 }
 
 export function getCredential(credentialId: string): CredentialRecord | undefined {

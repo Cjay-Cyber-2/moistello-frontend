@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { generateRegistrationOptions, generateAuthenticationOptions } from "@simplewebauthn/server"
-import { setChallenge, getRpId } from "@/lib/passkey/store"
+import { setChallenge, setTempChallenge, getRpId } from "@/lib/passkey/store"
 
 const RP_NAME = "Moistello"
 
@@ -34,21 +34,23 @@ export async function POST(req: NextRequest) {
     }
 
     if (mode === "authenticate") {
-      if (!credentialId || typeof credentialId !== "string") {
-        return NextResponse.json({ error: "invalid_credential_id" }, { status: 400 })
-      }
-
       const rpID = getRpId()
       const options = await generateAuthenticationOptions({
         rpID,
-        allowCredentials: [
-          { id: credentialId, transports: ["internal"] },
-        ],
+        allowCredentials: credentialId
+          ? [{ id: credentialId, transports: ["internal"] as const }]
+          : [],
         userVerification: "required",
         timeout: 60_000,
       })
 
-      setChallenge(credentialId, options.challenge, "")
+      if (credentialId) {
+        setChallenge(credentialId, options.challenge, "")
+      } else {
+        // Discoverable credential — no credentialId, store challenge with temp key
+        const tempKey = setTempChallenge(options.challenge)
+        return NextResponse.json({ options, challenge: options.challenge, tempKey })
+      }
 
       return NextResponse.json({ options, challenge: options.challenge })
     }

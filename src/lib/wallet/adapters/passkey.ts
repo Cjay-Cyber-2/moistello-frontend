@@ -114,7 +114,7 @@ export function createPasskeyAdapter(): WalletAdapter {
           throw { adapter: "passkey", code: "internal" as const, message: "Authentication failed", cause: String(err) }
         }
 
-        const verifyResult = await apiPost<{ verified: boolean; email: string; pepper: string }>(
+        const verifyResult = await apiPost<{ verified: boolean; email: string; credentialId: string; pepper: string }>(
           "/api/auth/passkey/auth-verify",
           { credentialId: stored.credentialId, email: stored.email, assertion }
         )
@@ -128,6 +128,48 @@ export function createPasskeyAdapter(): WalletAdapter {
         session = {
           credentialId: stored.credentialId,
           email: stored.email,
+          publicKey: keypair.publicKey,
+          secretKey: keypair.secretKey,
+          stellarAddress: publicKeyToStellarAddress(keypair.publicKey),
+          pepper: verifyResult.pepper,
+        }
+        return { publicKey: publicKeyHex }
+      }
+
+      // Discoverable credential — no stored credential, no email.
+      // The browser presents all passkeys for this domain. User selects one.
+      if (!email && !stored) {
+        const { options, tempKey } = await apiPost<{ options: Record<string, unknown>; tempKey: string }>(
+          "/api/auth/passkey/generate-options",
+          { mode: "authenticate" }
+        )
+
+        let assertion: unknown
+        try {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          assertion = await startAuthentication({ optionsJSON: options as any })
+        } catch (err: unknown) {
+          if (err instanceof Error && err.name === "NotAllowedError") {
+            throw { adapter: "passkey", code: "user_rejected" as const, message: "Authentication cancelled" }
+          }
+          throw { adapter: "passkey", code: "internal" as const, message: "Authentication failed", cause: String(err) }
+        }
+
+        const verifyResult = await apiPost<{ verified: boolean; email: string; credentialId: string; pepper: string }>(
+          "/api/auth/passkey/auth-verify",
+          { tempKey, assertion }
+        )
+
+        const email = verifyResult.email
+        const keypair = await deriveStellarKeypair(
+          verifyResult.credentialId,
+          email,
+          verifyResult.pepper
+        )
+        const publicKeyHex = hexEncode(keypair.publicKey)
+        session = {
+          credentialId: verifyResult.credentialId,
+          email,
           publicKey: keypair.publicKey,
           secretKey: keypair.secretKey,
           stellarAddress: publicKeyToStellarAddress(keypair.publicKey),

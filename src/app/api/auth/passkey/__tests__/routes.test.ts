@@ -82,9 +82,11 @@ describe("generate-options API", () => {
     expect(data.options.challenge).toBe("auth-challenge-xyz")
   })
 
-  it("returns 400 for missing credentialId in authenticate mode", async () => {
+  it("returns 200 for authenticate mode without credentialId (discoverable)", async () => {
     const res = await generateOptions(makeRequest({ mode: "authenticate" }))
-    expect(res.status).toBe(400)
+    expect(res.status).toBe(200)
+    const body = await res.json()
+    expect(body.tempKey).toBeDefined()
   })
 
   it("returns 400 for invalid mode", async () => {
@@ -211,7 +213,6 @@ describe("auth-verify API", () => {
     // Store credential first
     const { storeCredential } = await import("@/lib/passkey/store")
     storeCredential("cred-id-123", {
-      credentialId: "cred-id-123",
       publicKey: new Uint8Array(32).fill(1),
       counter: 0,
     })
@@ -229,7 +230,6 @@ describe("auth-verify API", () => {
   it("returns verified response with pepper on success", async () => {
     const { storeCredential } = await import("@/lib/passkey/store")
     storeCredential("cred-id-123", {
-      credentialId: "cred-id-123",
       publicKey: new Uint8Array(32).fill(1),
       counter: 0,
     })

@@ -60,10 +60,10 @@ export async function POST(req: NextRequest) {
 
     const { credential } = verification.registrationInfo
     storeCredential(credential.id, {
-      credentialId: credential.id,
       publicKey: credential.publicKey,
       counter: credential.counter,
       transports: credential.transports as string[] | undefined,
+      email,
     })
 
     const pepper = getPepper()

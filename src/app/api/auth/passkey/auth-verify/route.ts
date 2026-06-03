@@ -3,6 +3,7 @@ import { verifyAuthenticationResponse } from "@simplewebauthn/server"
 import type { AuthenticatorTransportFuture } from "@simplewebauthn/server"
 import {
   getAndVerifyChallenge,
+  getAndVerifyTempChallenge,
   getCredential,
   getPepper,
   getRpId,
@@ -12,26 +13,24 @@ import {
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json()
-    const { credentialId, email, assertion } = body
-
-    if (!credentialId || typeof credentialId !== "string") {
-      return NextResponse.json({ error: "invalid_credential_id" }, { status: 400 })
-    }
-
-    if (!email || typeof email !== "string" || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      return NextResponse.json({ error: "invalid_email" }, { status: 400 })
-    }
+    const { credentialId, email, assertion, tempKey } = body
 
     if (!assertion || typeof assertion !== "object") {
       return NextResponse.json({ error: "invalid_assertion" }, { status: 400 })
     }
 
-    const storedCredential = getCredential(credentialId)
+    // Extract credential ID from assertion if not provided (discoverable)
+    const assertionRecord = assertion as { rawId?: string; id?: string; response?: { clientDataJSON?: string } }
+    const resolvedCredentialId = credentialId || assertionRecord.rawId || assertionRecord.id || ""
+    if (!resolvedCredentialId) {
+      return NextResponse.json({ error: "invalid_credential_id" }, { status: 400 })
+    }
+
+    const storedCredential = getCredential(resolvedCredentialId)
     if (!storedCredential) {
       return NextResponse.json({ error: "credential_not_found" }, { status: 400 })
     }
 
-    const assertionRecord = assertion as { response?: { clientDataJSON?: string } }
     const clientDataJSON = assertionRecord.response?.clientDataJSON
     if (!clientDataJSON) {
       return NextResponse.json({ error: "invalid_assertion" }, { status: 400 })
@@ -44,7 +43,12 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "invalid_client_data" }, { status: 400 })
     }
 
-    if (!getAndVerifyChallenge(credentialId, parsed.challenge, "")) {
+    // Verify challenge
+    if (tempKey) {
+      if (!getAndVerifyTempChallenge(tempKey, parsed.challenge)) {
+        return NextResponse.json({ error: "challenge_mismatch" }, { status: 400 })
+      }
+    } else if (!getAndVerifyChallenge(resolvedCredentialId, parsed.challenge, email || "")) {
       return NextResponse.json({ error: "challenge_mismatch" }, { status: 400 })
     }
 
@@ -57,7 +61,7 @@ export async function POST(req: NextRequest) {
       expectedOrigin,
       expectedRPID: rpID,
       credential: {
-        id: storedCredential.credentialId,
+        id: resolvedCredentialId,
         publicKey: storedCredential.publicKey,
         counter: storedCredential.counter,
         transports: (storedCredential.transports ?? []) as AuthenticatorTransportFuture[],
@@ -73,10 +77,12 @@ export async function POST(req: NextRequest) {
     }
 
     const pepper = getPepper()
+    // For discoverable credentials, return the email stored during registration
+    const resolvedEmail = email || storedCredential.email || ""
     return NextResponse.json({
       verified: true,
-      email,
-      credentialId,
+      email: resolvedEmail,
+      credentialId: resolvedCredentialId,
       pepper,
     })
   } catch (err) {
