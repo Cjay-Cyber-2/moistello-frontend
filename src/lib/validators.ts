@@ -1,5 +1,20 @@
 import { z } from "zod"
 
+export function safeParse<T>(
+  schema: z.ZodSchema<T>,
+  data: unknown,
+): { success: true; data: T } | { success: false; errors: Record<string, string> } {
+  const result = schema.safeParse(data)
+  if (result.success) return { success: true, data: result.data }
+  const error = result.error as { issues?: { path: (string | number)[]; message: string }[]; errors?: { path: (string | number)[]; message: string }[] }
+  const issues = error.issues ?? error.errors ?? []
+  const fieldErrors: Record<string, string> = {}
+  for (const issue of issues) {
+    fieldErrors[issue.path.join(".")] = issue.message
+  }
+  return { success: false, errors: fieldErrors }
+}
+
 export const loginSchema = z.object({
   walletAddress: z.string().min(56).max(56),
   signature: z.string().min(1, "Signature is required"),

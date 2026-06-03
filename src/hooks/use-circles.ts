@@ -43,6 +43,22 @@ interface ContributePayload {
   roundNumber?: number;
 }
 
+function normalizeCircle(c: Record<string, unknown>): Circle {
+  const out: Record<string, unknown> = {}
+  for (const [key, val] of Object.entries(c)) {
+    // Convert sql.NullString {String, Valid} → raw string or null
+    if (val && typeof val === "object" && "Valid" in val && "String" in val) {
+      out[key] = (val as { String: string }).String || null
+    } else if (val && typeof val === "object" && "Valid" in val && "Time" in val) {
+      // Convert sql.NullTime {Time, Valid} → ISO string or null
+      out[key] = (val as { Time: string }).Time || null
+    } else {
+      out[key] = val
+    }
+  }
+  return out as unknown as Circle
+}
+
 export function useCircles(filters?: CircleFilters) {
   return useQuery({
     queryKey: ["circles", filters],
@@ -59,7 +75,7 @@ export function useCircles(filters?: CircleFilters) {
       const response = await get<ApiResponse<{ circles: Circle[] }>>(url);
 
       return {
-        circles: response.data?.circles ?? [],
+        circles: (response.data?.circles ?? []).map((c: unknown) => normalizeCircle(c as Record<string, unknown>)),
         meta: response.meta ?? {
           page: filters?.page ?? 1,
           limit: filters?.limit ?? 20,
@@ -76,7 +92,8 @@ export function useCircle(id: string) {
     queryKey: ["circle", id],
     queryFn: async () => {
       const response = await get<ApiResponse<{ circle: Circle }>>(`/circles/${id}`);
-      return response.data?.circle ?? null;
+      const raw = response.data?.circle
+      return raw ? normalizeCircle(raw as unknown as Record<string, unknown>) : null;
     },
     enabled: !!id,
   });
@@ -87,7 +104,7 @@ export function useCreateCircle() {
 
   return useMutation({
     mutationFn: (payload: CreateCirclePayload) =>
-      post<ApiResponse<Circle>>("/circles", payload),
+      post<ApiResponse<Circle>>("/circles", payload, { _retry: true } as Record<string, unknown>),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["circles"] });
     },

@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation"
 import { motion, AnimatePresence } from "framer-motion"
 import { ChevronLeft, ChevronRight } from "lucide-react"
 import { useCreateCircle } from "@/hooks/use-circles"
-import { createCircleSchema, type CreateCircleInput } from "@/lib/validators"
+import { createCircleSchema, safeParse, type CreateCircleInput } from "@/lib/validators"
 import { PageHeader } from "@/components/shared/page-header"
 import { Button } from "@/components/ui/button"
 import { CreateStepIndicator } from "@/components/circles/create-step-indicator"
@@ -13,6 +13,7 @@ import { CreateStepDetails } from "@/components/circles/create-step-details"
 import { CreateStepFinancials } from "@/components/circles/create-step-financials"
 import { CreateStepPayout } from "@/components/circles/create-step-payout"
 import { CreateStepReview } from "@/components/circles/create-step-review"
+import { useUIStore } from "@/stores/ui-store"
 import type { CircleFormData } from "@/types"
 
 const STEP_LABELS = ["Details", "Financials", "Payout", "Review"]
@@ -37,6 +38,7 @@ const STEPS = [CreateStepDetails, CreateStepFinancials, CreateStepPayout, Create
 export default function CreateCirclePage() {
   const router = useRouter()
   const createCircle = useCreateCircle()
+  const addToast = useUIStore((s) => s.addToast)
 
   const [currentStep, setCurrentStep] = useState(1)
   const [direction, setDirection] = useState(0)
@@ -68,19 +70,12 @@ export default function CreateCirclePage() {
       return true
     }
     if (step === 3) return true
-    try {
-      createCircleSchema.parse(buildFormData())
-      return true
-    } catch (err: unknown) {
-      if (err && typeof err === "object" && "errors" in err) {
-        const fe: Record<string, string> = {}
-        for (const e of (err as { errors: { path: (string | number)[]; message: string }[] }).errors) {
-          fe[e.path.join(".")] = e.message
-        }
-        setErrors(fe)
-      }
+    const result = safeParse(createCircleSchema, buildFormData())
+    if (!result.success) {
+      setErrors(result.errors)
       return false
     }
+    return true
   }, [formData, buildFormData])
 
   const go = (dir: number, step: number) => { setDirection(dir); setCurrentStep(step) }
@@ -90,9 +85,23 @@ export default function CreateCirclePage() {
   const handleSubmit = () => {
     if (!validateStep(4)) return
     const payload = buildFormData()
+    setErrors({})
     createCircle.mutate(payload as unknown as Parameters<typeof createCircle.mutate>[0], {
-      onSuccess: (res: { data?: { id: string } }) => router.push(res.data?.id ? `/circles/${res.data.id}` : "/circles"),
-      onError: () => setErrors({ submit: "Failed to create circle. Please try again." }),
+      onSuccess: (res: unknown) => {
+        const data = (res as Record<string, unknown>)?.data as Record<string, unknown> | undefined
+        const circle = data?.circle as Record<string, unknown> | undefined
+        const rawId = circle?.id
+        const circleId = typeof rawId === "string" ? rawId : undefined
+        addToast({ type: "success", title: "Circle created!", description: "Your savings circle is ready." })
+        setTimeout(() => router.push(circleId ? `/circles/${circleId}` : "/circles"), 500)
+      },
+      onError: (err: unknown) => {
+        const raw = (err as { response?: { data?: Record<string, unknown> } })?.response?.data?.error
+        const msg = typeof raw === "string" ? raw
+          : err instanceof Error ? err.message
+          : "Failed to create circle. Please try again."
+        setErrors({ submit: msg })
+      },
     })
   }
 
@@ -117,6 +126,11 @@ export default function CreateCirclePage() {
             </motion.div>
           </AnimatePresence>
         </div>
+        {errors.submit && (
+          <div className="rounded-xl bg-red-500/10 border border-red-500/20 px-4 py-3 text-sm text-red-400">
+            {errors.submit}
+          </div>
+        )}
         <div className="mt-6 flex items-center justify-between">
           {currentStep > 1 ? (
             <Button variant="outline" size="md" onClick={handleBack}
