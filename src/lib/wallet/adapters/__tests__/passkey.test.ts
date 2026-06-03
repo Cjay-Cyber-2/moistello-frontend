@@ -133,8 +133,8 @@ describe("Passkey adapter", () => {
       const adapter = createPasskeyAdapter()
       const result = await adapter.connect("user@test.com")
 
-      expect(result.publicKey).toMatch(/^G[A-Z0-9]{55}$/)
-      expect(result.publicKey.length).toBe(56)
+      expect(result.publicKey).toMatch(/^[a-f0-9]{64}$/)
+      expect(result.publicKey.length).toBe(64)
       expect(startRegistration).toHaveBeenCalledOnce()
     })
 
@@ -177,8 +177,8 @@ describe("Passkey adapter", () => {
       const adapter = createPasskeyAdapter()
       const result = await adapter.connect()
 
-      expect(result.publicKey).toMatch(/^G[A-Z0-9]{55}$/)
-      expect(result.publicKey.length).toBe(56)
+      expect(result.publicKey).toMatch(/^[a-f0-9]{64}$/)
+      expect(result.publicKey.length).toBe(64)
       expect(startAuthentication).toHaveBeenCalledOnce()
     })
 
@@ -235,7 +235,7 @@ describe("Passkey adapter", () => {
       const result = await adapter.signMessage("hello")
       expect(result.signature).toBeDefined()
       expect(typeof result.signature).toBe("string")
-      expect(result.publicKey).toMatch(/^G[A-Z0-9]{55}$/)
+      expect(result.publicKey).toMatch(/^[a-f0-9]{64}$/)
     })
 
     it("signTransaction returns signed XDR", async () => {

@@ -91,7 +91,7 @@ export function createPasskeyAdapter(): WalletAdapter {
       }
 
       if (session) {
-        return { publicKey: session.stellarAddress }
+        return { publicKey: hexEncode(session.publicKey) }
       }
 
       const { startRegistration, startAuthentication } = await import("@simplewebauthn/browser")
@@ -124,16 +124,16 @@ export function createPasskeyAdapter(): WalletAdapter {
           stored.email,
           verifyResult.pepper
         )
-        const stellarAddress = publicKeyToStellarAddress(keypair.publicKey)
+        const publicKeyHex = hexEncode(keypair.publicKey)
         session = {
           credentialId: stored.credentialId,
           email: stored.email,
           publicKey: keypair.publicKey,
           secretKey: keypair.secretKey,
-          stellarAddress,
+          stellarAddress: publicKeyToStellarAddress(keypair.publicKey),
           pepper: verifyResult.pepper,
         }
-        return { publicKey: stellarAddress }
+        return { publicKey: publicKeyHex }
       }
 
       const resolvedEmail = email
@@ -171,12 +171,12 @@ export function createPasskeyAdapter(): WalletAdapter {
         resolvedEmail,
         verifyResult.pepper
       )
-      const stellarAddress = publicKeyToStellarAddress(keypair.publicKey)
+      const publicKeyHex = hexEncode(keypair.publicKey)
 
       storeCredential({
         credentialId,
         email: resolvedEmail,
-        publicKeyRaw: hexEncode(keypair.publicKey),
+        publicKeyRaw: publicKeyHex,
       })
 
       session = {
@@ -184,11 +184,11 @@ export function createPasskeyAdapter(): WalletAdapter {
         email: resolvedEmail,
         publicKey: keypair.publicKey,
         secretKey: keypair.secretKey,
-        stellarAddress,
+        stellarAddress: publicKeyToStellarAddress(keypair.publicKey),
         pepper: verifyResult.pepper,
       }
 
-      return { publicKey: stellarAddress }
+      return { publicKey: publicKeyHex }
     },
 
     async disconnect() {
@@ -203,7 +203,7 @@ export function createPasskeyAdapter(): WalletAdapter {
       if (!session) {
         throw { adapter: "passkey", code: "not_installed" as const, message: "Not authenticated" }
       }
-      return session.stellarAddress
+      return hexEncode(session.publicKey)
     },
 
     async signMessage(message: string) {
@@ -219,7 +219,7 @@ export function createPasskeyAdapter(): WalletAdapter {
         const signature = sign(hashBytes, session.secretKey)
         return {
           signature: hexEncode(signature),
-          publicKey: session.stellarAddress,
+          publicKey: hexEncode(session.publicKey),
         }
       } catch (err: unknown) {
         throw {

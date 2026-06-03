@@ -107,7 +107,7 @@ describe("Passkey Security Tests", () => {
     await adapter.connect("user@test.com")
 
     const pubKey = await adapter.getPublicKey()
-    expect(pubKey).toMatch(/^G[A-Z0-9]{55}$/)
-    expect(pubKey.length).toBe(56)
+    expect(pubKey).toMatch(/^[a-f0-9]{64}$/)
+    expect(pubKey.length).toBe(64)
   })
 })

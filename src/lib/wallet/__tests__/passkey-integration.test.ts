@@ -82,7 +82,7 @@ describe("Passkey Integration — end-to-end flows", () => {
     vi.mocked(startRegistration).mockResolvedValueOnce(mockAttestation as never)
     const adapter = createPasskeyAdapter()
     const regResult = await adapter.connect("user@test.com")
-    expect(regResult.publicKey.length).toBe(56)
+    expect(regResult.publicKey.length).toBe(64)
 
     const signResult = await adapter.signMessage("hello")
     expect(signResult.publicKey).toBe(regResult.publicKey)
@@ -108,7 +108,7 @@ describe("Passkey Integration — end-to-end flows", () => {
 
     const adapter = createPasskeyAdapter()
     const result = await adapter.connect()
-    expect(result.publicKey).toMatch(/^G[A-Z0-9]{55}$/)
+    expect(result.publicKey).toMatch(/^[a-f0-9]{64}$/)
   })
 
   it("derivation determinism across full auth flow", async () => {
