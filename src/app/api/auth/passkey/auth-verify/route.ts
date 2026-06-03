@@ -26,7 +26,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "invalid_credential_id" }, { status: 400 })
     }
 
-    const storedCredential = getCredential(resolvedCredentialId)
+    const storedCredential = await getCredential(resolvedCredentialId)
     if (!storedCredential) {
       return NextResponse.json({ error: "credential_not_found" }, { status: 400 })
     }

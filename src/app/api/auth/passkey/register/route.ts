@@ -59,7 +59,7 @@ export async function POST(req: NextRequest) {
     }
 
     const { credential } = verification.registrationInfo
-    storeCredential(credential.id, {
+    await storeCredential(credential.id, {
       publicKey: credential.publicKey,
       counter: credential.counter,
       transports: credential.transports as string[] | undefined,

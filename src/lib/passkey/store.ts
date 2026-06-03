@@ -6,7 +6,7 @@ interface ChallengeEntry {
   expiresAt: number
 }
 
-interface CredentialRecord {
+export type CredentialRecord = {
   credentialId: string
   publicKey: Uint8Array
   counter: number
@@ -15,7 +15,9 @@ interface CredentialRecord {
 }
 
 const challengeStore = new Map<string, ChallengeEntry>()
-const credentialStore = new Map<string, CredentialRecord>()
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:1100"
+
+// ── Challenge store (in-memory, short-lived) ──
 
 function isExpired(entry: ChallengeEntry): boolean {
   return Date.now() > entry.expiresAt
@@ -31,20 +33,12 @@ function sweepExpired(): void {
 }
 
 export function setChallenge(key: string, challenge: string, email: string): void {
-  challengeStore.set(key, {
-    challenge,
-    email,
-    expiresAt: Date.now() + CHALLENGE_TTL_MS,
-  })
+  challengeStore.set(key, { challenge, email, expiresAt: Date.now() + CHALLENGE_TTL_MS })
 }
 
 export function setTempChallenge(challenge: string): string {
   const key = "tmp-" + crypto.randomUUID()
-  challengeStore.set(key, {
-    challenge,
-    email: "",
-    expiresAt: Date.now() + CHALLENGE_TTL_MS,
-  })
+  challengeStore.set(key, { challenge, email: "", expiresAt: Date.now() + CHALLENGE_TTL_MS })
   return key
 }
 
@@ -67,12 +61,47 @@ export function getAndVerifyChallenge(key: string, challenge: string, email: str
   return true
 }
 
-export function storeCredential(credentialId: string, record: Omit<CredentialRecord, "credentialId"> & { email?: string }): void {
-  credentialStore.set(credentialId, { ...record, credentialId })
+// ── Credential store (persisted in PostgreSQL via Go backend) ──
+
+async function hashForStorage(email: string): Promise<string> {
+  const { sha256 } = await import("@noble/hashes/sha2.js")
+  const { bytesToHex } = await import("@noble/hashes/utils.js")
+  return bytesToHex(sha256(new TextEncoder().encode(email)))
 }
 
-export function getCredential(credentialId: string): CredentialRecord | undefined {
-  return credentialStore.get(credentialId)
+export async function storeCredential(credentialId: string, record: Omit<CredentialRecord, "credentialId"> & { email?: string }): Promise<void> {
+  const body: Record<string, unknown> = {
+    credentialId,
+    publicKey: Array.from(record.publicKey),
+    counter: record.counter ?? 0,
+    transports: record.transports ?? [],
+  }
+  if (record.email) {
+    body.emailHash = await hashForStorage(record.email)
+  }
+  await fetch(`${API_BASE}/passkey/credentials`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  })
+}
+
+export async function getCredential(credentialId: string): Promise<CredentialRecord | undefined> {
+  try {
+    const res = await fetch(`${API_BASE}/passkey/credentials/${encodeURIComponent(credentialId)}`)
+    if (!res.ok) return undefined
+    const data = await res.json()
+    if (!data?.data) return undefined
+    return {
+      credentialId: data.data.credentialId,
+      publicKey: new Uint8Array(data.data.publicKey),
+      counter: data.data.counter ?? 0,
+      transports: data.data.transports,
+      email: data.data.emailHash || undefined,
+    }
+  } catch {
+    return undefined
+  }
 }
 
 export function getPepper(): string {
