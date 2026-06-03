@@ -147,12 +147,21 @@ export const useAuthStore = create<AuthStore>()((set, get) => ({
   setTokens: (accessToken: string, refreshToken: string) => {
     setStoredToken(ACCESS_TOKEN_KEY, accessToken);
     setStoredToken(REFRESH_TOKEN_KEY, refreshToken);
+    // Also write to the keys the API client reads from
+    localStorage.setItem("moistello_token", JSON.stringify(accessToken));
+    localStorage.setItem("moistello_refresh", JSON.stringify(refreshToken));
+    document.cookie = `moistello_token=${accessToken}; path=/; max-age=86400; SameSite=Lax`;
+    document.cookie = `moistello_refresh=${refreshToken}; path=/; max-age=86400; SameSite=Lax`;
     set({ token: accessToken, refreshToken, tokenExpiresAt: Date.now() + 15 * 60 * 1000 });
   },
 
   clearTokens: () => {
     removeStoredToken(ACCESS_TOKEN_KEY);
     removeStoredToken(REFRESH_TOKEN_KEY);
+    localStorage.removeItem("moistello_token");
+    localStorage.removeItem("moistello_refresh");
+    document.cookie = "moistello_token=; path=/; max-age=0; SameSite=Lax";
+    document.cookie = "moistello_refresh=; path=/; max-age=0; SameSite=Lax";
     set({ token: null, refreshToken: null, tokenExpiresAt: null });
   },
 }));
