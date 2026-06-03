@@ -152,7 +152,7 @@ export const useAuthStore = create<AuthStore>()((set, get) => ({
     localStorage.setItem("moistello_refresh", JSON.stringify(refreshToken));
     document.cookie = `moistello_token=${accessToken}; path=/; max-age=86400; SameSite=Lax`;
     document.cookie = `moistello_refresh=${refreshToken}; path=/; max-age=86400; SameSite=Lax`;
-    set({ token: accessToken, refreshToken, tokenExpiresAt: Date.now() + 15 * 60 * 1000 });
+    set({ token: accessToken, refreshToken, tokenExpiresAt: Date.now() + 15 * 60 * 1000, isAuthenticated: true });
   },
 
   clearTokens: () => {
