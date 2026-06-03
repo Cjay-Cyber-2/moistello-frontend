@@ -499,7 +499,15 @@ export const useAuthFlowStore = create<AuthFlowStore>()(
               }
             }>(endpoint, body)
 
+            if (typeof window !== "undefined") {
+              console.log("[signAndSubmit] raw response:", JSON.stringify(authResponse).slice(0, 500))
+            }
+
             const d = authResponse.data
+            if (!d) {
+              console.error("[signAndSubmit] authResponse.data is undefined!", JSON.stringify(authResponse))
+              throw new Error("Invalid response from server: missing data envelope")
+            }
             if (
               d.expectedPasskeyVersion !== undefined &&
               d.expectedPasskeyVersion > state.passkeyVersion
@@ -518,6 +526,10 @@ export const useAuthFlowStore = create<AuthFlowStore>()(
 
             const token = d.token
             const refreshToken = d.refreshToken ?? token
+
+            if (typeof window !== "undefined") {
+              console.log("[signAndSubmit] token:", token?.slice(0, 30), "refreshToken:", refreshToken?.slice(0, 30))
+            }
 
             useAuthStore.getState().setTokens(token, refreshToken)
 
