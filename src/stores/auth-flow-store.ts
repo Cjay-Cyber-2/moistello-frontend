@@ -490,18 +490,22 @@ export const useAuthFlowStore = create<AuthFlowStore>()(
             }
 
             const authResponse = await post<{
-              token: string
-              refreshToken?: string
-              user: Record<string, unknown>
-              expectedPasskeyVersion?: number
+              success: boolean
+              data: {
+                token: string
+                refreshToken?: string
+                user: Record<string, unknown>
+                expectedPasskeyVersion?: number
+              }
             }>(endpoint, body)
 
+            const d = authResponse.data
             if (
-              authResponse.expectedPasskeyVersion !== undefined &&
-              authResponse.expectedPasskeyVersion > state.passkeyVersion
+              d.expectedPasskeyVersion !== undefined &&
+              d.expectedPasskeyVersion > state.passkeyVersion
             ) {
               set({
-                passkeyVersion: authResponse.expectedPasskeyVersion,
+                passkeyVersion: d.expectedPasskeyVersion,
                 passkeyRevoked: true,
               })
               const msg = "Your passkey has been revoked. Please set up a new one."
@@ -512,8 +516,8 @@ export const useAuthFlowStore = create<AuthFlowStore>()(
               return
             }
 
-            const token = authResponse.token
-            const refreshToken = authResponse.refreshToken ?? token
+            const token = d.token
+            const refreshToken = d.refreshToken ?? token
 
             useAuthStore.getState().setTokens(token, refreshToken)
 

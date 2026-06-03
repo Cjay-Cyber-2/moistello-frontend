@@ -91,9 +91,11 @@ describe("AuthFlowStore - signAndSubmit", () => {
     mockPost
       .mockResolvedValueOnce({ nonce: "nonce-123" })
       .mockResolvedValueOnce({
-        token: "jwt-token",
-        refreshToken: "refresh-token",
-        user: { id: "user-1" },
+        data: {
+          token: "jwt-token",
+          refreshToken: "refresh-token",
+          user: { id: "user-1" },
+        },
       })
 
     await useAuthFlowStore.getState().signAndSubmit()
@@ -151,10 +153,12 @@ describe("AuthFlowStore - signAndSubmit", () => {
     mockPost
       .mockResolvedValueOnce({ nonce: "nonce-123" })
       .mockResolvedValueOnce({
-        token: "jwt-token",
-        refreshToken: "refresh-token",
-        user: { id: "user-1" },
-        expectedPasskeyVersion: 5,
+        data: {
+          token: "jwt-token",
+          refreshToken: "refresh-token",
+          user: { id: "user-1" },
+          expectedPasskeyVersion: 5,
+        },
       })
 
     await useAuthFlowStore.getState().signAndSubmit()
@@ -188,9 +192,11 @@ describe("AuthFlowStore - signAndSubmit", () => {
     mockPost
       .mockResolvedValueOnce({ nonce: "nonce-123" })
       .mockResolvedValueOnce({
-        token: "jwt-token",
-        refreshToken: "refresh-token",
-        user: { id: "user-1" },
+        data: {
+          token: "jwt-token",
+          refreshToken: "refresh-token",
+          user: { id: "user-1" },
+        },
       })
 
     await useAuthFlowStore.getState().signAndSubmit()
@@ -212,8 +218,10 @@ describe("AuthFlowStore - signAndSubmit", () => {
     mockPost
       .mockResolvedValueOnce({ nonce: "nonce-123" })
       .mockResolvedValueOnce({
-        token: "jwt-token",
-        user: { id: "user-1" },
+        data: {
+          token: "jwt-token",
+          user: { id: "user-1" },
+        },
       })
 
     const states: string[] = []
