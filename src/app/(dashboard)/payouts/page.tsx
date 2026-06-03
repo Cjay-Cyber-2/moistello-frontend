@@ -92,9 +92,9 @@ export default function PayoutsPage() {
       params.set("limit", String(limit))
       const query = params.toString()
       const url = `/payouts?${query}`
-      const response = await get<ApiResponse<PayoutType[]>>(url)
+      const response = await get<ApiResponse<{ payouts: PayoutType[] }>>(url)
       return {
-        payouts: response.data ?? [],
+        payouts: response.data?.payouts ?? [],
         meta: response.meta ?? { page, limit, total: 0, totalPages: 0 },
       }
     },
@@ -103,8 +103,8 @@ export default function PayoutsPage() {
   const { data: circlesData } = useQuery({
     queryKey: ["circles", "payouts-filter"],
     queryFn: async () => {
-      const response = await get<ApiResponse<Circle[]>>("/circles?limit=100")
-      return response.data ?? []
+      const response = await get<ApiResponse<{ circles: Circle[] }>>("/circles?limit=100")
+      return response.data?.circles ?? []
     },
   })
 

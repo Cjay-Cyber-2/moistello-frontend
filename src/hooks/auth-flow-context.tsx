@@ -7,7 +7,6 @@ import {
   type AuthFlowStatus,
 } from "@/stores/auth-flow-store"
 import { useMultiWalletStore } from "@/stores/multi-wallet-store"
-import { useAuthStore } from "@/stores/auth-store"
 
 type AuthFlowContextValue = null
 
@@ -24,15 +23,6 @@ export function AuthFlowProvider({ children }: { children: ReactNode }) {
 
       if (status === "connected" && prevStatus !== "connected" && state.connection.walletId && address) {
         useMultiWalletStore.getState().setLoginError(null)
-      }
-
-      if (status === "authenticated" && prevStatus !== "authenticated") {
-        const { auth } = useAuthFlowStore.getState()
-        if (auth.signature && auth.nonce) {
-          useAuthStore.getState().login(address ?? "", auth.signature).catch(() => {
-            // login failure handled by auth-store
-          })
-        }
       }
 
       prevStatusRef.current = status

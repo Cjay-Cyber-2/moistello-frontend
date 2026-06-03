@@ -151,6 +151,13 @@ apiClient.interceptors.response.use(
           } catch {
             // ignore
           }
+          // Also clear auth-store token keys so checkAuth doesn't loop
+          try {
+            localStorage.removeItem("moistello_access_token")
+            localStorage.removeItem("moistello_refresh_token")
+          } catch {
+            // ignore
+          }
           window.location.href = "/login"
         }
         return Promise.reject(refreshError)

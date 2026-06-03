@@ -10,20 +10,18 @@ interface AuthProviderProps {
 
 export function AuthProvider({ children }: AuthProviderProps) {
   const isLoading = useAuthStore((s) => s.isLoading);
-  const checkAuth = useAuthStore((s) => s.checkAuth);
-  const hasChecked = useAuthStore((s) => s.token !== null || s.isLoading);
 
   useEffect(() => {
-    checkAuth();
-  }, [checkAuth]);
+    useAuthStore.getState().checkAuth()
+  }, [])
 
-  if (isLoading && !hasChecked) {
+  if (isLoading) {
     return (
       <div className="flex h-screen w-screen items-center justify-center">
         <LoadingSpinner size="lg" />
       </div>
-    );
+    )
   }
 
-  return <>{children}</>;
+  return <>{children}</>
 }

@@ -61,8 +61,8 @@ export default function ContributionsPage() {
   const { data: circlesData } = useQuery({
     queryKey: ["circles", "contributions-filter"],
     queryFn: async () => {
-      const response = await get<ApiResponse<Circle[]>>("/circles?limit=100")
-      return response.data ?? []
+      const response = await get<ApiResponse<{ circles: Circle[] }>>("/circles?limit=100")
+      return response.data?.circles ?? []
     },
   })
 
@@ -81,9 +81,9 @@ export default function ContributionsPage() {
       params.set("limit", String(limit))
       const query = params.toString()
       const url = `/contributions?${query}`
-      const response = await get<ApiResponse<ContributionType[]>>(url)
+      const response = await get<ApiResponse<{ contributions: ContributionType[] }>>(url)
       return {
-        contributions: response.data ?? [],
+        contributions: response.data?.contributions ?? [],
         meta: response.meta ?? { page, limit, total: 0, totalPages: 0 },
       }
     },

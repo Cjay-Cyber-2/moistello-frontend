@@ -54,7 +54,7 @@ interface AuthActions {
   login: (walletAddress: string, signature: string) => Promise<void>;
   logout: () => void;
   checkAuth: () => Promise<void>;
-  setTokens: (accessToken: string, refreshToken: string) => void;
+  setTokens: (accessToken: string, refreshToken: string, user?: User) => void;
   clearTokens: () => void;
 }
 
@@ -65,7 +65,7 @@ export const useAuthStore = create<AuthStore>()(devtools((set, get) => ({
   user: null,
   token: getStoredToken(ACCESS_TOKEN_KEY),
   refreshToken: getStoredToken(REFRESH_TOKEN_KEY),
-  isLoading: false,
+  isLoading: true,
   tokenExpiresAt: null,
 
   login: async (walletAddress: string, signature: string) => {
@@ -102,8 +102,8 @@ export const useAuthStore = create<AuthStore>()(devtools((set, get) => ({
   },
 
   logout: () => {
-    const { clearTokens } = get();
-    clearTokens();
+    const { clearTokens } = get()
+    clearTokens()
     set({
       isAuthenticated: false,
       user: null,
@@ -111,7 +111,17 @@ export const useAuthStore = create<AuthStore>()(devtools((set, get) => ({
       refreshToken: null,
       tokenExpiresAt: null,
       isLoading: false,
-    });
+    })
+    // Reset passkey adapter session so next login starts fresh WebAuthn flow
+    if (typeof window !== "undefined") {
+      import("@/lib/wallet/registry").then(({ getWalletRegistry }) => {
+        try {
+          getWalletRegistry().getAdapter("passkey")?.reset?.()
+        } catch {
+          // adapter not registered yet
+        }
+      })
+    }
   },
 
   checkAuth: async () => {
@@ -145,15 +155,14 @@ export const useAuthStore = create<AuthStore>()(devtools((set, get) => ({
     }
   },
 
-  setTokens: (accessToken: string, refreshToken: string) => {
+  setTokens: (accessToken: string, refreshToken: string, user?: User) => {
     setStoredToken(ACCESS_TOKEN_KEY, accessToken);
     setStoredToken(REFRESH_TOKEN_KEY, refreshToken);
-    // Also write to the keys the API client reads from
     localStorage.setItem("moistello_token", JSON.stringify(accessToken));
     localStorage.setItem("moistello_refresh", JSON.stringify(refreshToken));
     document.cookie = `moistello_token=${accessToken}; path=/; max-age=86400; SameSite=Lax`;
     document.cookie = `moistello_refresh=${refreshToken}; path=/; max-age=86400; SameSite=Lax`;
-    set({ token: accessToken, refreshToken, tokenExpiresAt: Date.now() + 15 * 60 * 1000, isAuthenticated: true });
+    set({ token: accessToken, refreshToken, tokenExpiresAt: Date.now() + 15 * 60 * 1000, isAuthenticated: true, user: user ?? null });
   },
 
   clearTokens: () => {

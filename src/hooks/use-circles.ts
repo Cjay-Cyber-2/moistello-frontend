@@ -56,10 +56,10 @@ export function useCircles(filters?: CircleFilters) {
 
       const query = params.toString();
       const url = `/circles${query ? `?${query}` : ""}`;
-      const response = await get<ApiResponse<Circle[]>>(url);
+      const response = await get<ApiResponse<{ circles: Circle[] }>>(url);
 
       return {
-        circles: response.data ?? [],
+        circles: response.data?.circles ?? [],
         meta: response.meta ?? {
           page: filters?.page ?? 1,
           limit: filters?.limit ?? 20,
@@ -75,8 +75,8 @@ export function useCircle(id: string) {
   return useQuery({
     queryKey: ["circle", id],
     queryFn: async () => {
-      const response = await get<ApiResponse<Circle>>(`/circles/${id}`);
-      return response.data ?? null;
+      const response = await get<ApiResponse<{ circle: Circle }>>(`/circles/${id}`);
+      return response.data?.circle ?? null;
     },
     enabled: !!id,
   });
@@ -132,10 +132,10 @@ export function useCircleMembers(circleId: string) {
   return useQuery({
     queryKey: ["circle-members", circleId],
     queryFn: async () => {
-      const response = await get<ApiResponse<CircleMember[]>>(
+      const response = await get<ApiResponse<{ members: CircleMember[] }>>(
         `/circles/${circleId}/members`
       );
-      return response.data ?? [];
+      return response.data?.members ?? [];
     },
     enabled: !!circleId,
   });
@@ -145,10 +145,10 @@ export function useCircleRounds(circleId: string) {
   return useQuery({
     queryKey: ["circle-rounds", circleId],
     queryFn: async () => {
-      const response = await get<ApiResponse<Contribution[]>>(
+      const response = await get<ApiResponse<{ rounds: Contribution[] }>>(
         `/circles/${circleId}/rounds`
       );
-      return response.data ?? [];
+      return response.data?.rounds ?? [];
     },
     enabled: !!circleId,
   });

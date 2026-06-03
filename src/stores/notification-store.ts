@@ -32,10 +32,10 @@ export const useNotificationStore = create<NotificationStore>()(
     fetchNotifications: async () => {
       set({ isLoading: true });
       try {
-        const response = await apiGet<ApiResponse<Notification[]>>(
+        const response = await apiGet<ApiResponse<{ notifications: Notification[] }>>(
           "/notifications"
         );
-        const notifications = response.data ?? [];
+        const notifications = response.data?.notifications ?? [];
         set({
           notifications,
           unreadCount: computeUnreadCount(notifications),

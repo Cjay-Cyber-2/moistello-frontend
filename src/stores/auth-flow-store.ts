@@ -6,6 +6,7 @@ import { post } from "@/lib/api-client"
 import { recordMetric, captureAuthError } from "@/lib/monitoring"
 import { useMultiWalletStore } from "@/stores/multi-wallet-store"
 import { useAuthStore } from "@/stores/auth-store"
+import { User } from "@/types"
 
 export type AuthFlowMode = "login" | "register"
 
@@ -202,7 +203,22 @@ export const useAuthFlowStore = create<AuthFlowStore>()(
       (set, get) => ({
         ...createInitialState(),
 
-        startLoginFlow: () => set({ mode: "login", step: "choose", status: { status: "idle" } }),
+        startLoginFlow: () => {
+          if (typeof window !== "undefined") {
+            import("@/lib/wallet/registry").then(({ getWalletRegistry }) => {
+              try {
+                getWalletRegistry().getAdapter("passkey")?.reset?.()
+              } catch {}
+            })
+          }
+          set({
+            mode: "login",
+            step: "choose",
+            status: { status: "idle" },
+            connection: { ...initialConnection },
+            auth: { nonce: null, signature: null, nonceTimestamp: null },
+          })
+        },
 
         startRegisterFlow: () => set({ mode: "register", step: "choose", status: { status: "idle" } }),
 
@@ -523,7 +539,7 @@ export const useAuthFlowStore = create<AuthFlowStore>()(
             const token = d.token
             const refreshToken = d.refreshToken ?? token
 
-            useAuthStore.getState().setTokens(token, refreshToken)
+            useAuthStore.getState().setTokens(token, refreshToken, d.user as unknown as User | undefined)
 
             recordMetric("auth.sign.completed", 1, { mode })
 

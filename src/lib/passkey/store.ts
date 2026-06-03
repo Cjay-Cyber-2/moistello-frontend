@@ -94,7 +94,7 @@ export async function getCredential(credentialId: string): Promise<CredentialRec
     if (!data?.data) return undefined
     return {
       credentialId: data.data.credentialId,
-      publicKey: new Uint8Array(data.data.publicKey),
+      publicKey: Uint8Array.from(atob(data.data.publicKey), (c) => c.charCodeAt(0)),
       counter: data.data.counter ?? 0,
       transports: data.data.transports,
       email: data.data.emailHash || undefined,

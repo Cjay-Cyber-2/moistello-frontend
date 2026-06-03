@@ -24,14 +24,13 @@ getWalletRegistry().register(createPasskeyAdapter())
 function LoginPageContent() {
   const router = useRouter()
   useRedirectIfAuthenticated()
-  useConditionalMediation()
+  const abortConditionalMediation = useConditionalMediation()
 
   const step = useAuthFlow((s) => s.step)
   const status = useAuthFlow((s) => s.status)
   const error = useAuthFlow((s) => s.error)
   const connection = useAuthFlow((s) => s.connection)
   const auth = useAuthFlow((s) => s.auth)
-  const mode = useAuthFlow((s) => s.mode)
   const rateLimit = useAuthFlow((s) => s.rateLimit)
   const passkeyRevoked = useAuthFlow((s) => s.passkeyRevoked)
 
@@ -44,8 +43,8 @@ function LoginPageContent() {
   const authenticatingRef = useRef(false)
 
   useEffect(() => {
-    if (mode !== "login") startLoginFlow()
-  }, [mode, startLoginFlow])
+    startLoginFlow()
+  }, [startLoginFlow])
 
   useEffect(() => {
     import("@/lib/wallet/adapters/passkey").then(({ createPasskeyAdapter }) => {
@@ -63,6 +62,10 @@ function LoginPageContent() {
     try {
       const adapter = getWalletRegistry().getAdapter("passkey")
       if (!adapter) throw new Error("Passkey adapter not found")
+      // Cancel any pending conditional mediation (browser can't have two WebAuthn calls)
+      abortConditionalMediation()
+      // Clear stale in-memory session from previous login in same tab
+      adapter.reset?.()
       const { publicKey } = await adapter.connect()
       if (!publicKey) {
         throw new Error("Could not retrieve passkey address")

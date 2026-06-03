@@ -204,8 +204,8 @@ export default function ReputationPage() {
   const { data: moiScore, isLoading, isError } = useQuery({
     queryKey: ["reputation"],
     queryFn: async () => {
-      const response = await get<ApiResponse<MoiScore>>("/users/me/reputation")
-      return response.data ?? null
+      const response = await get<ApiResponse<{ reputation: MoiScore }>>("/users/me/reputation")
+      return response.data?.reputation ?? null
     },
   })
 

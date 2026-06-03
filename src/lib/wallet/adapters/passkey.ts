@@ -111,7 +111,8 @@ export function createPasskeyAdapter(): WalletAdapter {
           if (err instanceof Error && err.name === "NotAllowedError") {
             throw { adapter: "passkey", code: "user_rejected" as const, message: "Authentication cancelled" }
           }
-          throw { adapter: "passkey", code: "internal" as const, message: "Authentication failed", cause: String(err) }
+          const cause = err instanceof Error ? err.message : String(err)
+          throw { adapter: "passkey", code: "internal" as const, message: cause, cause: String(err) }
         }
 
         const verifyResult = await apiPost<{ verified: boolean; email: string; credentialId: string; pepper: string }>(
@@ -152,7 +153,8 @@ export function createPasskeyAdapter(): WalletAdapter {
           if (err instanceof Error && err.name === "NotAllowedError") {
             throw { adapter: "passkey", code: "user_rejected" as const, message: "Authentication cancelled" }
           }
-          throw { adapter: "passkey", code: "internal" as const, message: "Authentication failed", cause: String(err) }
+          const cause = err instanceof Error ? err.message : String(err)
+          throw { adapter: "passkey", code: "internal" as const, message: cause, cause: String(err) }
         }
 
         const verifyResult = await apiPost<{ verified: boolean; email: string; credentialId: string; pepper: string }>(

@@ -25,6 +25,7 @@ export interface WalletAdapter {
 
   getPublicKey(): Promise<string>
   getNetwork(): Promise<NetworkType>
+  reset?(): void
 }
 
 export interface SignOptions {
