@@ -100,14 +100,14 @@ describe("AuthFlowStore - signAndSubmit", () => {
 
     await useAuthFlowStore.getState().signAndSubmit()
 
-    expect(mockPost).toHaveBeenCalledWith("/auth/nonce", { walletAddress: "GABC123..." })
+    expect(mockPost).toHaveBeenCalledWith("/auth/nonce", { walletAddress: "GABC123..." }, { _retry: true })
     expect(mockSignMessage).toHaveBeenCalledWith("nonce-123")
     expect(mockPost).toHaveBeenCalledWith("/auth/verify", {
       walletAddress: "GABC123...",
       signature: "sig-abc",
       nonce: "nonce-123",
       passkeyVersion: 0,
-    })
+    }, { _retry: true })
     expect(mockSetTokens).toHaveBeenCalledWith("jwt-token", "refresh-token")
 
     const state = useAuthFlowStore.getState()
@@ -210,7 +210,7 @@ describe("AuthFlowStore - signAndSubmit", () => {
       email: "test@example.com",
       countryCode: "US",
       preferredLanguage: "en",
-    })
+    }, { _retry: true })
   })
 
   it("transitions state through signing phases", async () => {

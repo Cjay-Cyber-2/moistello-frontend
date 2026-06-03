@@ -451,7 +451,7 @@ export const useAuthFlowStore = create<AuthFlowStore>()(
             recordMetric("wallet.sign.attempt", 1, { phase: "nonce_fetch", mode })
             const nonceResponse = await post<{ nonce: string }>("/auth/nonce", {
               walletAddress: address,
-            })
+            }, { _retry: true } as Record<string, unknown>)
             const nonce = nonceResponse.nonce
 
             recordMetric("wallet.sign.attempt", 1, { phase: "signing", mode, walletId })
@@ -497,17 +497,9 @@ export const useAuthFlowStore = create<AuthFlowStore>()(
                 user: Record<string, unknown>
                 expectedPasskeyVersion?: number
               }
-            }>(endpoint, body)
-
-            if (typeof window !== "undefined") {
-              console.log("[signAndSubmit] raw response:", JSON.stringify(authResponse).slice(0, 500))
-            }
+            }>(endpoint, body, { _retry: true } as Record<string, unknown>)
 
             const d = authResponse.data
-            if (!d) {
-              console.error("[signAndSubmit] authResponse.data is undefined!", JSON.stringify(authResponse))
-              throw new Error("Invalid response from server: missing data envelope")
-            }
             if (
               d.expectedPasskeyVersion !== undefined &&
               d.expectedPasskeyVersion > state.passkeyVersion
@@ -526,10 +518,6 @@ export const useAuthFlowStore = create<AuthFlowStore>()(
 
             const token = d.token
             const refreshToken = d.refreshToken ?? token
-
-            if (typeof window !== "undefined") {
-              console.log("[signAndSubmit] token:", token?.slice(0, 30), "refreshToken:", refreshToken?.slice(0, 30))
-            }
 
             useAuthStore.getState().setTokens(token, refreshToken)
 
