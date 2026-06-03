@@ -89,7 +89,7 @@ describe("AuthFlowStore - signAndSubmit", () => {
   it("fetches nonce, signs message, submits, and authenticates", async () => {
     mockSignMessage.mockResolvedValueOnce({ signature: "sig-abc" })
     mockPost
-      .mockResolvedValueOnce({ nonce: "nonce-123" })
+      .mockResolvedValueOnce({ data: { nonce: { nonce: "nonce-123" } } })
       .mockResolvedValueOnce({
         data: {
           token: "jwt-token",
@@ -132,7 +132,7 @@ describe("AuthFlowStore - signAndSubmit", () => {
   it("sets error when signature verification fails on server", async () => {
     mockSignMessage.mockResolvedValueOnce({ signature: "sig-bad" })
     mockPost
-      .mockResolvedValueOnce({ nonce: "nonce-123" })
+      .mockResolvedValueOnce({ data: { nonce: { nonce: "nonce-123" } } })
       .mockRejectedValueOnce({
         response: { status: 401, data: { error: "signature verification failed" } },
       })
@@ -151,7 +151,7 @@ describe("AuthFlowStore - signAndSubmit", () => {
   it("handles passkey revocation on login", async () => {
     mockSignMessage.mockResolvedValueOnce({ signature: "sig-abc" })
     mockPost
-      .mockResolvedValueOnce({ nonce: "nonce-123" })
+      .mockResolvedValueOnce({ data: { nonce: { nonce: "nonce-123" } } })
       .mockResolvedValueOnce({
         data: {
           token: "jwt-token",
@@ -190,7 +190,7 @@ describe("AuthFlowStore - signAndSubmit", () => {
 
     mockSignMessage.mockResolvedValueOnce({ signature: "sig-abc" })
     mockPost
-      .mockResolvedValueOnce({ nonce: "nonce-123" })
+      .mockResolvedValueOnce({ data: { nonce: { nonce: "nonce-123" } } })
       .mockResolvedValueOnce({
         data: {
           token: "jwt-token",
@@ -216,7 +216,7 @@ describe("AuthFlowStore - signAndSubmit", () => {
   it("transitions state through signing phases", async () => {
     mockSignMessage.mockResolvedValueOnce({ signature: "sig-abc" })
     mockPost
-      .mockResolvedValueOnce({ nonce: "nonce-123" })
+      .mockResolvedValueOnce({ data: { nonce: { nonce: "nonce-123" } } })
       .mockResolvedValueOnce({
         data: {
           token: "jwt-token",
@@ -244,7 +244,7 @@ describe("AuthFlowStore - signAndSubmit", () => {
       connection: { walletId: "nonexistent", address: "GABC...", pairingUri: null, protocol: null, relayStatus: "healthy" },
     })
 
-    mockPost.mockResolvedValueOnce({ nonce: "nonce-123" })
+    mockPost.mockResolvedValueOnce({ data: { nonce: { nonce: "nonce-123" } } })
 
     await useAuthFlowStore.getState().signAndSubmit()
 

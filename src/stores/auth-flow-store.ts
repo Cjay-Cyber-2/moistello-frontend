@@ -449,10 +449,13 @@ export const useAuthFlowStore = create<AuthFlowStore>()(
 
           try {
             recordMetric("wallet.sign.attempt", 1, { phase: "nonce_fetch", mode })
-            const nonceResponse = await post<{ nonce: string }>("/auth/nonce", {
+            const nonceResponse = await post<{
+              success: boolean
+              data: { nonce: { nonce: string } }
+            }>("/auth/nonce", {
               walletAddress: address,
             }, { _retry: true } as Record<string, unknown>)
-            const nonce = nonceResponse.nonce
+            const nonce = nonceResponse.data.nonce.nonce
 
             recordMetric("wallet.sign.attempt", 1, { phase: "signing", mode, walletId })
             const wallets = useMultiWalletStore.getState().wallets
