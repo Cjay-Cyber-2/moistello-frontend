@@ -1,6 +1,7 @@
 "use client";
 
 import { create } from "zustand";
+import { devtools } from "zustand/middleware";
 import { ApiResponse, User } from "@/types";
 import { post } from "@/lib/api-client";
 
@@ -59,8 +60,8 @@ interface AuthActions {
 
 type AuthStore = AuthState & AuthActions;
 
-export const useAuthStore = create<AuthStore>()((set, get) => ({
-  isAuthenticated: false,
+export const useAuthStore = create<AuthStore>()(devtools((set, get) => ({
+  isAuthenticated: !!getStoredToken(ACCESS_TOKEN_KEY),
   user: null,
   token: getStoredToken(ACCESS_TOKEN_KEY),
   refreshToken: getStoredToken(REFRESH_TOKEN_KEY),
@@ -164,4 +165,4 @@ export const useAuthStore = create<AuthStore>()((set, get) => ({
     document.cookie = "moistello_refresh=; path=/; max-age=0; SameSite=Lax";
     set({ token: null, refreshToken: null, tokenExpiresAt: null });
   },
-}));
+})));
