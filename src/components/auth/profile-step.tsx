@@ -36,7 +36,6 @@ const LANGUAGES: SelectOption[] = [
 
 interface ProfileData {
   displayName: string
-  email: string
   countryCode: string
   language: string
   fieldErrors: Record<string, string>
@@ -62,7 +61,7 @@ export function ProfileStep({
   const [touched, setTouched] = useState<Set<string>>(new Set())
 
   const validateField = useCallback(
-    (field: "displayName" | "email", value: string) => {
+    (field: "displayName", value: string) => {
       if (field === "displayName") {
         const trimmed = value.trim()
         if (!trimmed) {
@@ -75,19 +74,12 @@ export function ProfileStep({
           onSetFieldError("displayName", null)
         }
       }
-      if (field === "email" && value) {
-        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
-          onSetFieldError("email", "Invalid email address")
-        } else {
-          onSetFieldError("email", null)
-        }
-      }
     },
     [onSetFieldError]
   )
 
   const handleBlur = useCallback(
-    (field: "displayName" | "email") => {
+    (field: "displayName") => {
       setTouched((prev) => new Set(prev).add(field))
       validateField(field, profile[field])
     },
@@ -134,18 +126,6 @@ export function ProfileStep({
           error={touched.has("displayName") ? profile.fieldErrors.displayName : null}
           disabled={isSubmitting}
           maxLength={64}
-        />
-
-        <AuthInput
-          label="Email (optional)"
-          type="email"
-          autoCompleteType="email"
-          placeholder="you@example.com"
-          value={profile.email}
-          onChange={(e) => onUpdateField("email", e.target.value)}
-          onBlur={() => handleBlur("email")}
-          error={touched.has("email") ? profile.fieldErrors.email : null}
-          disabled={isSubmitting}
         />
 
         <Select

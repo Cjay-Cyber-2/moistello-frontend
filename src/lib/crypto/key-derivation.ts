@@ -47,21 +47,13 @@ export function hexEncode(bytes: Uint8Array): string {
   return bytesToHex(bytes)
 }
 
-export function normalizeEmail(email: string): string {
-  return email.toLowerCase().trim().normalize("NFKD")
-}
-
 export async function deriveStellarKeypair(
   credentialId: string,
-  email: string,
   serverPepper?: string
 ): Promise<{ publicKey: Uint8Array; secretKey: Uint8Array }> {
   const pepper = serverPepper || PEPPER
-  const normalizedEmail = normalizeEmail(email)
-
-  const passphrase = `${normalizedEmail}:${credentialId}:${pepper}`
-
-  const saltInput = `${email}:${credentialId.slice(0, 16)}`
+  const passphrase = `${credentialId}:${pepper}`
+  const saltInput = `v1:${credentialId.slice(0, 16)}`
   const salt = sha256(new TextEncoder().encode(saltInput))
   const passphraseBytes = new TextEncoder().encode(passphrase)
 

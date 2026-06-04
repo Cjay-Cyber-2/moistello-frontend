@@ -3,5 +3,4 @@ export {
   publicKeyToStellarAddress,
   secureZeroMemory,
   hexEncode,
-  normalizeEmail,
 } from "./key-derivation"

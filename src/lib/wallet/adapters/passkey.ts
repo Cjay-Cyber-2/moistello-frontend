@@ -10,13 +10,11 @@ const CREDENTIAL_STORAGE_KEY = "moistello_passkey_credential"
 
 interface StoredCredential {
   credentialId: string
-  email: string
   publicKeyRaw: string
 }
 
 interface PasskeySession {
   credentialId: string
-  email: string
   publicKey: Uint8Array
   secretKey: Uint8Array
   stellarAddress: string
@@ -32,11 +30,11 @@ function resolveNetworkPassphrase(network?: NetworkType, networkPassphrase?: str
 export function createPasskeyAdapter(): WalletAdapter {
   const meta: WalletMeta = {
     id: "passkey",
-    name: "Passkey / Email",
+    name: "Passkey",
     category: "passkey",
     icon: "passkey-icon",
     installUrl: "",
-    description: "Sign in with biometrics or email. No wallet needed.",
+    description: "Sign in with biometrics. No password needed.",
     priority: 30,
     isAvailable: () => {
       if (typeof window === "undefined") return false
@@ -85,7 +83,7 @@ export function createPasskeyAdapter(): WalletAdapter {
   return {
     meta,
 
-    async connect(email?: string) {
+    async connect() {
       if (typeof window === "undefined") {
         throw { adapter: "passkey", code: "not_supported" as const, message: "Not available server-side" }
       }
@@ -94,10 +92,11 @@ export function createPasskeyAdapter(): WalletAdapter {
         return { publicKey: hexEncode(session.publicKey) }
       }
 
-      const { startRegistration, startAuthentication } = await import("@simplewebauthn/browser")
+      const { startAuthentication } = await import("@simplewebauthn/browser")
       const stored = getStoredCredential()
 
-      if (stored && !email) {
+      // Stored credential path — device has a registered credential from a previous session
+      if (stored) {
         const { options } = await apiPost<{ options: Record<string, unknown> }>(
           "/api/auth/passkey/generate-options",
           { credentialId: stored.credentialId, mode: "authenticate" }
@@ -115,20 +114,15 @@ export function createPasskeyAdapter(): WalletAdapter {
           throw { adapter: "passkey", code: "internal" as const, message: cause, cause: String(err) }
         }
 
-        const verifyResult = await apiPost<{ verified: boolean; email: string; credentialId: string; pepper: string }>(
+        const verifyResult = await apiPost<{ verified: boolean; credentialId: string; pepper: string }>(
           "/api/auth/passkey/auth-verify",
-          { credentialId: stored.credentialId, email: stored.email, assertion }
+          { credentialId: stored.credentialId, assertion }
         )
 
-        const keypair = await deriveStellarKeypair(
-          stored.credentialId,
-          stored.email,
-          verifyResult.pepper
-        )
+        const keypair = await deriveStellarKeypair(stored.credentialId, verifyResult.pepper)
         const publicKeyHex = hexEncode(keypair.publicKey)
         session = {
           credentialId: stored.credentialId,
-          email: stored.email,
           publicKey: keypair.publicKey,
           secretKey: keypair.secretKey,
           stellarAddress: publicKeyToStellarAddress(keypair.publicKey),
@@ -137,95 +131,40 @@ export function createPasskeyAdapter(): WalletAdapter {
         return { publicKey: publicKeyHex }
       }
 
-      // Discoverable credential — no stored credential, no email.
+      // Discoverable credential — no stored credential.
       // The browser presents all passkeys for this domain. User selects one.
-      if (!email && !stored) {
-        const { options, tempKey } = await apiPost<{ options: Record<string, unknown>; tempKey: string }>(
-          "/api/auth/passkey/generate-options",
-          { mode: "authenticate" }
-        )
-
-        let assertion: unknown
-        try {
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          assertion = await startAuthentication({ optionsJSON: options as any })
-        } catch (err: unknown) {
-          if (err instanceof Error && err.name === "NotAllowedError") {
-            throw { adapter: "passkey", code: "user_rejected" as const, message: "Authentication cancelled" }
-          }
-          const cause = err instanceof Error ? err.message : String(err)
-          throw { adapter: "passkey", code: "internal" as const, message: cause, cause: String(err) }
-        }
-
-        const verifyResult = await apiPost<{ verified: boolean; email: string; credentialId: string; pepper: string }>(
-          "/api/auth/passkey/auth-verify",
-          { tempKey, assertion }
-        )
-
-        const email = verifyResult.email
-        const keypair = await deriveStellarKeypair(
-          verifyResult.credentialId,
-          email,
-          verifyResult.pepper
-        )
-        const publicKeyHex = hexEncode(keypair.publicKey)
-        session = {
-          credentialId: verifyResult.credentialId,
-          email,
-          publicKey: keypair.publicKey,
-          secretKey: keypair.secretKey,
-          stellarAddress: publicKeyToStellarAddress(keypair.publicKey),
-          pepper: verifyResult.pepper,
-        }
-        return { publicKey: publicKeyHex }
-      }
-
-      const resolvedEmail = email
-      if (!resolvedEmail) {
-        throw { adapter: "passkey", code: "user_rejected" as const, message: "Email is required" }
-      }
-
-      const { options } = await apiPost<{ options: Record<string, unknown> }>(
+      const { options, tempKey } = await apiPost<{ options: Record<string, unknown>; tempKey: string }>(
         "/api/auth/passkey/generate-options",
-        { email: resolvedEmail, mode: "register" }
+        { mode: "authenticate" }
       )
 
-      let attestation: unknown
+      let assertion: unknown
       try {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        attestation = await startRegistration({ optionsJSON: options as any })
+        assertion = await startAuthentication({ optionsJSON: options as any })
       } catch (err: unknown) {
         if (err instanceof Error && err.name === "NotAllowedError") {
-          throw { adapter: "passkey", code: "user_rejected" as const, message: "Registration cancelled" }
+          throw { adapter: "passkey", code: "user_rejected" as const, message: "Authentication cancelled" }
         }
         const cause = err instanceof Error ? err.message : String(err)
-        throw { adapter: "passkey", code: "internal" as const, message: `Passkey creation failed: ${cause}`, cause: String(err) }
+        throw { adapter: "passkey", code: "internal" as const, message: cause, cause: String(err) }
       }
 
-      const attestationRecord = attestation as { rawId?: string; id?: string }
-      const credentialId = attestationRecord.rawId || attestationRecord.id || ""
-
-      const verifyResult = await apiPost<{ verified: boolean; email: string; credentialId: string; pepper: string }>(
-        "/api/auth/passkey/register",
-        { attestation, email: resolvedEmail }
+      const verifyResult = await apiPost<{ verified: boolean; credentialId: string; pepper: string }>(
+        "/api/auth/passkey/auth-verify",
+        { tempKey, assertion }
       )
 
-      const keypair = await deriveStellarKeypair(
-        credentialId,
-        resolvedEmail,
-        verifyResult.pepper
-      )
+      const keypair = await deriveStellarKeypair(verifyResult.credentialId, verifyResult.pepper)
       const publicKeyHex = hexEncode(keypair.publicKey)
 
       storeCredential({
-        credentialId,
-        email: resolvedEmail,
+        credentialId: verifyResult.credentialId,
         publicKeyRaw: publicKeyHex,
       })
 
       session = {
-        credentialId,
-        email: resolvedEmail,
+        credentialId: verifyResult.credentialId,
         publicKey: keypair.publicKey,
         secretKey: keypair.secretKey,
         stellarAddress: publicKeyToStellarAddress(keypair.publicKey),

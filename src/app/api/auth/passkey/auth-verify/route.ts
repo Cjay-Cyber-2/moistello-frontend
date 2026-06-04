@@ -13,7 +13,7 @@ import {
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json()
-    const { credentialId, email, assertion, tempKey } = body
+    const { credentialId, assertion, tempKey } = body
 
     if (!assertion || typeof assertion !== "object") {
       return NextResponse.json({ error: "invalid_assertion" }, { status: 400 })
@@ -48,7 +48,7 @@ export async function POST(req: NextRequest) {
       if (!getAndVerifyTempChallenge(tempKey, parsed.challenge)) {
         return NextResponse.json({ error: "challenge_mismatch" }, { status: 400 })
       }
-    } else if (!getAndVerifyChallenge(resolvedCredentialId, parsed.challenge, email || "")) {
+    } else if (!getAndVerifyChallenge(resolvedCredentialId, parsed.challenge)) {
       return NextResponse.json({ error: "challenge_mismatch" }, { status: 400 })
     }
 
@@ -77,11 +77,8 @@ export async function POST(req: NextRequest) {
     }
 
     const pepper = getPepper()
-    // For discoverable credentials, return the email stored during registration
-    const resolvedEmail = email || storedCredential.email || ""
     return NextResponse.json({
       verified: true,
-      email: resolvedEmail,
       credentialId: resolvedCredentialId,
       pepper,
     })

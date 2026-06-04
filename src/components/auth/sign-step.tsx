@@ -13,7 +13,6 @@ interface ConnectionInfo {
 
 interface ProfileInfo {
   displayName: string
-  email: string
   countryCode: string
   language: string
 }
@@ -171,9 +170,6 @@ export function SignStep({
           <div className="rounded-xl glass border border-white/10 px-4 py-3 space-y-1.5">
             <p className="text-xs text-muted-foreground">Profile</p>
             <p className="text-sm font-medium text-foreground">{profile.displayName}</p>
-            {profile.email && (
-              <p className="text-xs text-muted-foreground">{profile.email}</p>
-            )}
             {countryLabel && (
               <p className="text-xs text-muted-foreground">{countryLabel}</p>
             )}

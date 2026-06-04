@@ -19,10 +19,6 @@ const errorLabels: Partial<Record<AuthErrorCode, string>> = {
   network_mismatch: "Network Mismatch",
   auth_server_error: "Server Error",
   validation_error: "Invalid Input",
-  email_send_failed: "Email Failed",
-  email_code_expired: "Code Expired",
-  email_code_invalid: "Invalid Code",
-  email_rate_limited: "Too Many Attempts",
   internal_error: "Unexpected Error",
 }
 

@@ -185,7 +185,7 @@ function LoginPageContent() {
           <SignStep
             mode="login"
             connection={connection}
-            profile={{ displayName: "", email: "", countryCode: "", language: "en" }}
+            profile={{ displayName: "", countryCode: "", language: "en" }}
             auth={auth}
             status={status}
             error={error}

@@ -56,7 +56,6 @@ interface MultiWalletState {
 
   /* Passkey-specific state */
   passkeyState: "idle" | "registering" | "awaiting_biometric" | "authenticating" | "deriving" | "connected" | "error";
-  passkeyEmail: string | null;
   passkeyError: string | null;
   passkeyPublicKey: string | null;
 
@@ -92,7 +91,6 @@ interface MultiWalletState {
   resetWc2Pairing: () => void;
   /* Passkey actions */
   setPasskeyState: (state: MultiWalletState["passkeyState"]) => void;
-  setPasskeyEmail: (email: string | null) => void;
   setPasskeyError: (error: string | null) => void;
   setPasskeyPublicKey: (key: string | null) => void;
   resetPasskeyState: () => void;
@@ -153,7 +151,6 @@ export const useMultiWalletStore = create<MultiWalletState>()((set, get) => ({
 
   /* Passkey defaults */
   passkeyState: "idle",
-  passkeyEmail: null,
   passkeyError: null,
   passkeyPublicKey: null,
 
@@ -488,10 +485,6 @@ export const useMultiWalletStore = create<MultiWalletState>()((set, get) => ({
     set({ passkeyState });
   },
 
-  setPasskeyEmail: (passkeyEmail) => {
-    set({ passkeyEmail });
-  },
-
   setPasskeyError: (passkeyError) => {
     set({ passkeyError, passkeyState: passkeyError ? "error" : get().passkeyState });
   },
@@ -503,7 +496,6 @@ export const useMultiWalletStore = create<MultiWalletState>()((set, get) => ({
   resetPasskeyState: () => {
     set({
       passkeyState: "idle",
-      passkeyEmail: null,
       passkeyError: null,
       passkeyPublicKey: null,
     });

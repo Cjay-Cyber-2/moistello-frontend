@@ -10,7 +10,7 @@ import { User } from "@/types"
 
 export type AuthFlowMode = "login" | "register"
 
-export type AuthStep = "choose" | "verify-email" | "profile" | "sign"
+export type AuthStep = "choose" | "profile" | "sign"
 
 export type AuthFlowStatus =
   | { status: "idle" }
@@ -18,9 +18,6 @@ export type AuthFlowStatus =
   | { status: "connecting"; walletId: string | null }
   | { status: "awaiting_approval"; pairingUri: string | null; protocol: "qr" | "deeplink" | null }
   | { status: "connected"; walletId: string; address: string }
-  | { status: "sending_code" }
-  | { status: "code_sent" }
-  | { status: "verifying_code" }
   | { status: "signing"; address: string }
   | { status: "signed"; signature: string; nonce: string }
   | { status: "error"; code: AuthErrorCode; message: string; canRetry: boolean }
@@ -34,25 +31,12 @@ export type AuthErrorCode =
   | "auth_server_error"
   | "validation_error"
   | "passkey_revoked"
-  | "email_send_failed"
-  | "email_code_expired"
-  | "email_code_invalid"
-  | "email_rate_limited"
   | "internal_error"
 
-const STEP_ORDER: AuthStep[] = ["choose", "verify-email", "profile", "sign"]
+const STEP_ORDER: AuthStep[] = ["choose", "profile", "sign"]
 
 function getStepsForMode(mode: AuthFlowMode): AuthStep[] {
   return mode === "register" ? STEP_ORDER : STEP_ORDER.filter((s) => s !== "profile")
-}
-
-interface EmailVerification {
-  email: string
-  verificationId: string | null
-  codeSent: boolean
-  codeVerified: boolean
-  expiresAt: number | null
-  remainingAttempts: number
 }
 
 interface RateLimitState {
@@ -75,7 +59,6 @@ export interface AuthFlowState {
   }
   profile: {
     displayName: string
-    email: string
     countryCode: string
     language: string
     fieldErrors: Record<string, string>
@@ -85,11 +68,9 @@ export interface AuthFlowState {
     signature: string | null
     nonceTimestamp: number | null
   }
-  emailVerification: EmailVerification
   rateLimit: RateLimitState
   passkeyVersion: number
   passkeyRevoked: boolean
-  captchaToken: string | null
 }
 
 interface AuthFlowActions {
@@ -109,10 +90,6 @@ interface AuthFlowActions {
   onConnectionRejected: () => void
   setPairingUri: (uri: string | null) => void
   setRelayStatus: (status: "healthy" | "degraded" | "down") => void
-  sendVerificationCode: (email: string, captchaToken?: string) => Promise<void>
-  verifyCode: (code: string) => Promise<void>
-  resendCode: () => Promise<void>
-  clearEmailVerification: () => void
   updateProfileField: (field: keyof AuthFlowState["profile"], value: string) => void
   setFieldError: (field: string, error: string | null) => void
   validateProfile: () => boolean
@@ -120,12 +97,10 @@ interface AuthFlowActions {
   signStart: (address: string) => void
   signSuccess: (signature: string, nonce: string) => void
   authenticated: () => void
-  isEmailVerified: () => boolean
   isWalletConnected: () => boolean
   canProceed: () => boolean
   currentStepIndex: () => number
   totalSteps: () => number
-  setCaptchaToken: (token: string | null) => void
 }
 
 export type AuthFlowStore = AuthFlowState & AuthFlowActions
@@ -140,21 +115,9 @@ const initialConnection = {
 
 const initialProfile = {
   displayName: "",
-  email: "",
   countryCode: "",
   language: "en",
   fieldErrors: {} as Record<string, string>,
-}
-
-function initialEmailVerification(): EmailVerification {
-  return {
-    email: "",
-    verificationId: null,
-    codeSent: false,
-    codeVerified: false,
-    expiresAt: null,
-    remainingAttempts: 5,
-  }
 }
 
 function initialRateLimit(): RateLimitState {
@@ -174,11 +137,9 @@ function createInitialState(): AuthFlowState {
     connection: { ...initialConnection },
     profile: { ...initialProfile },
     auth: { nonce: null, signature: null, nonceTimestamp: null },
-    emailVerification: initialEmailVerification(),
     rateLimit: initialRateLimit(),
     passkeyVersion: 0,
     passkeyRevoked: false,
-    captchaToken: null,
   }
 }
 
@@ -266,6 +227,7 @@ export const useAuthFlowStore = create<AuthFlowStore>()(
 
         connectSuccess: (walletId, address) =>
           set((state) => ({
+            status: { status: "connected", walletId, address },
             connection: { ...state.connection, walletId, address },
           })),
 
@@ -301,122 +263,6 @@ export const useAuthFlowStore = create<AuthFlowStore>()(
             connection: { ...state.connection, relayStatus: status },
           })),
 
-        sendVerificationCode: async (email, captchaToken) => {
-          set({ status: { status: "sending_code" } })
-          try {
-            const { mode } = get()
-            const response = await post<{
-              success: boolean
-              data: {
-                verificationId: string
-                expiresAt: number
-                remainingAttempts: number
-              }
-            }>("/auth/verification/send", { email, captchaToken })
-            recordMetric("auth.email.code_sent", 1, { mode })
-            set((state) => ({
-              emailVerification: {
-                ...state.emailVerification,
-                email,
-                verificationId: response.data.verificationId,
-                codeSent: true,
-                expiresAt: response.data.expiresAt,
-                remainingAttempts: response.data.remainingAttempts,
-              },
-              status: { status: "code_sent" },
-            }))
-          } catch (err) {
-            const { mode } = get()
-            captureAuthError(err, { step: "verify-email", mode, errorCode: "email_send_failed" })
-            const axiosErr = err as { response?: { status?: number; data?: { error?: string } } }
-            const msg = axiosErr?.response?.data?.error ?? "Failed to send verification code. Please try again."
-            set({
-              status: { status: "error", code: "email_send_failed", message: msg, canRetry: true },
-              error: { code: "email_send_failed", message: msg },
-            })
-            throw new Error(msg)
-          }
-        },
-
-        verifyCode: async (code: string) => {
-          if (!/^\d{6}$/.test(code)) {
-            const msg = "Invalid code format."
-            set({
-              status: { status: "error", code: "email_code_invalid", message: msg, canRetry: false },
-              error: { code: "email_code_invalid", message: msg },
-            })
-            throw new Error(msg)
-          }
-
-          set({ status: { status: "verifying_code" } })
-
-          try {
-            const { mode, emailVerification } = get()
-            await post("/auth/verification/verify", {
-              verificationId: emailVerification.verificationId,
-              code,
-            })
-            recordMetric("auth.email.code_verified", 1, { mode })
-            set((state) => ({
-              emailVerification: { ...state.emailVerification, codeVerified: true },
-              status: { status: "idle" },
-            }))
-          } catch (err: unknown) {
-            const { mode } = get()
-            const axiosErr = err as { response?: { status?: number; data?: { error?: string } } }
-
-            if (axiosErr?.response?.status === 429) {
-              captureAuthError(err, { step: "verify-email", mode, errorCode: "email_rate_limited" })
-              const msg = "Too many attempts. Please wait before trying again."
-              set({
-                status: { status: "error", code: "email_rate_limited", message: msg, canRetry: true },
-                error: { code: "email_rate_limited", message: msg },
-              })
-              throw new Error(msg)
-            }
-
-            set((state) => ({
-              emailVerification: {
-                ...state.emailVerification,
-                remainingAttempts: state.emailVerification.remainingAttempts - 1,
-              },
-            }))
-
-            const errorMessage =
-              axiosErr?.response?.data?.error ??
-              (err instanceof Error ? err.message : "Invalid verification code")
-
-            if (errorMessage.toLowerCase().includes("expired")) {
-              captureAuthError(err, { step: "verify-email", mode, errorCode: "email_code_expired" })
-              const msg = "Verification code has expired. Request a new one."
-              set({
-                status: { status: "error", code: "email_code_expired", message: msg, canRetry: false },
-                error: { code: "email_code_expired", message: msg },
-              })
-              throw new Error(msg)
-            } else {
-              captureAuthError(err, { step: "verify-email", mode, errorCode: "email_code_invalid" })
-              const msg = errorMessage
-              set({
-                status: { status: "error", code: "email_code_invalid", message: msg, canRetry: true },
-                error: { code: "email_code_invalid", message: msg },
-              })
-              throw new Error(msg)
-            }
-          }
-        },
-
-        resendCode: async () => {
-          const { emailVerification } = get()
-          if (emailVerification.email) {
-            await get().sendVerificationCode(emailVerification.email)
-          }
-        },
-
-        clearEmailVerification: () => set({ emailVerification: initialEmailVerification() }),
-
-        setCaptchaToken: (token) => set({ captchaToken: token }),
-
         updateProfileField: (field, value) =>
           set((state) => ({
             profile: { ...state.profile, [field]: value },
@@ -438,7 +284,6 @@ export const useAuthFlowStore = create<AuthFlowStore>()(
           const { profile } = get()
           const errors: Record<string, string> = {}
           if (!profile.displayName.trim()) errors.displayName = "Display name is required"
-          if (!profile.email.trim()) errors.email = "Email is required"
           if (!profile.countryCode.trim()) errors.countryCode = "Country is required"
           set((state) => ({
             profile: { ...state.profile, fieldErrors: errors },
@@ -502,11 +347,8 @@ export const useAuthFlowStore = create<AuthFlowStore>()(
             if (mode === "register") {
               const profile = state.profile
               body.displayName = profile.displayName.trim()
-              if (profile.email) body.email = profile.email.trim()
-              if (profile.countryCode) body.countryCode = profile.countryCode
+              body.countryCode = profile.countryCode
               if (profile.language) body.preferredLanguage = profile.language
-              if (state.captchaToken) body.captchaToken = state.captchaToken
-              if (state.emailVerification.verificationId) body.verificationId = state.emailVerification.verificationId
             }
 
             const authResponse = await post<{
@@ -581,22 +423,18 @@ export const useAuthFlowStore = create<AuthFlowStore>()(
 
         setPasskeyRevoked: (revoked: boolean) => set({ passkeyRevoked: revoked }),
 
-        isEmailVerified: () => get().emailVerification.codeVerified,
-
         isWalletConnected: () => {
           const { connection, status } = get()
           return status.status === "connected" && !!connection.address
         },
 
         canProceed: () => {
-          const { step, emailVerification, connection, profile } = get()
+          const { step, connection, profile } = get()
           switch (step) {
             case "choose":
               return connection.address !== null
-            case "verify-email":
-              return emailVerification.codeVerified
             case "profile":
-              return profile.displayName.trim() !== "" && profile.email.trim() !== "" && profile.countryCode.trim() !== ""
+              return profile.displayName.trim() !== "" && profile.countryCode.trim() !== ""
             case "sign":
               return true
           }
@@ -613,7 +451,7 @@ export const useAuthFlowStore = create<AuthFlowStore>()(
     ),
     {
       name: "moistello-auth-flow",
-      version: 2,
+      version: 3,
       storage: createJSONStorage(() => sessionStorage),
       partialize: (state) => ({
         step: state.step,

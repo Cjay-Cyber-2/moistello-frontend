@@ -7,19 +7,16 @@ const RP_NAME = "Moistello"
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json()
-    const { email, mode, credentialId } = body
+    const { mode, credentialId } = body
 
     if (mode === "register") {
-      if (!email || typeof email !== "string" || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-        return NextResponse.json({ error: "invalid_email" }, { status: 400 })
-      }
-
       const rpID = getRpId()
+      const userID = crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).substring(2, 15)
       const options = await generateRegistrationOptions({
         rpName: RP_NAME,
         rpID,
-        userName: email,
-        userID: new TextEncoder().encode(email),
+        userName: userID,
+        userID: new TextEncoder().encode(userID),
         attestationType: "none",
         authenticatorSelection: {
           userVerification: "required",
@@ -28,7 +25,7 @@ export async function POST(req: NextRequest) {
         timeout: 120_000,
       })
 
-      setChallenge(email, options.challenge, email)
+      setChallenge(options.challenge, options.challenge)
 
       return NextResponse.json({ options, challenge: options.challenge })
     }
@@ -45,7 +42,7 @@ export async function POST(req: NextRequest) {
       })
 
       if (credentialId) {
-        setChallenge(credentialId, options.challenge, "")
+        setChallenge(credentialId, options.challenge)
       } else {
         // Discoverable credential — no credentialId, store challenge with temp key
         const tempKey = setTempChallenge(options.challenge)

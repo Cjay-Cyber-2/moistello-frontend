@@ -2,7 +2,6 @@ const CHALLENGE_TTL_MS = 5 * 60 * 1000
 
 interface ChallengeEntry {
   challenge: string
-  email: string
   expiresAt: number
 }
 
@@ -11,7 +10,6 @@ export type CredentialRecord = {
   publicKey: Uint8Array
   counter: number
   transports?: string[]
-  email?: string
 }
 
 const challengeStore = new Map<string, ChallengeEntry>()
@@ -32,13 +30,13 @@ function sweepExpired(): void {
   })
 }
 
-export function setChallenge(key: string, challenge: string, email: string): void {
-  challengeStore.set(key, { challenge, email, expiresAt: Date.now() + CHALLENGE_TTL_MS })
+export function setChallenge(key: string, challenge: string): void {
+  challengeStore.set(key, { challenge, expiresAt: Date.now() + CHALLENGE_TTL_MS })
 }
 
 export function setTempChallenge(challenge: string): string {
   const key = "tmp-" + crypto.randomUUID()
-  challengeStore.set(key, { challenge, email: "", expiresAt: Date.now() + CHALLENGE_TTL_MS })
+  challengeStore.set(key, { challenge, expiresAt: Date.now() + CHALLENGE_TTL_MS })
   return key
 }
 
@@ -51,33 +49,23 @@ export function getAndVerifyTempChallenge(key: string, challenge: string): boole
   return true
 }
 
-export function getAndVerifyChallenge(key: string, challenge: string, email: string): boolean {
+export function getAndVerifyChallenge(key: string, challenge: string): boolean {
   const entry = challengeStore.get(key)
   if (!entry) return false
   challengeStore.delete(key)
   if (isExpired(entry)) return false
   if (entry.challenge !== challenge) return false
-  if (email && entry.email && entry.email !== email) return false
   return true
 }
 
 // ── Credential store (persisted in PostgreSQL via Go backend) ──
 
-async function hashForStorage(email: string): Promise<string> {
-  const { sha256 } = await import("@noble/hashes/sha2.js")
-  const { bytesToHex } = await import("@noble/hashes/utils.js")
-  return bytesToHex(sha256(new TextEncoder().encode(email)))
-}
-
-export async function storeCredential(credentialId: string, record: Omit<CredentialRecord, "credentialId"> & { email?: string }): Promise<void> {
+export async function storeCredential(credentialId: string, record: Omit<CredentialRecord, "credentialId">): Promise<void> {
   const body: Record<string, unknown> = {
     credentialId,
     publicKey: Array.from(record.publicKey),
     counter: record.counter ?? 0,
     transports: record.transports ?? [],
-  }
-  if (record.email) {
-    body.emailHash = await hashForStorage(record.email)
   }
   await fetch(`${API_BASE}/passkey/credentials`, {
     method: "POST",
@@ -97,7 +85,6 @@ export async function getCredential(credentialId: string): Promise<CredentialRec
       publicKey: Uint8Array.from(atob(data.data.publicKey), (c) => c.charCodeAt(0)),
       counter: data.data.counter ?? 0,
       transports: data.data.transports,
-      email: data.data.emailHash || undefined,
     }
   } catch {
     return undefined

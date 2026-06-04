@@ -6,11 +6,10 @@ import { cn } from "@/lib/cn"
 interface AuthInputProps extends InputHTMLAttributes<HTMLInputElement> {
   label: string
   error?: string | null
-  autoCompleteType?: "email" | "name" | "country" | "one-time-code" | "off"
+  autoCompleteType?: "name" | "country" | "one-time-code" | "off"
 }
 
 const autoCompleteMap: Record<string, string> = {
-  email: "email",
   name: "name",
   country: "country-name",
   "one-time-code": "one-time-code",
