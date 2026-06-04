@@ -178,7 +178,7 @@ function LoginPageContent() {
             <p className="text-center text-2xs text-muted-foreground">
               Authenticate with your device biometrics.
               <br />
-              Your email and device are your keys.
+              Your device is your key.
             </p>
           </div>
         ) : step === "sign" ? (
