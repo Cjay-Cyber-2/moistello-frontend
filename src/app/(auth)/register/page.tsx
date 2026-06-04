@@ -118,6 +118,20 @@ function RegisterPageContent() {
     await sign()
     const authStatus = useAuthFlowStore.getState().status.status
     if (authStatus === "authenticated") {
+      // Create Stellar wallet via backend
+      try {
+        const stored = JSON.parse(localStorage.getItem("moistello_passkey_credential") || "{}")
+        const credentialId = stored.credentialId
+        if (credentialId) {
+          const enc = new TextEncoder()
+          const seedBuf = await crypto.subtle.digest("SHA-256", enc.encode(credentialId))
+          const passkeySeed = Array.from(new Uint8Array(seedBuf)).map(b => b.toString(16).padStart(2, "0")).join("")
+          const { post } = await import("@/lib/api-client")
+          await post("/wallets", { passkeySeed })
+        }
+      } catch (e) {
+        console.error("Failed to create Stellar wallet:", e)
+      }
       addToast({
         type: "success",
         title: "Welcome to Moistello!",
