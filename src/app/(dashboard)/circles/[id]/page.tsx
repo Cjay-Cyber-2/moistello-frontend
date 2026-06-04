@@ -17,8 +17,10 @@ import {
   UserPlus,
   Settings,
   Wallet,
+  Copy,
+  Check,
 } from "lucide-react"
-import { useCircle, useCircleMembers, useContribute } from "@/hooks/use-circles"
+import { useCircle, useCircleMembers, useContribute, useJoinCircle } from "@/hooks/use-circles"
 import { useAuth } from "@/hooks/use-auth"
 import { PageHeader } from "@/components/shared/page-header"
 import { Button } from "@/components/ui/button"
@@ -78,14 +80,57 @@ export default function CircleDetailPage() {
   const { data: circle, isLoading, isError } = useCircle(circleId)
   const { data: members = [] } = useCircleMembers(circleId)
   const contribute = useContribute(circleId)
+  const joinCircle = useJoinCircle()
 
   const [showContributeModal, setShowContributeModal] = useState(false)
+  const [showInviteModal, setShowInviteModal] = useState(false)
+  const [inviteCode, setInviteCode] = useState("")
+  const [inviteCopied, setInviteCopied] = useState(false)
+  const [inviteLoading, setInviteLoading] = useState(false)
+  const [joinLoading, setJoinLoading] = useState(false)
+  const [joinError, setJoinError] = useState<string | null>(null)
 
   const isOrganizer = user?.id === circle?.organizerId
   const isMember = members.some((m) => m.userId === user?.id)
   const canJoin =
     circle && !isMember && (circle.status === "pending" || circle.status === "active")
   const canContribute = isMember && circle?.status === "active"
+
+  const handleJoin = async () => {
+    setJoinLoading(true)
+    setJoinError(null)
+    try {
+      await joinCircle.mutateAsync({ circleId })
+      setJoinLoading(false)
+    } catch (err: unknown) {
+      const msg = (err as { response?: { data?: { error?: string } } })?.response?.data?.error
+        ?? (err instanceof Error ? err.message : "Failed to join circle")
+      setJoinError(msg)
+      setJoinLoading(false)
+    }
+  }
+
+  const handleGenerateInvite = async () => {
+    setInviteLoading(true)
+    try {
+      const { post } = await import("@/lib/api-client")
+      const res = await post<{ data?: { code: string } }>(`/circles/${circleId}/invites`, { maxUses: 10 })
+      const code = (res as unknown as { data?: { code?: string } })?.data?.code ?? ""
+      setInviteCode(code)
+      setShowInviteModal(true)
+    } catch {
+      setInviteCode("error-generating-code")
+      setShowInviteModal(true)
+    } finally {
+      setInviteLoading(false)
+    }
+  }
+
+  const handleCopyInvite = async () => {
+    await navigator.clipboard.writeText(inviteCode)
+    setInviteCopied(true)
+    setTimeout(() => setInviteCopied(false), 2000)
+  }
 
   const freqLabel = circle
     ? circle.frequency.charAt(0).toUpperCase() + circle.frequency.slice(1)
@@ -298,6 +343,8 @@ export default function CircleDetailPage() {
               variant="primary"
               size="lg"
               leftIcon={<UserPlus className="h-5 w-5" />}
+              onClick={handleJoin}
+              isLoading={joinLoading}
             >
               Join Circle
             </Button>
@@ -308,9 +355,17 @@ export default function CircleDetailPage() {
             variant="outline"
             size="lg"
             leftIcon={<UserPlus className="h-5 w-5" />}
+            onClick={handleGenerateInvite}
+            isLoading={inviteLoading}
           >
             Invite Members
           </Button>
+        )}
+
+        {joinError && (
+          <div className="rounded-xl bg-red-500/10 border border-red-500/20 px-4 py-3 text-sm text-red-400">
+            {joinError}
+          </div>
         )}
       </div>
 
@@ -453,6 +508,46 @@ export default function CircleDetailPage() {
           <p className="text-2xs text-muted-foreground">
             This will open your connected wallet for transaction signing.
           </p>
+        </div>
+      </Modal>
+
+      <Modal
+        isOpen={showInviteModal}
+        onClose={() => { setShowInviteModal(false); setInviteCode("") }}
+        title="Invite Members"
+        description="Share this code with people you want to invite."
+        size="sm"
+      >
+        <div className="space-y-4">
+          <div className="glass-whisper rounded-xl p-4 text-center">
+            <p className="font-mono text-2xl font-bold tracking-widest gradient-text">
+              {inviteCode || "Generating..."}
+            </p>
+          </div>
+          {inviteCode && inviteCode !== "error-generating-code" && (
+            <Button
+              variant="primary"
+              size="md"
+              className="w-full"
+              leftIcon={inviteCopied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+              onClick={handleCopyInvite}
+            >
+              {inviteCopied ? "Copied!" : "Copy Code"}
+            </Button>
+          )}
+          {inviteCode === "error-generating-code" && (
+            <p className="text-sm text-red-400 text-center">Failed to generate invite code. Try again.</p>
+          )}
+          {inviteCode && (
+            <Button
+              variant="outline"
+              size="md"
+              className="w-full"
+              onClick={() => { setShowInviteModal(false); setInviteCode("") }}
+            >
+              Close
+            </Button>
+          )}
         </div>
       </Modal>
     </div>
