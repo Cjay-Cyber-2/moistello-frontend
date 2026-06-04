@@ -3,7 +3,6 @@
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { motion, AnimatePresence, LayoutGroup } from "framer-motion";
 import {
   Menu,
   X,
@@ -42,134 +41,70 @@ export function Header({ onToggleMobileMenu, isMobileMenuOpen }: HeaderProps) {
 
   return (
     <>
-      <motion.header
-        initial={{ y: -100, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+      <header
         className={cn(
           "sticky top-3 mx-3 z-50 h-14",
           "rounded-2xl",
           "glass-strong backdrop-blur-2xl",
           "border border-white/[0.06] dark:border-white/[0.08]",
-          "depth-3",
-          "before:absolute before:inset-0 before:rounded-2xl before:bg-gradient-to-r before:from-aurora-indigo/5 before:via-aurora-violet/5 before:to-aurora-cyan/5 before:pointer-events-none",
         )}
       >
         <div className="relative flex h-full items-center justify-between px-4 lg:px-6">
-          {/* Left: Logo */}
           <div className="flex items-center gap-3">
             <Link href="/" className="flex items-center gap-2 select-none">
-              <motion.span
-                initial={{ opacity: 0, x: -12 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.1, duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-                className="gradient-text-extended font-heading font-bold text-lg tracking-tight"
-              >
+              <span className="gradient-text-extended font-heading font-bold text-lg tracking-tight">
                 Moistello
-              </motion.span>
+              </span>
             </Link>
           </div>
 
-          {/* Center: Desktop nav */}
-          <LayoutGroup>
-            <nav className="hidden lg:flex items-center gap-0.5 absolute left-1/2 -translate-x-1/2">
-              {navLinks.map((link, i) => {
-                const active = isActive(link.href);
-                return (
-                  <motion.div
-                    key={link.href}
-                    initial={{ opacity: 0, y: -12 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.15 + i * 0.06, duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-                  >
-                    <Link
-                      href={link.href}
-                      className={cn(
-                        "relative flex items-center gap-2 px-4 py-2 text-sm font-body rounded-xl",
-                        "transition-colors duration-300",
-                        active
-                          ? "text-foreground"
-                          : "text-muted-foreground hover:text-foreground hover:glass-whisper",
-                      )}
-                    >
-                      {active && (
-                        <motion.span
-                          layoutId="headerActiveNav"
-                          className="absolute inset-0 rounded-xl glass-strong bg-gradient-to-r from-aurora-violet/10 to-transparent"
-                          transition={{ type: "spring", stiffness: 380, damping: 30 }}
-                        />
-                      )}
-                      <span className="relative z-10 flex items-center gap-1.5">
-                        {link.icon}
-                        <span className="font-heading text-[11px] tracking-[0.15em] uppercase">
-                          {link.label}
-                        </span>
-                      </span>
-                    </Link>
-                  </motion.div>
-                );
-              })}
-            </nav>
-          </LayoutGroup>
+          <nav className="hidden lg:flex items-center gap-0.5 absolute left-1/2 -translate-x-1/2">
+            {navLinks.map((link) => {
+              const active = isActive(link.href);
+              return (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  className={cn(
+                    "relative flex items-center gap-2 px-4 py-2 text-sm font-body rounded-xl",
+                    active
+                      ? "text-foreground glass-strong bg-gradient-to-r from-aurora-violet/10 to-transparent"
+                      : "text-muted-foreground hover:text-foreground hover:glass-whisper",
+                  )}
+                >
+                  <span className="flex items-center gap-1.5">
+                    {link.icon}
+                    <span className="font-heading text-[11px] tracking-[0.15em] uppercase">
+                      {link.label}
+                    </span>
+                  </span>
+                </Link>
+              );
+            })}
+          </nav>
 
-          {/* Right: actions */}
           <div className="flex items-center gap-1.5">
-            {/* Mobile hamburger (on right) */}
-            <motion.button
+            <button
               onClick={onToggleMobileMenu}
-              whileHover={{ scale: 1.08 }}
-              whileTap={{ scale: 0.92 }}
               className={cn(
                 "inline-flex h-9 w-9 items-center justify-center rounded-xl",
-                "text-muted-foreground transition-all duration-300",
+                "text-muted-foreground",
                 "hover:text-foreground hover:glass-whisper",
                 "lg:hidden",
               )}
               aria-label={isMobileMenuOpen ? "Close menu" : "Open menu"}
             >
-              <AnimatePresence mode="wait">
-                {isMobileMenuOpen ? (
-                  <motion.span
-                    key="x"
-                    initial={{ rotate: -90, opacity: 0 }}
-                    animate={{ rotate: 0, opacity: 1 }}
-                    exit={{ rotate: 90, opacity: 0 }}
-                    transition={{ duration: 0.2 }}
-                  >
-                    <X className="h-5 w-5" />
-                  </motion.span>
-                ) : (
-                  <motion.span
-                    key="menu"
-                    initial={{ rotate: 90, opacity: 0 }}
-                    animate={{ rotate: 0, opacity: 1 }}
-                    exit={{ rotate: -90, opacity: 0 }}
-                    transition={{ duration: 0.2 }}
-                  >
-                    <Menu className="h-5 w-5" />
-                  </motion.span>
-                )}
-              </AnimatePresence>
-            </motion.button>
+              {isMobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+            </button>
 
-            {/* Wallet */}
-            <motion.div
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.15, duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-            >
+            <div>
               {isConnected && address ? (
                 <div
                   className={cn(
-                    "relative flex items-center gap-2 glass-whisper px-3 py-1.5 rounded-full cursor-pointer",
-                    "transition-all duration-300 hover:glass-strong hover:-translate-y-[1px]",
-                    "hover:shadow-[0_0_20px_rgb(var(--aurora-violet)/0.15)]",
+                    "flex items-center gap-2 glass-whisper px-3 py-1.5 rounded-full",
                   )}
                 >
-                  <span className="relative flex h-2 w-2">
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-60" />
-                    <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-400 shadow-[0_0_6px_rgb(52_211_153/0.6)]" />
-                  </span>
+                  <span className="flex h-2 w-2 rounded-full bg-emerald-400" />
                   <span className="font-mono text-xs text-foreground tracking-tight">
                     {formatAddress(address, 4, 4)}
                   </span>
@@ -180,8 +115,7 @@ export function Header({ onToggleMobileMenu, isMobileMenuOpen }: HeaderProps) {
                   className={cn(
                     "inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-body",
                     "glass-whisper text-muted-foreground",
-                    "transition-all duration-300 hover:text-foreground hover:-translate-y-[1px]",
-                    "hover:shadow-[0_0_18px_rgb(var(--aurora-violet)/0.18)]",
+                    "hover:text-foreground",
                     "hidden sm:inline-flex",
                   )}
                 >
@@ -189,55 +123,40 @@ export function Header({ onToggleMobileMenu, isMobileMenuOpen }: HeaderProps) {
                   <span>Connect</span>
                 </button>
               )}
-            </motion.div>
+            </div>
 
-            {/* Notifications */}
-            <motion.div
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2, duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-            >
+            <div>
               <Link href={Routes.NOTIFICATIONS} className="relative inline-flex">
-                <motion.div
-                  whileHover={{ scale: 1.1 }}
-                  whileTap={{ scale: 0.9 }}
+                <div
                   className={cn(
                     "relative inline-flex h-9 w-9 items-center justify-center rounded-full",
                     "glass-whisper text-muted-foreground",
-                    "transition-all duration-300 hover:text-foreground",
-                    "hover:shadow-[0_0_18px_rgb(var(--aurora-violet)/0.2)]",
+                    "hover:text-foreground",
                   )}
                   aria-label="Notifications"
                 >
                   <Bell className="h-4 w-4" />
-                  <AnimatePresence>
-                    {unreadCount > 0 && (
-                      <motion.span
-                        initial={{ scale: 0 }}
-                        animate={{ scale: 1 }}
-                        exit={{ scale: 0 }}
-                        className={cn(
-                          "absolute -top-0.5 -right-0.5 w-4 h-4 rounded-full",
-                          "bg-destructive text-[9px] font-bold flex items-center justify-center",
-                          "text-white ring-2 ring-[rgb(var(--background))]",
-                        )}
-                      >
-                        {unreadCount > 9 ? "9+" : unreadCount}
-                      </motion.span>
-                    )}
-                  </AnimatePresence>
-                </motion.div>
+                  {unreadCount > 0 && (
+                    <span
+                      className={cn(
+                        "absolute -top-0.5 -right-0.5 w-4 h-4 rounded-full",
+                        "bg-destructive text-[9px] font-bold flex items-center justify-center",
+                        "text-white ring-2 ring-[rgb(var(--background))]",
+                      )}
+                    >
+                      {unreadCount > 9 ? "9+" : unreadCount}
+                    </span>
+                  )}
+                </div>
               </Link>
-            </motion.div>
+            </div>
           </div>
         </div>
-      </motion.header>
+      </header>
 
-      <AnimatePresence>
-        {showConnectModal && (
-          <ConnectWalletModal onClose={() => setShowConnectModal(false)} />
-        )}
-      </AnimatePresence>
+      {showConnectModal && (
+        <ConnectWalletModal onClose={() => setShowConnectModal(false)} />
+      )}
     </>
   );
 }
@@ -251,23 +170,13 @@ function ConnectWalletModal({ onClose }: { onClose: () => void }) {
   };
 
   return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      transition={{ duration: 0.25 }}
+    <div
       className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 backdrop-blur-md p-4"
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}
     >
-      <motion.div
-        initial={{ scale: 0.92, opacity: 0, y: 24 }}
-        animate={{ scale: 1, opacity: 1, y: 0 }}
-        exit={{ scale: 0.92, opacity: 0, y: 24 }}
-        transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
-        className="w-full max-w-sm rounded-2xl glass-premium p-6 depth-4"
-      >
+      <div className="w-full max-w-sm rounded-2xl glass-premium p-6 depth-4">
         <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full glass-strong">
           <Wallet className="h-6 w-6 text-aurora-violet" />
         </div>
@@ -301,12 +210,12 @@ function ConnectWalletModal({ onClose }: { onClose: () => void }) {
             href="https://stellar.org/wallets"
             target="_blank"
             rel="noopener noreferrer"
-            className="text-[rgb(var(--aurora-cyan))] hover:underline transition-colors"
+            className="text-[rgb(var(--aurora-cyan))] hover:underline"
           >
             Find one here
           </a>
         </p>
-      </motion.div>
-    </motion.div>
+      </div>
+    </div>
   );
 }

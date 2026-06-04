@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { motion } from "framer-motion";
 import {
   LayoutDashboard,
   CircleDot,
@@ -12,7 +11,6 @@ import {
   Bell,
   Settings,
   Wallet,
-  Vote,
   Sun,
   Moon,
 } from "lucide-react";
@@ -33,19 +31,6 @@ interface NavGroup {
   title: string;
   items: NavItem[];
 }
-
-const staggerItems = {
-  hidden: { opacity: 0, x: -20 },
-  visible: (i: number) => ({
-    opacity: 1,
-    x: 0,
-    transition: {
-      delay: 0.04 + i * 0.03,
-      duration: 0.4,
-      ease: [0.22, 1, 0.36, 1] as const,
-    },
-  }),
-};
 
 export function Sidebar() {
   const pathname = usePathname();
@@ -77,12 +62,6 @@ export function Sidebar() {
       ],
     },
     {
-      title: "Governance",
-      items: [
-        { label: "Governance", href: "/governance", icon: <Vote className="h-[18px] w-[18px]" /> },
-      ],
-    },
-    {
       title: "Account",
       items: [
         { label: "Notifications", href: Routes.NOTIFICATIONS, icon: <Bell className="h-[18px] w-[18px]" />, badge: unreadCount },
@@ -97,43 +76,25 @@ export function Sidebar() {
     : "U";
 
   return (
-    <motion.div
-      initial={{ opacity: 0, x: -20 }}
-      animate={{ opacity: 1, x: 0 }}
-      transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-      className="hidden lg:block fixed left-3 top-20 bottom-3 w-64 z-30"
-    >
-      <motion.aside
+    <div className="hidden lg:block fixed left-3 top-20 bottom-3 w-64 z-30">
+      <aside
         className={cn(
           "flex flex-col h-full rounded-3xl overflow-hidden",
           "glass-strong backdrop-blur-2xl",
           "border border-white/[0.06] dark:border-white/[0.08]",
-          "relative",
         )}
       >
-        {/* Holographic accent line at top */}
-        <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-aurora-violet/40 to-transparent" />
-
-        {/* Logo + Theme toggle */}
         <div className="flex h-16 items-center justify-between px-5 pt-2">
           <Link href="/" className="flex items-center gap-2 select-none">
-            <motion.span
-              initial={{ opacity: 0, x: -8 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-              className="gradient-text font-heading font-bold text-xl tracking-tight"
-            >
+            <span className="gradient-text font-heading font-bold text-xl tracking-tight">
               Moistello
-            </motion.span>
+            </span>
           </Link>
-          <motion.button
-            whileHover={{ scale: 1.1, rotate: 15 }}
-            whileTap={{ scale: 0.9 }}
+          <button
             onClick={toggleTheme}
             className={cn(
               "inline-flex h-8 w-8 items-center justify-center rounded-xl",
               "glass-whisper text-muted-foreground",
-              "transition-all duration-300 hover:text-foreground",
             )}
             aria-label="Toggle theme"
           >
@@ -142,12 +103,11 @@ export function Sidebar() {
             ) : (
               <Moon className="h-3.5 w-3.5 text-indigo-400" />
             )}
-          </motion.button>
+          </button>
         </div>
 
-        {/* Navigation */}
         <nav className="flex-1 overflow-y-auto px-2 py-2 scrollbar-none">
-          {navGroups.map((group, gi) => (
+          {navGroups.map((group) => (
             <div key={group.title} className="mb-5">
               <h3
                 className={cn(
@@ -158,21 +118,15 @@ export function Sidebar() {
                 {group.title}
               </h3>
               <ul className="space-y-0.5">
-                {group.items.map((item, i) => {
+                {group.items.map((item) => {
                   const active = isActive(item.href);
                   return (
-                    <motion.li
-                      key={item.href}
-                      custom={gi * 3 + i}
-                      initial="hidden"
-                      animate="visible"
-                      variants={staggerItems}
-                    >
+                    <li key={item.href}>
                       <Link
                         href={item.href}
                         className={cn(
                           "relative flex items-center gap-3 rounded-xl mx-2 px-3 py-2.5",
-                          "text-sm font-body transition-all duration-300",
+                          "text-sm font-body",
                           active
                             ? "glass-strong bg-gradient-to-r from-aurora-violet/10 to-transparent text-foreground"
                             : "text-muted-foreground hover:text-foreground hover:glass-whisper",
@@ -183,7 +137,7 @@ export function Sidebar() {
                         )}
                         <span
                           className={cn(
-                            "shrink-0 transition-colors duration-300",
+                            "shrink-0",
                             active ? "text-aurora-violet" : "text-muted-foreground",
                           )}
                         >
@@ -191,19 +145,17 @@ export function Sidebar() {
                         </span>
                         <span className="flex-1">{item.label}</span>
                         {item.badge !== undefined && item.badge > 0 && (
-                          <motion.span
-                            initial={{ scale: 0 }}
-                            animate={{ scale: 1 }}
+                          <span
                             className={cn(
                               "inline-flex h-5 min-w-[20px] items-center justify-center rounded-full",
                               "bg-destructive text-[10px] font-bold text-white px-1.5 leading-none",
                             )}
                           >
                             {item.badge > 99 ? "99+" : item.badge}
-                          </motion.span>
+                          </span>
                         )}
                       </Link>
-                    </motion.li>
+                    </li>
                   );
                 })}
               </ul>
@@ -211,14 +163,12 @@ export function Sidebar() {
           ))}
         </nav>
 
-        {/* User card */}
         {isAuthenticated && user && (
           <div className="shrink-0 p-2">
             <div
               className={cn(
                 "flex items-center gap-3 p-3 rounded-2xl",
                 "glass-whisper border border-white/[0.05]",
-                "transition-all duration-300 hover:glass-strong",
               )}
             >
               <div className="flex h-9 w-9 items-center justify-center rounded-full gradient-bg text-white font-mono text-xs font-bold">
@@ -232,18 +182,17 @@ export function Sidebar() {
                   Moi Score: {user.moiScore}
                 </p>
               </div>
-              <div className="flex h-2 w-2 rounded-full bg-emerald-400 shadow-[0_0_6px_rgb(52_211_153/0.5)]" />
+              <div className="flex h-2 w-2 rounded-full bg-emerald-400" />
             </div>
           </div>
         )}
 
-        {/* Copyright */}
         <div className="shrink-0 border-t border-white/[0.04] px-5 py-3">
           <p className="text-[10px] text-muted-foreground/50 font-body tracking-wider">
             &copy; {new Date().getFullYear()} Moistello
           </p>
         </div>
-      </motion.aside>
-    </motion.div>
+      </aside>
+    </div>
   );
 }
