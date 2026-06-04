@@ -4,11 +4,9 @@ import React, { useState, useCallback } from "react"
 import { motion } from "framer-motion"
 import {
   User,
-  Shield,
   Bell,
   Wallet,
   Trash2,
-  Loader2,
   Check,
   AlertTriangle,
 } from "lucide-react"
@@ -18,12 +16,10 @@ import { PageHeader } from "@/components/shared/page-header"
 import { ConfirmDialog } from "@/components/shared/confirm-dialog"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Badge } from "@/components/ui/badge"
 import { Select } from "@/components/ui/select"
 import { CopyButton } from "@/components/shared/copy-button"
 import { formatAddress } from "@/lib/formatters"
 import { cn } from "@/lib/cn"
-import type { KYCStatus } from "@/types"
 
 const COUNTRIES = [
   { value: "US", label: "United States" },
@@ -53,16 +49,6 @@ const LANGUAGES = [
   { value: "ko", label: "한국어" },
   { value: "sw", label: "Kiswahili" },
 ]
-
-const kycConfig: Record<
-  KYCStatus,
-  { variant: "default" | "warning" | "success" | "destructive"; label: string }
-> = {
-  unverified: { variant: "default", label: "Unverified" },
-  pending: { variant: "warning", label: "Pending" },
-  verified: { variant: "success", label: "Verified" },
-  rejected: { variant: "destructive", label: "Rejected" },
-}
 
 function GlassToggle({ checked, onChange }: { checked: boolean; onChange: (v: boolean) => void }) {
   return (
@@ -101,11 +87,6 @@ export default function SettingsPage() {
   const [country, setCountry] = useState(user?.countryCode ?? "")
   const [language, setLanguage] = useState(user?.preferredLanguage ?? "en")
 
-  const [kycStatus, setKycStatus] = useState<KYCStatus>(
-    user?.kycStatus ?? "unverified",
-  )
-  const [kycLoading, setKycLoading] = useState(false)
-
   const [pushAlerts, setPushAlerts] = useState(true)
   const [inAppAlerts, setInAppAlerts] = useState(true)
 
@@ -125,26 +106,6 @@ export default function SettingsPage() {
     }
   }, [])
 
-  const handleKYC = useCallback(async () => {
-    setKycLoading(true)
-    try {
-      await new Promise((resolve) => setTimeout(resolve, 2000))
-      setKycStatus("pending")
-    } finally {
-      setKycLoading(false)
-    }
-  }, [])
-
-  const handleRetryKYC = useCallback(async () => {
-    setKycLoading(true)
-    try {
-      await new Promise((resolve) => setTimeout(resolve, 2000))
-      setKycStatus("pending")
-    } finally {
-      setKycLoading(false)
-    }
-  }, [])
-
   const handleDeleteAccount = useCallback(async () => {
     setDeleteLoading(true)
     try {
@@ -155,8 +116,6 @@ export default function SettingsPage() {
       setDeleteLoading(false)
     }
   }, [])
-
-  const kyc = kycConfig[kycStatus] || kycConfig.unverified
 
   return (
     <div className="space-y-6">
@@ -203,69 +162,6 @@ export default function SettingsPage() {
               onChange={setLanguage}
               placeholder="Select language"
             />
-          </div>
-        </motion.div>
-
-        <motion.div variants={sectionV} className="glass rounded-2xl p-6 space-y-4">
-          <div className="flex items-center gap-2 mb-1">
-            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-amber-500/20 to-aurora-amber/20">
-              <Shield className="h-4 w-4 text-amber-400" />
-            </div>
-            <h3 className="font-heading text-lg font-semibold text-foreground dark:text-white">
-              KYC Verification
-            </h3>
-          </div>
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-            <div className="flex items-center gap-3">
-              <Badge variant={kyc.variant} size="md">
-                {kyc.label}
-              </Badge>
-              {kycStatus === "pending" && (
-                <span className="inline-flex items-center gap-1.5 text-sm text-amber-400 font-body">
-                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                  Verification in progress
-                </span>
-              )}
-              {kycStatus === "verified" && (
-                <span className="inline-flex items-center gap-1.5 text-sm text-emerald-400 font-body">
-                  <Check className="h-3.5 w-3.5" />
-                  Verified
-                </span>
-              )}
-              {kycStatus === "rejected" && (
-                <span className="text-sm text-red-400 font-body">
-                  Rejected — please try again
-                </span>
-              )}
-            </div>
-            <div>
-              {kycStatus === "unverified" && (
-                <Button
-                  variant="primary"
-                  size="md"
-                  onClick={handleKYC}
-                  isLoading={kycLoading}
-                >
-                  Verify Identity
-                </Button>
-              )}
-              {kycStatus === "pending" && (
-                <Button variant="outline" size="md" disabled>
-                  <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />
-                  Processing
-                </Button>
-              )}
-              {kycStatus === "rejected" && (
-                <Button
-                  variant="outline"
-                  size="md"
-                  onClick={handleRetryKYC}
-                  isLoading={kycLoading}
-                >
-                  Retry Verification
-                </Button>
-              )}
-            </div>
           </div>
         </motion.div>
 

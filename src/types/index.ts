@@ -1,7 +1,5 @@
 /* ───── Enums / Literal Unions ───── */
 
-export type KYCStatus = "unverified" | "pending" | "verified" | "rejected"
-
 export type CircleStatus =
   | "pending"
   | "active"
@@ -40,7 +38,6 @@ export interface User {
   phone?: string | null
   displayName?: string | null
   avatarIpfsHash?: string | null
-  kycStatus: KYCStatus
   countryCode?: string | null
   preferredLanguage: string
   moiScore: number
