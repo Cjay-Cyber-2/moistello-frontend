@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { motion } from "framer-motion";
-import { LayoutDashboard, CircleDot, Search, User } from "lucide-react";
+import { LayoutDashboard, CircleDot, User } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { Routes } from "@/lib/constants";
 
@@ -23,11 +23,6 @@ const navItems: MobileNavItem[] = [
     label: "Circles",
     href: Routes.CIRCLES,
     icon: <CircleDot className="h-5 w-5" />,
-  },
-  {
-    label: "Discover",
-    href: "/circles",
-    icon: <Search className="h-5 w-5" />,
   },
   {
     label: "Profile",

@@ -1,12 +1,12 @@
 'use client'
 
 import Link from "next/link"
-import { PublicLayout } from "@/components/layout/public-layout"
+
 import { AlertTriangle, RotateCcw, Home } from "lucide-react"
 
 export default function BadRequest() {
   return (
-    <PublicLayout>
+    <>
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="container-premium max-w-xl mx-auto px-4">
           <div className="rounded-3xl bg-card/60 backdrop-blur-xl border border-white/10 p-10 text-center">
@@ -35,6 +35,6 @@ export default function BadRequest() {
           </div>
         </div>
       </div>
-    </PublicLayout>
+    </>
   )
 }

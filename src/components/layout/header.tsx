@@ -11,7 +11,6 @@ import {
   Bell,
   Home,
   CircleDot,
-  Compass,
 } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { formatAddress } from "@/lib/formatters";
@@ -23,7 +22,6 @@ import { useNotificationStore } from "@/stores/notification-store";
 const navLinks: { label: string; href: string; icon: React.ReactNode }[] = [
   { label: "Dashboard", href: Routes.DASHBOARD, icon: <Home className="h-4 w-4" /> },
   { label: "Circles", href: Routes.CIRCLES, icon: <CircleDot className="h-4 w-4" /> },
-  { label: "Discover", href: "/discover", icon: <Compass className="h-4 w-4" /> },
 ];
 
 interface HeaderProps {

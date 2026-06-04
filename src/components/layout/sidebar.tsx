@@ -6,7 +6,6 @@ import { motion } from "framer-motion";
 import {
   LayoutDashboard,
   CircleDot,
-  Compass,
   ArrowUpCircle,
   ArrowDownCircle,
   Award,
@@ -67,7 +66,6 @@ export function Sidebar() {
       items: [
         { label: "Dashboard", href: Routes.DASHBOARD, icon: <LayoutDashboard className="h-[18px] w-[18px]" /> },
         { label: "Circles", href: Routes.CIRCLES, icon: <CircleDot className="h-[18px] w-[18px]" /> },
-        { label: "Discover", href: "/discover", icon: <Compass className="h-[18px] w-[18px]" /> },
       ],
     },
     {
