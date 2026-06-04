@@ -98,7 +98,6 @@ export default function SettingsPage() {
   const { isConnected, address, disconnect: disconnectWallet, activeWalletId, adapter, setSelectorOpen } = useMultiWallet()
 
   const [displayName, setDisplayName] = useState(user?.displayName ?? "")
-  const [email, setEmail] = useState(user?.email ?? "")
   const [country, setCountry] = useState(user?.countryCode ?? "")
   const [language, setLanguage] = useState(user?.preferredLanguage ?? "en")
 
@@ -107,7 +106,6 @@ export default function SettingsPage() {
   )
   const [kycLoading, setKycLoading] = useState(false)
 
-  const [emailAlerts, setEmailAlerts] = useState(true)
   const [pushAlerts, setPushAlerts] = useState(true)
   const [inAppAlerts, setInAppAlerts] = useState(true)
 
@@ -188,13 +186,6 @@ export default function SettingsPage() {
               value={displayName}
               onChange={(e) => setDisplayName(e.target.value)}
               placeholder="Your name"
-            />
-            <Input
-              label="Email"
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="you@example.com"
             />
           </div>
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
@@ -288,12 +279,6 @@ export default function SettingsPage() {
             </h3>
           </div>
           {[
-            {
-              label: "Email Notifications",
-              hint: "Receive alerts via email",
-              value: emailAlerts,
-              setter: setEmailAlerts,
-            },
             {
               label: "Push Notifications",
               hint: "Receive push on your device",

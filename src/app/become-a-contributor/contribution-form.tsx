@@ -5,7 +5,6 @@ import { useState } from "react"
 interface FormData {
   name: string
   github: string
-  email: string
   contribution: string
   bio: string
 }
@@ -27,7 +26,6 @@ export function ContributionForm() {
   const [formData, setFormData] = useState<FormData>({
     name: "",
     github: "",
-    email: "",
     contribution: "",
     bio: "",
   })
@@ -41,7 +39,6 @@ export function ContributionForm() {
     if (!formData.github.trim()) errors.github = "GitHub profile is required"
     else if (!formData.github.startsWith("https://github.com/"))
       errors.github = "Please enter a valid GitHub URL"
-    if (formData.email && !formData.email.includes("@")) errors.email = "Please enter a valid email"
     if (!formData.contribution) errors.contribution = "Select an area"
     setFormErrors(errors)
     return Object.keys(errors).length === 0
@@ -65,7 +62,7 @@ export function ContributionForm() {
         throw new Error(data.error || "Failed to submit")
       }
       setFormState("success")
-      setFormData({ name: "", github: "", email: "", contribution: "", bio: "" })
+      setFormData({ name: "", github: "", contribution: "", bio: "" })
     } catch (err) {
       setFormState("error")
       setFormError(err instanceof Error ? err.message : "Something went wrong")
@@ -112,23 +109,6 @@ export function ContributionForm() {
             placeholder="Your name"
           />
           {formErrors.name && <p className="text-xs text-red-400 mt-1">{formErrors.name}</p>}
-        </div>
-        <div>
-          <label htmlFor="app-email" className="block text-xs font-medium text-muted-foreground mb-1.5">
-            Email
-          </label>
-          <input
-            id="app-email"
-            type="email"
-            value={formData.email}
-            onChange={(e) => {
-              setFormData({ ...formData, email: e.target.value })
-              if (formErrors.email) setFormErrors({ ...formErrors, email: "" })
-            }}
-            className={`w-full h-11 rounded-xl bg-white/5 border px-4 text-sm text-foreground placeholder:text-muted-foreground/40 focus:outline-none focus:ring-2 focus:ring-aurora-violet/50 ${formErrors.email ? "border-red-400/50" : "border-white/10"}`}
-            placeholder="you@example.com"
-          />
-          {formErrors.email && <p className="text-xs text-red-400 mt-1">{formErrors.email}</p>}
         </div>
       </div>
 

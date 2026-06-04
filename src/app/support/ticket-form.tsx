@@ -4,7 +4,6 @@ import { useState } from "react"
 
 interface FormData {
   name: string
-  email: string
   subject: string
   category: string
   message: string
@@ -26,7 +25,6 @@ const categories = [
 export function TicketForm() {
   const [formData, setFormData] = useState<FormData>({
     name: "",
-    email: "",
     subject: "",
     category: "",
     message: "",
@@ -40,9 +38,6 @@ export function TicketForm() {
   const validateForm = () => {
     const errors: Record<string, string> = {}
     if (!formData.name.trim()) errors.name = "Name is required"
-    if (!formData.email.trim()) errors.email = "Email is required"
-    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email))
-      errors.email = "Invalid email address"
     if (!formData.subject.trim()) errors.subject = "Subject is required"
     if (!formData.category) errors.category = "Select a category"
     if (!formData.message.trim()) errors.message = "Describe your issue"
@@ -70,7 +65,7 @@ export function TicketForm() {
         throw new Error(data.error || "Failed to submit ticket")
       }
       setFormState("success")
-      setFormData({ name: "", email: "", subject: "", category: "", message: "", priority: "medium" })
+      setFormData({ name: "", subject: "", category: "", message: "", priority: "medium" })
     } catch (err) {
       setFormState("error")
       setFormError(err instanceof Error ? err.message : "Something went wrong")
@@ -87,8 +82,7 @@ export function TicketForm() {
           Ticket Submitted
         </h3>
         <p className="text-xs text-muted-foreground mb-4 max-w-xs">
-          We&apos;ll respond within 24 hours at{" "}
-          <span className="text-foreground">{formData.email}</span>.
+          We&apos;ll respond within 24 hours.
         </p>
         <button
           type="button"
@@ -120,13 +114,6 @@ export function TicketForm() {
             onChange={(e) => setFormData({ ...formData, name: e.target.value })}
             placeholder="Name"
             className={`w-full h-11 rounded-xl bg-white/5 border px-4 text-sm text-foreground placeholder:text-muted-foreground/40 focus:outline-none focus:ring-2 focus:ring-aurora-violet/50 ${formErrors.name ? "border-red-400/50" : "border-white/10"}`}
-          />
-          <input
-            type="email"
-            value={formData.email}
-            onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-            placeholder="Email"
-            className={`w-full h-11 rounded-xl bg-white/5 border px-4 text-sm text-foreground placeholder:text-muted-foreground/40 focus:outline-none focus:ring-2 focus:ring-aurora-violet/50 ${formErrors.email ? "border-red-400/50" : "border-white/10"}`}
           />
           <input
             type="text"
