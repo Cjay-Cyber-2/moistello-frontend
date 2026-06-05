@@ -65,7 +65,7 @@ export const useAuthStore = create<AuthStore>()(devtools((set, get) => ({
   user: null,
   token: getStoredToken(ACCESS_TOKEN_KEY),
   refreshToken: getStoredToken(REFRESH_TOKEN_KEY),
-  isLoading: true,
+  isLoading: false,
   tokenExpiresAt: null,
 
   login: async (walletAddress: string, signature: string) => {

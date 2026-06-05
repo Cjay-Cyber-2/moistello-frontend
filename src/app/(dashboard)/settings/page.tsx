@@ -1,313 +1,218 @@
 "use client"
 
-import React, { useState, useCallback } from "react"
-import { motion } from "framer-motion"
+import Link from "next/link"
 import {
   User,
   Bell,
-  Wallet,
+  Shield,
+  Clock,
   Trash2,
-  Check,
-  AlertTriangle,
+  Palette,
+  CreditCard,
+  Globe,
+  PiggyBank,
+  ChevronRight,
 } from "lucide-react"
 import { useAuth } from "@/hooks/use-auth"
-import { useMultiWallet } from "@/hooks/use-multi-wallet"
-import { PageHeader } from "@/components/shared/page-header"
-import { ConfirmDialog } from "@/components/shared/confirm-dialog"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Select } from "@/components/ui/select"
-import { CopyButton } from "@/components/shared/copy-button"
-import { formatAddress } from "@/lib/formatters"
 import { cn } from "@/lib/cn"
+import { formatAddress } from "@/lib/formatters"
 
-const COUNTRIES = [
-  { value: "US", label: "United States" },
-  { value: "GB", label: "United Kingdom" },
-  { value: "CA", label: "Canada" },
-  { value: "AU", label: "Australia" },
-  { value: "DE", label: "Germany" },
-  { value: "FR", label: "France" },
-  { value: "BR", label: "Brazil" },
-  { value: "IN", label: "India" },
-  { value: "NG", label: "Nigeria" },
-  { value: "KE", label: "Kenya" },
-  { value: "ZA", label: "South Africa" },
-  { value: "MX", label: "Mexico" },
-  { value: "JP", label: "Japan" },
-  { value: "KR", label: "South Korea" },
-  { value: "SG", label: "Singapore" },
-]
-
-const LANGUAGES = [
-  { value: "en", label: "English" },
-  { value: "es", label: "Espa\u00f1ol" },
-  { value: "fr", label: "Fran\u00e7ais" },
-  { value: "pt", label: "Portugu\u00eas" },
-  { value: "de", label: "Deutsch" },
-  { value: "ja", label: "日本語" },
-  { value: "ko", label: "한국어" },
-  { value: "sw", label: "Kiswahili" },
-]
-
-function GlassToggle({ checked, onChange }: { checked: boolean; onChange: (v: boolean) => void }) {
-  return (
-    <motion.button
-      type="button"
-      role="switch"
-      aria-checked={checked}
-      onClick={() => onChange(!checked)}
-      whileTap={{ scale: 0.95 }}
-      className={cn(
-        "relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 transition-all duration-300",
-        checked
-          ? "border-aurora-violet bg-aurora-violet/20 shadow-[0_0_12px_rgb(var(--aurora-violet)/0.3)]"
-          : "border-white/10 bg-white/5",
-      )}
-    >
-      <motion.span
-        animate={{ x: checked ? 20 : 2 }}
-        transition={{ type: "spring", stiffness: 500, damping: 30 }}
-        className="pointer-events-none inline-block h-4 w-4 rounded-full bg-foreground dark:bg-white shadow-lg"
-      />
-    </motion.button>
-  )
+interface SettingSection {
+  id: string
+  label: string
+  icon: React.ReactNode
+  href: string
+  description: string
+  badge?: string
 }
 
-const sectionV = {
-  hidden: { opacity: 0, y: 16 },
-  show: { opacity: 1, y: 0 },
-}
+const sections: SettingSection[] = [
+  {
+    id: "profile",
+    label: "Profile",
+    icon: <User className="h-5 w-5" />,
+    href: "/settings/profile",
+    description: "Display name, avatar, public profile",
+  },
+  {
+    id: "account",
+    label: "Account",
+    icon: <Shield className="h-5 w-5" />,
+    href: "/settings/account",
+    description: "Username, email, language, timezone",
+  },
+  {
+    id: "notifications",
+    label: "Notifications",
+    icon: <Bell className="h-5 w-5" />,
+    href: "/settings/notifications",
+    description: "Push, in-app alerts, frequency",
+  },
+  {
+    id: "privacy",
+    label: "Privacy",
+    icon: <Shield className="h-5 w-5" />,
+    href: "/settings/privacy",
+    description: "Profile visibility, leaderboard, friend requests",
+  },
+  {
+    id: "sessions",
+    label: "Sessions",
+    icon: <Clock className="h-5 w-5" />,
+    href: "/settings/sessions",
+    description: "Active sessions, device management",
+  },
+  {
+    id: "theme",
+    label: "Appearance",
+    icon: <Palette className="h-5 w-5" />,
+    href: "/settings/theme",
+    description: "Theme, density, font size",
+  },
+  {
+    id: "payment",
+    label: "Payment",
+    icon: <CreditCard className="h-5 w-5" />,
+    href: "/settings/payment",
+    description: "Saved banks, withdrawal method, currency",
+  },
+  {
+    id: "language",
+    label: "Language & Region",
+    icon: <Globe className="h-5 w-5" />,
+    href: "/settings/language",
+    description: "Language, date format, number format",
+  },
+  {
+    id: "savings",
+    label: "Savings Goals",
+    icon: <PiggyBank className="h-5 w-5" />,
+    href: "/settings/savings",
+    description: "Goals, auto-contribute, round-ups",
+  },
+  {
+    id: "delete",
+    label: "Delete Account",
+    icon: <Trash2 className="h-5 w-5" />,
+    href: "/settings/delete",
+    description: "Permanently remove your account",
+  },
+]
 
-export default function SettingsPage() {
+export default function SettingsHubPage() {
   const { user } = useAuth()
-  const { isConnected, address, disconnect: disconnectWallet, activeWalletId, adapter, setSelectorOpen } = useMultiWallet()
-
-  const [displayName, setDisplayName] = useState(user?.displayName ?? "")
-  const [country, setCountry] = useState(user?.countryCode ?? "")
-  const [language, setLanguage] = useState(user?.preferredLanguage ?? "en")
-
-  const [pushAlerts, setPushAlerts] = useState(true)
-  const [inAppAlerts, setInAppAlerts] = useState(true)
-
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
-  const [deleteLoading, setDeleteLoading] = useState(false)
-  const [saving, setSaving] = useState(false)
-  const [saved, setSaved] = useState(false)
-
-  const handleSave = useCallback(async () => {
-    setSaving(true)
-    try {
-      await new Promise((resolve) => setTimeout(resolve, 1000))
-      setSaved(true)
-      setTimeout(() => setSaved(false), 3000)
-    } finally {
-      setSaving(false)
-    }
-  }, [])
-
-  const handleDeleteAccount = useCallback(async () => {
-    setDeleteLoading(true)
-    try {
-      await new Promise((resolve) => setTimeout(resolve, 2000))
-      setDeleteDialogOpen(false)
-      window.location.href = "/login"
-    } finally {
-      setDeleteLoading(false)
-    }
-  }, [])
 
   return (
-    <div className="space-y-6">
-      <PageHeader
-        title="Settings"
-        description="Manage your account, preferences, and connected wallets."
-      />
-
-      <motion.div
-        initial="hidden"
-        animate="show"
-        variants={{ show: { transition: { staggerChildren: 0.08 } } }}
-        className="space-y-6"
-      >
-        <motion.div variants={sectionV} className="glass-premium rounded-2xl p-6 space-y-4 holo-border">
-          <div className="flex items-center gap-2 mb-1">
-            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-aurora-violet/20 to-aurora-indigo/20">
-              <User className="h-4 w-4 gradient-text" />
-            </div>
-            <h3 className="font-heading text-lg font-semibold text-foreground dark:text-white">
-              Profile
-            </h3>
+    <div className="flex gap-6">
+      {/* Settings Sidebar */}
+      <aside className="hidden md:block w-64 shrink-0">
+        <nav className="space-y-1 sticky top-24">
+          <div className="px-3 pb-3 mb-2 border-b border-white/[0.06]">
+            <h2 className="font-heading text-sm font-bold text-foreground">Settings</h2>
+            <p className="text-2xs text-muted-foreground mt-0.5">Manage your account</p>
           </div>
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-            <Input
-              label="Display Name"
-              value={displayName}
-              onChange={(e) => setDisplayName(e.target.value)}
-              placeholder="Your name"
-            />
-          </div>
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-            <Select
-              label="Country"
-              options={COUNTRIES}
-              value={country}
-              onChange={setCountry}
-              placeholder="Select country"
-            />
-            <Select
-              label="Language"
-              options={LANGUAGES}
-              value={language}
-              onChange={setLanguage}
-              placeholder="Select language"
-            />
-          </div>
-        </motion.div>
-
-        <motion.div variants={sectionV} className="glass rounded-2xl p-6 space-y-4">
-          <div className="flex items-center gap-2 mb-1">
-            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-fuchsia-500/20 to-aurora-violet/20">
-              <Bell className="h-4 w-4 gradient-text" />
-            </div>
-            <h3 className="font-heading text-lg font-semibold text-foreground dark:text-white">
-              Notification Preferences
-            </h3>
-          </div>
-          {[
-            {
-              label: "Push Notifications",
-              hint: "Receive push on your device",
-              value: pushAlerts,
-              setter: setPushAlerts,
-            },
-            {
-              label: "In-App Notifications",
-              hint: "Show within the platform",
-              value: inAppAlerts,
-              setter: setInAppAlerts,
-            },
-          ].map((item) => (
-            <div key={item.label} className="flex items-center justify-between py-1">
-              <div>
-                <p className="text-sm font-medium text-foreground dark:text-white font-body">
-                  {item.label}
-                </p>
-                <p className="text-xs text-muted-foreground">{item.hint}</p>
-              </div>
-              <GlassToggle checked={item.value} onChange={item.setter} />
-            </div>
-          ))}
-        </motion.div>
-
-        <motion.div variants={sectionV} className="glass rounded-2xl p-6 space-y-4">
-          <div className="flex items-center gap-2 mb-1">
-            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-slate-500/20 to-slate-700/20">
-              <Wallet className="h-4 w-4 text-slate-400" />
-            </div>
-            <h3 className="font-heading text-lg font-semibold text-foreground dark:text-white">
-              Connected Wallet
-            </h3>
-          </div>
-          {isConnected && address ? (
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-              <div>
-                <div className="flex items-center gap-2">
-                  <span className="inline-flex h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
-                  <p className="text-sm font-medium text-foreground dark:text-white font-heading">
-                    {adapter?.meta.name ?? "Wallet"}
-                  </p>
-                </div>
-                <div className="flex items-center gap-2 mt-1.5">
-                  <p className="text-xs font-mono text-muted-foreground">
-                    {formatAddress(address, 8, 6)}
-                  </p>
-                  <CopyButton text={address} />
-                </div>
-              </div>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => activeWalletId && disconnectWallet(activeWalletId)}
-                className="glass-whisper"
-              >
-                Disconnect
-              </Button>
-            </div>
-          ) : (
-            <div className="flex items-center justify-between">
-              <p className="text-sm text-muted-foreground font-body">No wallet connected.</p>
-              <Button variant="primary" size="sm" onClick={() => setSelectorOpen(true)}>
-                Connect Wallet
-              </Button>
-            </div>
-          )}
-        </motion.div>
-
-        <motion.div
-          variants={sectionV}
-          className="glass rounded-2xl p-6 space-y-4"
-          style={{ borderColor: "rgb(239 68 68 / 0.2)" }}
-        >
-          <div className="flex items-center gap-2 mb-1">
-            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-red-500/20">
-              <AlertTriangle className="h-4 w-4 text-red-400" />
-            </div>
-            <h3 className="font-heading text-lg font-semibold text-red-400">
-              Danger Zone
-            </h3>
-          </div>
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-            <div>
-              <p className="text-sm font-medium text-red-400 font-heading">Delete Account</p>
-              <p className="text-xs text-muted-foreground">
-                Permanently delete your account and all associated data.
-              </p>
-            </div>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setDeleteDialogOpen(true)}
-              className="text-red-400 border-red-500/20 hover:bg-red-500/10 hover:border-red-500/40"
-              leftIcon={<Trash2 className="h-4 w-4" />}
+          {sections.map((s) => (
+            <Link
+              key={s.id}
+              href={s.href}
+              className={cn(
+                "flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-all",
+                "hover:glass-whisper text-muted-foreground hover:text-foreground",
+              )}
             >
-              Delete Account
-            </Button>
+              <span className="shrink-0 text-muted-foreground">{s.icon}</span>
+              <span className="flex-1 truncate">{s.label}</span>
+              <ChevronRight className="h-3.5 w-3.5 shrink-0 text-muted-foreground/50" />
+            </Link>
+          ))}
+        </nav>
+      </aside>
+
+      {/* Main Content */}
+      <div className="flex-1 min-w-0">
+        {/* Header */}
+        <div className="mb-6">
+          <h1 className="font-heading text-2xl font-bold text-foreground">Settings</h1>
+          <p className="text-sm text-muted-foreground mt-1">
+            Manage your account, preferences, and connected wallets.
+          </p>
+        </div>
+
+        {/* Account Summary Card */}
+        <div className="glass-premium rounded-2xl p-5 mb-6">
+          <div className="flex items-center gap-4">
+            <div className="flex h-14 w-14 items-center justify-center rounded-full gradient-bg text-white font-mono text-lg font-bold shrink-0">
+              {user?.displayName?.charAt(0)?.toUpperCase() ?? user?.walletAddress?.slice(0, 2)?.toUpperCase() ?? "U"}
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="font-heading text-lg font-semibold text-foreground truncate">
+                {user?.displayName ?? "User"}
+              </p>
+              <p className="text-xs text-muted-foreground font-mono truncate">
+                {user?.walletAddress ? formatAddress(user.walletAddress, 8, 6) : "No wallet"}
+              </p>
+              <Link href="/settings/profile" className="text-xs text-aurora-violet hover:underline mt-1 inline-block">
+                Edit profile
+              </Link>
+            </div>
+            <div className="text-right shrink-0">
+              <p className="text-xs text-muted-foreground">MoiScore</p>
+              <p className="font-heading text-lg font-bold gradient-text">{user?.moiScore ?? 0}</p>
+            </div>
           </div>
-        </motion.div>
-      </motion.div>
+        </div>
 
-      <div className="flex items-center justify-end gap-3">
-        {saved && (
-          <motion.span
-            initial={{ opacity: 0, x: 8 }}
-            animate={{ opacity: 1, x: 0 }}
-            className="inline-flex items-center gap-1 text-sm text-emerald-400 font-body"
-          >
-            <Check className="h-4 w-4" />
-            Settings saved
-          </motion.span>
-        )}
-        <Button
-          variant="primary"
-          size="lg"
-          onClick={handleSave}
-          isLoading={saving}
-        >
-          Save Changes
-        </Button>
+        {/* Settings Grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {sections.map((s) => (
+            <Link key={s.id} href={s.href}>
+              <div
+                className={cn(
+                  "glass rounded-2xl p-5 h-full transition-all duration-200",
+                  "hover:glass-strong hover:-translate-y-0.5 cursor-pointer",
+                  s.id === "delete" && "border border-red-500/10 hover:border-red-500/20",
+                )}
+              >
+                <div
+                  className={cn(
+                    "flex h-10 w-10 items-center justify-center rounded-xl mb-3",
+                    s.id === "delete"
+                      ? "bg-red-500/10 text-red-400"
+                      : "bg-gradient-to-br from-aurora-violet/20 to-aurora-indigo/20 text-aurora-violet",
+                  )}
+                >
+                  {s.icon}
+                </div>
+                <h3
+                  className={cn(
+                    "font-heading text-sm font-semibold mb-1",
+                    s.id === "delete" ? "text-red-400" : "text-foreground",
+                  )}
+                >
+                  {s.label}
+                </h3>
+                <p className="text-xs text-muted-foreground leading-relaxed">{s.description}</p>
+              </div>
+            </Link>
+          ))}
+        </div>
+
+        {/* Mobile-only: tab bar at bottom showing current active setting */}
+        <div className="md:hidden fixed bottom-20 left-4 right-4 z-40">
+          <div className="glass-flagship rounded-2xl px-4 py-3 flex items-center justify-between overflow-x-auto gap-2">
+            {sections.slice(0, 5).map((s) => (
+              <Link
+                key={s.id}
+                href={s.href}
+                className="flex flex-col items-center gap-1 px-2 py-1 shrink-0"
+              >
+                <span className="text-muted-foreground">{s.icon}</span>
+                <span className="text-[9px] text-muted-foreground font-medium">{s.label}</span>
+              </Link>
+            ))}
+          </div>
+        </div>
       </div>
-
-      <ConfirmDialog
-        isOpen={deleteDialogOpen}
-        onClose={() => setDeleteDialogOpen(false)}
-        onConfirm={handleDeleteAccount}
-        title="Delete Account"
-        message="Are you sure you want to delete your account? This action is permanent and cannot be undone."
-        confirmLabel="Delete My Account"
-        variant="danger"
-        isLoading={deleteLoading}
-      />
     </div>
   )
 }
