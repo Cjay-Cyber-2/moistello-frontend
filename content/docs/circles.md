@@ -25,13 +25,7 @@ Every circle goes through these stages:
 Open to anyone meeting the minimum MoiScore requirement. Good for discovering new circles.
 
 ### Private
-Invite-only via link or code. Members must be explicitly invited.
-
-### Community
-Token-gated — only members of a specific DAO or token holders can join.
-
-### Premium
-Higher limits, priority support, and usually collateralized for security.
+Invite-only via link. Members must be explicitly invited. The organizer controls who joins.
 
 ## Payout Types
 
@@ -49,15 +43,13 @@ Example: $100 pool. Alice bids 5%, Bob bids 8%.
 - Bob receives: $100 - $8 = $92
 - $8 is split among other members
 
-### Vote-Based
-Members vote each round on who should receive the payout. Useful for need-based circles where financial emergencies determine priority.
-
 ## Contribution Rules
 
-- Members must contribute the full amount each cycle
+- Members must contribute the full amount in USDC each cycle
 - Contributions are held in a Soroban smart contract escrow
 - Late payments incur a penalty (default 5%)
 - After max strikes (default 3), a member is removed
+- **Zero platform fees** — the contract calls `apply_fee(pool, 0)`, so the full contribution pool is distributed
 
 ## Penalties & Enforcement
 
@@ -66,7 +58,6 @@ Members vote each round on who should receive the payout. Useful for need-based 
 | Late Fee | 5% of contribution | Yes |
 | Grace Period | 24 hours | Yes (1-168h) |
 | Max Strikes | 3 | Yes (1-10) |
-| Collateral | 0% (none) | Yes (optional) |
 
 ## Smart Contract Security
 

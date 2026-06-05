@@ -7,8 +7,8 @@ import { AuthRedirect } from "@/components/shared/auth-redirect";
 
 export const metadata: Metadata = {
   title: "Moistello — Stellar Savings Circles",
-  description: "Decentralized savings circles on Stellar blockchain. Join trustless ROSCAs with USDC/XLM, build MoiScore reputation, and access financial tools for the unbanked.",
-  keywords: "moistello, stellar, savings circles, ROSCA, tontine, esusu, USDC, XLM, MoiScore, reputation, soroban, smart contracts, financial inclusion, unbanked",
+  description: "Decentralized savings circles on Stellar. Sign in with passkey (Face ID / fingerprint) — your Stellar wallet is created automatically. Zero platform fees, no KYC, no email. Pure coordination software for the next billion.",
+  keywords: "moistello, stellar, savings circles, ROSCA, esusu, USDC, XLM, MoiScore, reputation, soroban, smart contracts, financial inclusion, unbanked, passkey, biometric, auto-wallet, WebAuthn",
   authors: [{ name: "Nekwachukwu Ucheokoye" }],
   creator: "Moistello",
   publisher: "Moistello",
@@ -20,10 +20,10 @@ export const metadata: Metadata = {
     url: "https://moistello.com",
     siteName: "Moistello",
     title: "Moistello — Decentralized Savings Circles on Stellar",
-    description: "Join trustless savings circles with zero intermediaries. Built on Stellar for true financial sovereignty.",
+    description: "Join trustless passkey savings circles with zero intermediaries. Auto-created wallet, zero fees, no KYC. Built on Stellar for true financial sovereignty.",
     images: [{ url: "/logo.jpg", width: 1200, height: 630, alt: "Moistello - Decentralized Stellar Savings Platform" }],
   },
-  twitter: { card: "summary_large_image", title: "Moistello — Stellar Savings Circles", description: "Build trustless savings circles on Stellar. Join rotating credit groups with USDC/XLM, earn on-chain reputation, and achieve financial sovereignty.", images: ["/logo.jpg"] },
+  twitter: { card: "summary_large_image", title: "Moistello — Stellar Savings Circles", description: "Passkey savings on Stellar. Auto-wallet, zero fees, no KYC or email. Pure coordination software.", images: ["/logo.jpg"] },
 }
 
 const features = [
@@ -35,10 +35,10 @@ const features = [
     featured: true,
   },
   { icon: Globe, title: "Global Access", description: "Anyone with a Stellar wallet. No bank account. No credit check. No borders.", colSpan: "lg:col-span-1" },
-  { icon: Award, title: "On-Chain Reputation", description: "Build your MoiScore. Carry your financial identity across every circle.", colSpan: "lg:col-span-1" },
+  { icon: Award, title: "On-Chain Reputation", description: "Build your MoiScore with every on-time contribution. Portable financial identity.", colSpan: "lg:col-span-1" },
   { icon: Zap, title: "Near-Zero Fees", description: "Stellar's sub-cent transactions make daily circles practical. No platform fees to create or join.", colSpan: "lg:col-span-2", featured: true },
   { icon: Shuffle, title: "Flexible Rules", description: "Random, fixed, auction, or vote. Your circle, your rules.", colSpan: "lg:col-span-1" },
-  { icon: Coins, title: "Multi-Currency", description: "USDC and XLM today. More stablecoins coming.", colSpan: "lg:col-span-1" },
+  { icon: Coins, title: "Multi-Currency", description: "USDC today. More stablecoins on the roadmap.", colSpan: "lg:col-span-1" },
 ];
 
 export default function Home() {
@@ -58,7 +58,7 @@ export default function Home() {
               <span className="font-heading text-5xl md:text-7xl xl:text-8xl font-black tracking-tighter block">Together.</span>
             </h1>
             <p className="text-lg text-muted-foreground max-w-2xl mt-8">
-              Decentralized savings circles on Stellar. Zero intermediaries. Pure smart contracts. Financial sovereignty for the 1.7 billion unbanked.
+              Decentralized savings circles on Stellar. Zero intermediaries. Financial sovereignty for the 1.7 billion unbanked.
             </p>
             <div className="mt-10 flex flex-col sm:flex-row items-stretch sm:items-center gap-4">
               <Link href={Routes.REGISTER} className="gradient-bg-premium h-14 px-10 rounded-2xl text-lg font-heading font-semibold text-white inline-flex items-center justify-center gap-2 holo-glow hover:opacity-90 transition-all shadow-[0_0_40px_rgb(var(--premium-gold)/0.25)]">
@@ -106,13 +106,13 @@ export default function Home() {
           <div className="container-premium text-center">
             <div className="w-12 h-px bg-black/20 dark:bg-white/20 mx-auto mb-8" />
             <p className="text-black dark:text-white font-heading text-[180px] md:text-[280px] font-black leading-none tracking-tighter select-none">
-              5
+              3
             </p>
             <p className="text-black/60 dark:text-white/60 font-mono text-xs tracking-[0.3em] uppercase">
               Soroban Contracts &middot; Mainnet
             </p>
             <p className="text-black/40 dark:text-white/20 font-mono text-[10px] tracking-wider mt-6 max-w-2xl mx-auto leading-relaxed">
-              SavingsVault &middot; MilestoneNFT &middot; Reputation &middot; Governance &middot; MoistelloCore
+              Circle &middot; Reputation &middot; Wallet
             </p>
           </div>
         </section>

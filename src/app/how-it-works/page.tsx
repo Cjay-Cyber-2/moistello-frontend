@@ -5,8 +5,8 @@ import { Dices, ListOrdered, Gavel, Vote } from "lucide-react"
 
 export const metadata: Metadata = {
   title: "How It Works - Moistello",
-  description: "Learn how Moistello's decentralized savings circles work. Connect wallet, create/join circles, contribute, receive payouts, and build on-chain reputation on Stellar.",
-  keywords: "moistello, stellar, savings circles, how it works, wallet connect, contribute, payout, reputation, MoiScore, USDC, XLM, Soroban, ROSCA, tontine",
+  description: "Learn how Moistello's decentralized savings circles work. Sign in with passkey (Face ID / fingerprint) — your Stellar wallet is created automatically. Contribute USDC, receive payouts, and build on-chain reputation. Zero platform fees, no KYC, no email required.",
+  keywords: "moistello, stellar, savings circles, how it works, passkey, biometric, auto-wallet, WebAuthn, contribute, payout, reputation, MoiScore, USDC, XLM, Soroban, ROSCA",
   authors: [{ name: "Nekwachukwu Ucheokoye" }],
   creator: "Moistello",
   publisher: "Moistello",
@@ -18,15 +18,15 @@ export const metadata: Metadata = {
     url: "https://moistello.com/how-it-works",
     siteName: "Moistello",
     title: "How Moistello Savings Circles Work - Complete Guide",
-    description: "Step-by-step guide to Stellar savings circles. Connect wallet, create circle, contribute USDC/XLM, receive payouts, and build MoiScore on-chain reputation.",
+    description: "Step-by-step guide to passkey-based savings circles on Stellar. Auto-wallet creation, USDC contributions, payout types, and MoiScore reputation. Zero fees, no KYC.",
     images: [{ url: "/logo.jpg", width: 1200, height: 630, alt: "How Moistello Works - Step by Step Guide" }],
   },
-  twitter: { card: "summary_large_image", title: "How It Works - Moistello", description: "Learn how to join trustless savings circles on Stellar in 5 simple steps.", images: ["/logo.jpg"] },
+  twitter: { card: "summary_large_image", title: "How It Works - Moistello", description: "How passkey savings circles work on Stellar. Auto-wallet, zero fees, no KYC or email.", images: ["/logo.jpg"] },
 }
 
 const steps = [
-  { num: "01", title: "Connect Your Wallet", desc: "Install Freighter, create or import a Stellar wallet, and connect. No email or password required." },
-  { num: "02", title: "Create or Join a Circle", desc: "Set the contribution amount, frequency, member count, and payout type. Or browse public circles." },
+  { num: "01", title: "Sign in with Passkey", desc: "Use Face ID, fingerprint, or PIN to create your account. No email, no password, no wallet setup needed." },
+  { num: "02", title: "Create or Join a Circle", desc: "Set the contribution amount, frequency, member count, and payout type. Your Stellar wallet is created automatically when you join." },
   { num: "03", title: "Contribute Each Cycle", desc: "You and all members contribute USDC or XLM each cycle. Smart contracts track every payment on-chain." },
   { num: "04", title: "Receive Your Payout", desc: "Each cycle, one member gets the full pool. Order: random, fixed, auction, or vote-based." },
   { num: "05", title: "Build Your Reputation", desc: "Every on-time payment builds your MoiScore (0-1000). Higher scores unlock larger circles and better terms." },
@@ -36,7 +36,7 @@ const payoutTypes = [
   { icon: Dices, title: "Random", desc: "Smart contract VRF selects payout order. Fair and unpredictable." },
   { icon: ListOrdered, title: "Fixed Order", desc: "Organizer defines payout order upfront. Full transparency." },
   { icon: Gavel, title: "Auction (Chit Fund)", desc: "Members bid discount amounts. Lowest bidder wins, discount shared among all." },
-  { icon: Vote, title: "Vote-Based", desc: "Members vote each round on who receives payout. Community-driven." },
+  { icon: Vote, title: "Vote-Based", desc: "Members vote each round on who receives payout. Coming in a future update." },
 ]
 
 export default function HowItWorksPage() {

@@ -4,8 +4,8 @@ import { PublicLayout } from "@/components/layout/public-layout"
 
 export const metadata: Metadata = {
   title: "FAQ - Moistello",
-  description: "Frequently asked questions about Moistello savings circles, Stellar wallet setup, USDC contributions, MoiScore reputation, and platform fees.",
-  keywords: "moistello, stellar, savings circles, FAQ, questions, wallet, USDC, XLM, MoiScore, reputation, smart contracts",
+  description: "Frequently asked questions about Moistello. Passkey-based authentication, auto-created Stellar wallets, USDC contributions, MoiScore reputation, and zero platform fees — no KYC, no email needed.",
+  keywords: "moistello, stellar, savings circles, FAQ, questions, passkey, biometric, auto-wallet, WebAuthn, USDC, XLM, MoiScore, reputation, smart contracts",
   authors: [{ name: "Nekwachukwu Ucheokoye" }],
   creator: "Moistello",
   publisher: "Moistello",
@@ -17,20 +17,20 @@ export const metadata: Metadata = {
     url: "https://moistello.com/faq",
     siteName: "Moistello",
     title: "Moistello FAQ - All Questions Answered",
-    description: "Answers to common questions about savings circles, wallet connection, USDC/XLM, MoiScore reputation, and platform security on Stellar.",
+    description: "Answers to common questions about passkey savings circles, auto-wallet creation, USDC, MoiScore reputation, and zero-fee platform on Stellar.",
     images: [{ url: "/logo.jpg", width: 1200, height: 630, alt: "Moistello FAQ - Questions Answered" }],
   },
-  twitter: { card: "summary_large_image", title: "FAQ - Moistello", description: "All answers about Moistello savings circles, Stellar wallet, and MoiScore reputation.", images: ["/logo.jpg"] },
+  twitter: { card: "summary_large_image", title: "FAQ - Moistello", description: "FAQ about passkey savings circles on Stellar. Auto-wallet, zero fees, no KYC.", images: ["/logo.jpg"] },
 }
 
 const faqs = [
   { q: "What is a savings circle (ROSCA)?", a: "A Rotating Savings and Credit Association is a group who contribute a fixed amount regularly. Each cycle, one member receives the total pool. Known worldwide as esusu, tontine, chit fund, tanda, and hui." },
-  { q: "How is Moistello different?", a: "Traditional circles rely on trust. Moistello uses Soroban smart contracts to enforce rules transparently: on-chain contributions, automatic payouts, programmatic penalties, and portable MoiScore reputation. No organizer can run off with the pool." },
-  { q: "Do I need a bank account?", a: "No. You only need a Stellar wallet (Freighter or Lobstr) and USDC or XLM. Accessible to the 1.7 billion unbanked with a smartphone." },
-  { q: "What currencies?", a: "USDC and XLM natively. Additional Stellar-issued stablecoins (EURC, BRL, NGN) planned." },
-  { q: "What if someone doesn't pay?", a: "Late payments incur a configurable penalty (default 5%). After max strikes (default 3), the member is removed. Collateralized circles: staked funds can be slashed." },
-  { q: "What is MoiScore?", a: "Your on-chain reputation (0-1000) built from streak, completions, volume, and recency. High scores unlock larger circles and lower collateral." },
-  { q: "Is it free?", a: "0.5% protocol fee on payouts. Stellar network fees &lt; $0.001 per transaction. No fees to create/join circles." },
+  { q: "How is Moistello different?", a: "Traditional circles rely on trust. Moistello uses passkey-based authentication and Soroban smart contracts to enforce rules transparently. No email, no password, no bank account needed. Sign in with your biometrics (Face ID, fingerprint) and start saving." },
+  { q: "Do I need a bank account?", a: "No. You don't even need a Stellar wallet. Moistello creates one for you automatically using your passkey (Face ID or fingerprint). Just sign in and start saving. Accessible to anyone with a smartphone." },
+  { q: "What currencies?", a: "USDC (Stellar). More stablecoins on the roadmap." },
+  { q: "What if someone doesn't pay?", a: "Late payments incur a configurable penalty. After max strikes, the member is removed from the circle." },
+  { q: "What is MoiScore?", a: "Your on-chain reputation (0-1000) built from streak, completions, volume, and recency. High scores unlock larger circles and better opportunities." },
+  { q: "Is it free?", a: "Completely free to create and join circles. Stellar network fees are less than $0.001 per transaction. Zero platform fees — period." },
 ]
 
 export default function FAQPage() {

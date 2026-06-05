@@ -6,8 +6,8 @@ import { TicketLookup } from "./ticket-lookup"
 
 export const metadata: Metadata = {
   title: "Support - Moistello",
-  description: "Moistello support center. Get help with wallet connection, savings circles, USDC contributions, MoiScore reputation, and platform features on Stellar.",
-  keywords: "moistello, support, help, stellar, wallet, savings circles, USDC, MoiScore, contact, ticket, FAQ",
+  description: "Moistello support center. Get help with passkey sign-in, auto-created Stellar wallets, savings circles, USDC contributions, and MoiScore reputation. Zero fees, no KYC required.",
+  keywords: "moistello, support, help, stellar, passkey, biometric, auto-wallet, WebAuthn, savings circles, USDC, MoiScore, contact, ticket, FAQ",
   authors: [{ name: "Nekwachukwu Ucheokoye" }],
   creator: "Moistello",
   publisher: "Moistello",
@@ -19,10 +19,10 @@ export const metadata: Metadata = {
     url: "https://moistello.com/support",
     siteName: "Moistello",
     title: "Support - Moistello",
-    description: "Get help with Moistello savings circles, wallet connection, USDC contributions, and MoiScore reputation on Stellar blockchain.",
+    description: "Get help with Moistello's passkey-based savings circles, auto-wallet, and USDC contributions on Stellar blockchain.",
     images: [{ url: "/logo.jpg", width: 1200, height: 630, alt: "Support - Moistello" }],
   },
-  twitter: { card: "summary_large_image", title: "Support - Moistello", description: "Get help with Moistello's Stellar savings platform.", images: ["/logo.jpg"] },
+  twitter: { card: "summary_large_image", title: "Support - Moistello", description: "Get help with Moistello passkey savings platform on Stellar.", images: ["/logo.jpg"] },
 }
 
 import Link from "next/link"

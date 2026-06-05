@@ -4,8 +4,8 @@ import { Activity, CheckCircle, Clock } from "lucide-react"
 
 export const metadata: Metadata = {
   title: "System Status - Moistello",
-  description: "Moistello system status. Real-time uptime and response time for frontend, API, and database services on Stellar blockchain.",
-  keywords: "moistello, status, uptime, system status, stellar, API, frontend, database, monitoring",
+  description: "Moistello system status. Real-time uptime and response time for frontend, passkey authentication, API, and database services on Stellar blockchain.",
+  keywords: "moistello, status, uptime, system status, stellar, API, frontend, database, monitoring, passkey, auto-wallet, WebAuthn",
   authors: [{ name: "Nekwachukwu Ucheokoye" }],
   creator: "Moistello",
   publisher: "Moistello",
@@ -17,10 +17,10 @@ export const metadata: Metadata = {
     url: "https://moistello.com/status",
     siteName: "Moistello",
     title: "System Status - Moistello",
-    description: "Real-time status for Moistello services. Check uptime and response times for the Stellar savings platform.",
+    description: "Real-time status for Moistello passkey savings services. Check uptime and response times.",
     images: [{ url: "/logo.jpg", width: 1200, height: 630, alt: "System Status - Moistello" }],
   },
-  twitter: { card: "summary_large_image", title: "System Status - Moistello", description: "Check real-time uptime for Moistello frontend, API, and database.", images: ["/logo.jpg"] },
+  twitter: { card: "summary_large_image", title: "System Status - Moistello", description: "Check real-time uptime for Moistello passkey savings platform, API, and database.", images: ["/logo.jpg"] },
 }
 
 const STATUS_DATA = {

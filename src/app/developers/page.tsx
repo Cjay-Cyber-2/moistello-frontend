@@ -21,8 +21,8 @@ import {
 
 export const metadata: Metadata = {
   title: "Developers - Moistello",
-  description: "Moistello developer platform. Build on Stellar with our complete API documentation, 27 endpoints, 7 Soroban contracts, and open-source tools for decentralized savings.",
-  keywords: "moistello, developers, API, stellar, soroban, smart contracts, open source, typescript, react, rest API, blockchain",
+  description: "Moistello developer platform. Build on Stellar with passkey-based authentication, auto-created wallets, and our complete API documentation. 27 endpoints, 7 Soroban contracts, zero platform fees, no KYC.",
+  keywords: "moistello, developers, API, stellar, soroban, smart contracts, open source, typescript, react, rest API, blockchain, passkey, biometric, auto-wallet, WebAuthn",
   authors: [{ name: "Nekwachukwu Ucheokoye" }],
   creator: "Moistello",
   publisher: "Moistello",
@@ -34,10 +34,10 @@ export const metadata: Metadata = {
     url: "https://moistello.com/developers",
     siteName: "Moistello",
     title: "Developers - Moistello",
-    description: "Build decentralized savings on Stellar. Full API documentation, smart contracts, and resources for developers.",
+    description: "Build on Moistello's Stellar savings platform. Passkey auth, auto-wallet, zero fees. Full API docs and smart contracts for developers.",
     images: [{ url: "/logo.jpg", width: 1200, height: 630, alt: "Developers - Moistello" }],
   },
-  twitter: { card: "summary_large_image", title: "Developers - Moistello", description: "Build on Moistello's Stellar savings platform.", images: ["/logo.jpg"] },
+  twitter: { card: "summary_large_image", title: "Developers - Moistello", description: "Build on Moistello — passkey auth, auto-wallet, zero fees on Stellar.", images: ["/logo.jpg"] },
 }
 
 const apiEndpoints = [
@@ -46,9 +46,9 @@ const apiEndpoints = [
     icon: Key,
     color: "text-aurora-violet",
     endpoints: [
-      { method: "POST", path: "/v1/auth/nonce", desc: "Get authentication nonce" },
-      { method: "POST", path: "/v1/auth/verify", desc: "Verify wallet signature and login" },
-      { method: "POST", path: "/v1/auth/register", desc: "Register with profile" },
+      { method: "POST", path: "/v1/auth/nonce", desc: "Get passkey registration/authentication challenge" },
+      { method: "POST", path: "/v1/auth/verify", desc: "Verify passkey signature and login" },
+      { method: "POST", path: "/v1/auth/register", desc: "Register with passkey" },
       { method: "POST", path: "/v1/auth/refresh", desc: "Refresh JWT tokens" },
       { method: "POST", path: "/v1/auth/logout", desc: "Invalidate session" },
     ],
@@ -146,14 +146,14 @@ export default function DevelopersPage() {
 
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 <div className="bg-white/5 border border-white/10 rounded-lg p-5">
-                  <h3 className="text-sm font-semibold text-foreground mb-2">1. Get a Nonce</h3>
+                  <h3 className="text-sm font-semibold text-foreground mb-2">1. Get a Challenge</h3>
                   <code className="text-xs text-aurora-cyan font-mono">POST /v1/auth/nonce</code>
-                  <p className="text-xs text-muted-foreground mt-2">Send wallet address to receive a nonce</p>
+                  <p className="text-xs text-muted-foreground mt-2">Request passkey authentication challenge</p>
                 </div>
                 <div className="bg-white/5 border border-white/10 rounded-lg p-5">
                   <h3 className="text-sm font-semibold text-foreground mb-2">2. Sign & Verify</h3>
                   <code className="text-xs text-aurora-cyan font-mono">POST /v1/auth/verify</code>
-                  <p className="text-xs text-muted-foreground mt-2">Sign nonce with your wallet</p>
+                  <p className="text-xs text-muted-foreground mt-2">Sign with your biometric passkey</p>
                 </div>
                 <div className="bg-white/5 border border-white/10 rounded-lg p-5">
                   <h3 className="text-sm font-semibold text-foreground mb-2">3. Access API</h3>

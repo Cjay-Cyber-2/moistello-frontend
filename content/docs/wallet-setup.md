@@ -5,52 +5,45 @@ order: 6
 
 # Wallet Setup
 
-How to set up and secure your Stellar wallet for Moistello.
+How your Stellar wallet works on Moistello.
 
-## Freighter Browser Extension
+## Auto-Created Wallet
 
-Freighter is the recommended wallet for Moistello.
+Moistello creates a Stellar wallet for you automatically when you sign in with your passkey. There is no manual wallet setup, no Freighter extension, and no seed phrase to manage.
 
-### Installation
+- **Wallet created on first sign-in** — authenticating with your passkey triggers wallet creation on-chain
+- **Funded from the master pool** — each new wallet receives 2 XLM to cover transaction fees
+- **Encrypted key storage** — your wallet's private key is encrypted with AES-256-GCM and stored in PostgreSQL. It can only be decrypted using your passkey seed, which never leaves your device.
 
-1. Go to [freighter.app](https://freighter.app)
-2. Click "Add to Browser" (Chrome, Firefox, or Brave)
-3. Follow the setup wizard
+## How It Works
 
-### Creating a New Wallet
+1. You sign in with your passkey (Face ID, fingerprint, etc.)
+2. The passkey generates a seed that is used to derive your Stellar wallet key
+3. A new Stellar wallet is created and funded with 2 XLM from the master pool
+4. The wallet key is encrypted with AES-256-GCM and stored server-side
+5. Each time you sign in, the passkey seed decrypts your key locally to sign transactions
 
-1. Click "Create New Wallet"
-2. Enter a strong password
-3. **Write down your 12-word recovery phrase** on paper
-4. Store it somewhere safe — offline, never digital
-5. Confirm the phrase to verify you saved it
+## Funding Your Wallet
 
-### Importing an Existing Wallet
+Since all circle contributions are in USDC, you'll need to fund your wallet:
 
-1. Click "Import Wallet"
-2. Enter your 12 or 24-word recovery phrase
-3. Set a new password
+1. Navigate to **Wallet** in the app
+2. Use the **Yellow Card** integration to convert NGN to USDC deposited directly to your wallet
+3. Or send USDC from any external Stellar wallet to your auto-generated address
 
-## Switching Networks
+## No Freighter, No Seed Phrases
 
-Moistello supports both testnet and mainnet:
+- **No browser extension** — everything works in the browser with your device biometrics
+- **No seed phrase to write down** — your passkey is your recovery mechanism. As long as you have access to your device's biometric auth, you can access your wallet
+- **No passwords** — your biometrics are your credentials
 
-| Network | Purpose | URL |
-|---|---|---|
-| **Testnet** | Testing, development | Use friendbot for free XLM |
-| **Mainnet** | Real funds, production | Real XLM and USDC |
+## Wallet Address
 
-## Hardware Wallets
-
-For large amounts, use a hardware wallet:
-
-- **Ledger** — Connect via Ledger Live, then use with Freighter
-- Supported on both testnet and mainnet
+Your Stellar wallet address is displayed on the Wallet page. Share this address to receive USDC from other users or external wallets.
 
 ## Best Practices
 
-- Never share your recovery phrase with anyone
-- Use a dedicated wallet for Moistello
-- Start with small amounts on testnet first
-- Verify contract addresses before signing transactions
-- Enable all available security features in Freighter
+- Keep your device's biometric authentication enrolled and up to date
+- If you switch devices, sign in with your passkey on the new device — 2FA or platform passkey sync will handle the handoff
+- Start with small amounts before committing more to a circle
+- Monitor your wallet balance on the Wallet page

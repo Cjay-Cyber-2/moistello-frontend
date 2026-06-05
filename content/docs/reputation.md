@@ -3,9 +3,9 @@ title: Reputation (MoiScore)
 order: 4
 ---
 
-# MoiScore — On-Chain Reputation
+# MoiScore — Platform Reputation
 
-MoiScore is your portable on-chain reputation. It's a 0-1000 score that tracks your reliability across all savings circles.
+MoiScore is your portable reputation on Moistello. It's a 0-1000 score that tracks your reliability across all savings circles. The score is computed server-side from on-chain contribution data.
 
 ## Score Components
 
@@ -15,7 +15,7 @@ MoiScore is calculated from four factors:
 |---|---|---|
 | **Streaks** | 35% | Consecutive on-time contributions. Longer streaks = higher score |
 | **Completions** | 30% | Number of circles successfully completed |
-| **Volume** | 20% | Total USDC/XLM contributed across all circles |
+| **Volume** | 20% | Total USDC contributed across all circles |
 | **Recency** | 15% | How recent your last contribution was. Older activity decays |
 
 ## Score Tiers
@@ -23,10 +23,10 @@ MoiScore is calculated from four factors:
 | Score | Tier | Benefits |
 |---|---|---|
 | 0–200 | **Bronze** | Basic access, join public circles |
-| 201–400 | **Silver** | Higher circle limits, lower collateral |
-| 401–600 | **Gold** | Premium circle access, priority support |
-| 601–800 | **Platinum** | Featured member, governance voting |
-| 801–1000 | **Diamond** | Maximum limits, zero collateral, top trust tier |
+| 201–400 | **Silver** | Higher circle limits |
+| 401–600 | **Gold** | Join higher-value circles, priority support |
+| 601–800 | **Platinum** | Featured member, access to exclusive circles |
+| 801–1000 | **Diamond** | Maximum limits, top trust tier |
 
 ## How to Improve Your Score
 
@@ -38,7 +38,7 @@ MoiScore is calculated from four factors:
 
 ## Score Transparency
 
-MoiScore is calculated on-chain and is fully transparent. Your score history is visible on your public profile. This creates a trust network across the entire ecosystem.
+MoiScore is computed server-side using blockchain data and is visible on your public profile. This creates a trust network across the entire ecosystem.
 
 ## Future: Cross-Platform Reputation
 

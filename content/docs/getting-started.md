@@ -11,22 +11,23 @@ Learn how to get started with Moistello in minutes.
 
 Before you begin, you'll need:
 
-- **Freighter Wallet** — A Stellar browser extension wallet. [Install Freighter](https://freighter.app)
-- **XLM** — A small amount of XLM (Stellar Lumens) for transaction fees (typically less than $0.001 per transaction)
-- **USDC** — Optional but recommended. USDC is a stablecoin pegged to USD and is the primary currency for savings circles
+- **A device with biometric authentication** — Face ID, Touch ID, Windows Hello, or fingerprint reader
+- **USDC** — The currency used for all contributions and payouts. Fund your auto-created wallet via the Yellow Card ramp or an external Stellar wallet
+- **No Freighter, no passwords, no email** — Your passkey is your identity
 
-## Step 1: Install Freighter
+## Step 1: Sign In with Passkey
 
-1. Go to [freighter.app](https://freighter.app) and install the browser extension
-2. Create a new wallet or import an existing one
-3. **Save your secret recovery phrase** in a safe place — you cannot recover it if lost
-4. Switch to the **Stellar Testnet** network for testing
+1. Visit [app.moistello.io](https://app.moistello.io)
+2. Click **Sign In**
+3. Authenticate with your device biometrics (Face ID, fingerprint) or platform authenticator
+4. That's it — your Stellar wallet is automatically created and funded with 2 XLM from the master pool
 
-## Step 2: Connect to Moistello
+## Step 2: Fund Your Wallet
 
-1. Visit [app.moistello.io](https://app.moistello.io) (or your local instance)
-2. Click **Login** and follow the prompts to connect your Freighter wallet
-3. Sign the verification message — this proves you own the wallet without revealing your private key
+1. Navigate to **Wallet** in the app
+2. Use the **Yellow Card** integration to convert NGN to USDC
+3. Or send USDC from any external Stellar wallet to your auto-generated address
+4. Your wallet address is visible on the Wallet page — share it to receive funds
 
 ## Step 3: Create Your First Circle
 
@@ -34,11 +35,10 @@ Before you begin, you'll need:
 2. Fill in the circle details:
    - **Name** — A recognizable name for your circle
    - **Description** — Optional description
-   - **Circle Type** — Public, Private, Community, or Premium
+   - **Circle Type** — Public or Private
    - **Max Members** — How many people can join (2-100)
 3. Set financial parameters:
-   - **Contribution Amount** — How much each member contributes per cycle
-   - **Currency** — USDC or XLM
+   - **Contribution Amount** — How much each member contributes per cycle in USDC
    - **Frequency** — Daily, Weekly, Biweekly, or Monthly
    - **Late Fee** — Penalty percentage for late payments (default 5%)
    - **Grace Period** — Hours before a payment is considered late
@@ -47,7 +47,6 @@ Before you begin, you'll need:
    - **Random** — VRF selects payout order
    - **Fixed Order** — Predefined order
    - **Auction** — Members bid for early payout
-   - **Vote** — Members vote each round
 5. Review and create
 
 ## Step 4: Invite Members
@@ -55,15 +54,16 @@ Before you begin, you'll need:
 1. Open your circle
 2. Click **Invite Members**
 3. Share the invite link or code with your group
-4. Members join by clicking the link and connecting their wallet
+4. Members sign in with their passkey and join — their wallet is created automatically
 
 ## Step 5: Start Contributing
 
 Once all members have joined, the circle begins. Each cycle:
-- All members contribute the agreed amount
+- All members contribute the agreed USDC amount
 - One member receives the full pool
 - Your MoiScore increases with each on-time contribution
+- **Zero platform fees** — the full pool goes to the recipient
 
 ## Testnet vs Mainnet
 
-When testing, use the **Stellar Testnet**. Testnet XLM is free from the [Stellar Friendbot](https://laboratory.stellar.org/#account-creator?network=test). When ready for real funds, switch to Stellar Mainnet.
+When testing on testnet, wallets are funded from the master pool — no friendbot needed. When ready for real funds, Moistello operates on Stellar Mainnet with live USDC.

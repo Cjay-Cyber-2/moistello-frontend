@@ -7,6 +7,15 @@ order: 5
 
 How Moistello keeps your funds and data secure.
 
+## Authentication Security
+
+Moistello uses **passkey authentication** (WebAuthn) as the sole sign-in method:
+
+- **Biometric verification** — Sign in with Face ID, Touch ID, Windows Hello, or fingerprint. No passwords to leak or phish.
+- **On-device key generation** — Your private key never leaves your device.
+- **No shared secrets** — No passwords, no email verification, no recovery phrases to steal.
+- **Phishing resistant** — Passkeys are scoped to the origin, preventing credential reuse on fake sites.
+
 ## Smart Contract Security
 
 All circle funds are managed by Soroban smart contracts on the Stellar blockchain:
@@ -15,26 +24,25 @@ All circle funds are managed by Soroban smart contracts on the Stellar blockchai
 - **Immutable rules** — Once deployed, contract rules cannot be changed
 - **No custodial risk** — Moistello never holds your funds
 - **Reentrancy protection** — Contracts include guards against common attack vectors
-- **Access control** — Only the contract owner (your wallet) can trigger authorized actions
+- **Access control** — Only the passkey-authenticated member can trigger authorized actions
 
-## Wallet Security
+## Wallet Key Encryption
 
-Your wallet is your identity. Keep it secure:
+Stellar wallet keys are encrypted using **AES-256-GCM** before being stored in PostgreSQL:
 
-- **Never share your secret recovery phrase** with anyone
-- **Use a hardware wallet** (Ledger) for large amounts
-- **Enable all available security features** in Freighter
-- **Verify transaction details** before signing anything
-- **Use a dedicated wallet** for savings circles rather than your main wallet
+- **Encrypted at rest** — Private keys are never stored in plaintext
+- **Unique nonce per key** — Each encryption uses a fresh random nonce
+- **Server-side key derivation** — Encryption keys are derived from passkey seeds, never transmitted
+- **Zero-knowledge design** — The server cannot decrypt wallet keys without the passkey seed
 
 ## Platform Security
 
 | Measure | Implementation |
 |---|---|
 | Transport encryption | TLS 1.3, HSTS |
-| Authentication | Wallet signature verification (no passwords) |
+| Authentication | Passkey (WebAuthn) — no passwords |
 | API security | Rate limiting, CSRF protection, input validation |
-| Data storage | Profile data encrypted at rest |
+| Data storage | Wallet keys encrypted with AES-256-GCM at rest |
 | DDoS protection | Cloudflare WAF + CDN |
 
 ## Best Practices for Members
