@@ -16,7 +16,7 @@ export const metadata: Metadata = {
     url: "https://moistello.com/about",
     siteName: "Moistello",
     title: "About Moistello - Financial Inclusion on Stellar",
-    description: "Learn about Moistello's mission to bring trustless savings circles to 1.7 billion unbanked adults. Passkey-based auth, auto-created Stellar wallets, zero fees, no KYC — pure coordination software.",
+    description: "Learn about Moistello's mission to bring trustless savings circles to 1.3 billion unbanked adults. Passkey-based auth, auto-created Stellar wallets, zero fees, no KYC — pure coordination software.",
     images: [{ url: "/logo.jpg", width: 1200, height: 630, alt: "About Moistello - Our Mission" }],
   },
   twitter: { card: "summary_large_image", title: "About - Moistello", description: "Moistello brings passkey savings to Stellar. Auto-wallet, zero fees, no KYC/email. Pure coordination software.", images: ["/logo.jpg"] },
@@ -32,7 +32,7 @@ export default function AboutPage() {
             <div className="glass-premium rounded-2xl p-8 holo-border border-l-4 border-l-aurora-indigo">
               <h2 className="font-heading text-xl font-semibold mb-3 gradient-text">Our Mission</h2>
               <p className="text-muted-foreground leading-relaxed">
-                1.7 billion adults remain unbanked globally. In communities across Africa, Latin America, South Asia, and Southeast Asia, people rely on informal savings circles — esusu, tontines, chit funds, tandas — to access capital and build financial resilience. Moistello wraps this centuries-old model in Soroban smart contracts on Stellar, bringing transparency, security, and portable on-chain reputation to every participant.
+                1.3 billion adults remain unbanked globally. In communities across Africa, Latin America, South Asia, and Southeast Asia, people rely on informal savings circles — esusu, tontines, chit funds, tandas — to access capital and build financial resilience. Moistello wraps this centuries-old model in Soroban smart contracts on Stellar, bringing transparency, security, and portable on-chain reputation to every participant.
               </p>
             </div>
             <div className="glass rounded-2xl p-8 border-l-4 border-l-aurora-violet">

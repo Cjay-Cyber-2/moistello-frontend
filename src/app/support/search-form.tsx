@@ -3,44 +3,33 @@
 import { useState } from "react"
 import Link from "next/link"
 
-const quickLinks = [
-  {
-    title: "Frequently Asked Questions",
-    desc: "Instant answers to common questions about circles, wallets, and fees.",
-    href: "/faq",
-    color: "from-aurora-indigo/20 to-aurora-violet/10",
-  },
-  {
-    title: "Documentation",
-    desc: "Technical guides, API references, and smart contract details.",
-    href: "/docs",
-    color: "from-aurora-cyan/20 to-aurora-violet/10",
-  },
-  {
-    title: "How It Works",
-    desc: "Learn how savings circles, MoiScore, and governance work.",
-    href: "/how-it-works",
-    color: "from-premium-gold/15 to-aurora-amber/10",
-  },
-]
+interface SearchResult {
+  title: string
+  href: string
+}
 
 export function SearchForm() {
   const [searchQuery, setSearchQuery] = useState("")
-  const [searchResults, setSearchResults] = useState<typeof quickLinks | null>(null)
+  const [searchResults, setSearchResults] = useState<SearchResult[] | null>(null)
+  const [searching, setSearching] = useState(false)
 
-  const handleSearch = (e: React.FormEvent) => {
+  const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!searchQuery.trim()) {
       setSearchResults(null)
       return
     }
-    const q = searchQuery.toLowerCase()
-    const results = quickLinks.filter(
-      (l) =>
-        l.title.toLowerCase().includes(q) ||
-        l.desc.toLowerCase().includes(q),
-    )
-    setSearchResults(results.length > 0 ? results : [])
+
+    setSearching(true)
+    try {
+      const res = await fetch(`/api/docs/search?q=${encodeURIComponent(searchQuery.trim())}`)
+      const data = await res.json()
+      setSearchResults(data.results.length > 0 ? data.results : [])
+    } catch {
+      setSearchResults([])
+    } finally {
+      setSearching(false)
+    }
   }
 
   return (
@@ -55,13 +44,19 @@ export function SearchForm() {
               setSearchQuery(e.target.value)
               if (!e.target.value) setSearchResults(null)
             }}
-            placeholder="Search for answers..."
+            placeholder="Search docs, FAQ, how-to guides..."
             className="w-full h-14 pl-12 pr-4 rounded-2xl bg-white/5 border border-white/10 text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-2 focus:ring-aurora-violet/50 focus:border-aurora-violet/40 text-base transition-all"
           />
         </div>
       </form>
 
-      {searchResults !== null && (
+      {searching && (
+        <div className="mt-4 text-center">
+          <p className="text-sm text-muted-foreground">Searching...</p>
+        </div>
+      )}
+
+      {!searching && searchResults !== null && (
         <div className="mt-4 max-w-lg mx-auto text-left">
           {searchResults.length === 0 ? (
             <p className="text-sm text-muted-foreground bg-white/5 rounded-xl px-4 py-3">
@@ -69,10 +64,10 @@ export function SearchForm() {
             </p>
           ) : (
             <div className="space-y-2">
-              {searchResults.map((link) => (
+              {searchResults.map((result, i) => (
                 <Link
-                  key={link.href}
-                  href={link.href}
+                  key={`${result.href}-${i}`}
+                  href={result.href}
                   className="flex items-center gap-3 bg-white/5 hover:bg-white/10 rounded-xl px-4 py-3 transition-colors group"
                 >
                   <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-aurora-violet/10 text-aurora-violet shrink-0">
@@ -80,10 +75,10 @@ export function SearchForm() {
                   </span>
                   <div className="flex-1 min-w-0 text-left">
                     <p className="text-sm font-medium text-foreground">
-                      {link.title}
+                      {result.title}
                     </p>
                     <p className="text-xs text-muted-foreground truncate">
-                      {link.desc}
+                      {result.href}
                     </p>
                   </div>
                   <ChevronRightIcon />

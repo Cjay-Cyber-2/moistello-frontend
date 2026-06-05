@@ -58,7 +58,7 @@ export default function Home() {
               <span className="font-heading text-5xl md:text-7xl xl:text-8xl font-black tracking-tighter block">Together.</span>
             </h1>
             <p className="text-lg text-muted-foreground max-w-2xl mt-8">
-              Decentralized savings circles on Stellar. Zero intermediaries. Financial sovereignty for the 1.7 billion unbanked.
+               Decentralized savings circles on Stellar. Zero intermediaries. Financial sovereignty for the 1.3 billion unbanked.
             </p>
             <div className="mt-10 flex flex-col sm:flex-row items-stretch sm:items-center gap-4">
               <Link href={Routes.REGISTER} className="gradient-bg-premium h-14 px-10 rounded-2xl text-lg font-heading font-semibold text-white inline-flex items-center justify-center gap-2 holo-glow hover:opacity-90 transition-all shadow-[0_0_40px_rgb(var(--premium-gold)/0.25)]">
@@ -70,7 +70,7 @@ export default function Home() {
             </div>
             <div className="mt-10">
               <div className="glass-strong rounded-full px-6 py-3 inline-flex flex-wrap items-center justify-center gap-8 text-sm">
-                <span className="flex items-center gap-1.5"><span className="h-1.5 w-1.5 rounded-full bg-aurora-cyan animate-pulse-glow" />1.7B+ Unbanked</span>
+                <span className="flex items-center gap-1.5"><span className="h-1.5 w-1.5 rounded-full bg-aurora-cyan animate-pulse-glow" />1.3B+ Unbanked</span>
                 <span className="text-muted-foreground">|</span>
                 <span>$0.001 Fees</span>
                 <span className="text-muted-foreground">|</span>
