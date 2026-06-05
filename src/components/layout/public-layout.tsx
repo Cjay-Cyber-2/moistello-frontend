@@ -40,10 +40,7 @@ export function PublicLayout({ children }: PublicLayoutProps) {
   return (
     <div className="min-h-screen bg-[rgb(var(--background))]">
       {/* ════════════════ FLOATING HEADER ════════════════ */}
-      <motion.header
-        initial={{ y: -16, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+      <header
         className="fixed top-0 left-0 right-0 z-50 px-3 pt-3"
       >
         <div
@@ -77,10 +74,7 @@ export function PublicLayout({ children }: PublicLayoutProps) {
 
           {/* Right: Theme Toggle + Hamburger */}
           <div className="flex items-center gap-1.5">
-            {/* THEME TOGGLE — always visible */}
-            <motion.button
-              whileHover={{ scale: 1.1, rotate: 15 }}
-              whileTap={{ scale: 0.9, rotate: -15 }}
+            <button
               onClick={toggleTheme}
               className={cn(
                 "inline-flex h-9 w-9 items-center justify-center rounded-full shrink-0",
@@ -95,12 +89,9 @@ export function PublicLayout({ children }: PublicLayoutProps) {
               ) : (
                 <Moon className="h-4 w-4 text-indigo-400" />
               )}
-            </motion.button>
+            </button>
 
-            {/* HAMBURGER — opens right slide mobile menu */}
-            <motion.button
-              whileHover={{ scale: 1.08 }}
-              whileTap={{ scale: 0.92 }}
+            <button
               onClick={toggleMenu}
               className={cn(
                 "inline-flex h-9 w-9 items-center justify-center rounded-xl shrink-0 md:hidden",
@@ -114,16 +105,15 @@ export function PublicLayout({ children }: PublicLayoutProps) {
               ) : (
                 <Menu className="h-5 w-5" />
               )}
-            </motion.button>
+            </button>
           </div>
         </div>
-      </motion.header>
+      </header>
 
-      {/* ════════════════ MOBILE MENU — slides from RIGHT ════════════════ */}
+      {/* ════════════════ MOBILE MENU ════════════════ */}
       <AnimatePresence>
         {menuOpen && (
           <>
-            {/* BLUR BACKDROP — clicking outside closes */}
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -132,8 +122,6 @@ export function PublicLayout({ children }: PublicLayoutProps) {
               className="fixed inset-0 z-50 bg-black/50 backdrop-blur-lg"
               onClick={closeMenu}
             />
-
-            {/* SLIDE-OUT PANEL from RIGHT */}
             <motion.div
               initial={{ x: "100%" }}
               animate={{ x: 0 }}
@@ -149,10 +137,7 @@ export function PublicLayout({ children }: PublicLayoutProps) {
                   "shadow-[_-12px_0_60px_rgba(0,0,0,0.3)]",
                 )}
               >
-                {/* Top accent line */}
                 <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-aurora-violet/40 to-transparent" />
-
-                {/* Header: Logo + Close */}
                 <div className="flex h-16 items-center justify-between px-5 shrink-0">
                   <span className="gradient-text-extended font-heading font-bold text-xl">
                     Moistello
@@ -165,13 +150,11 @@ export function PublicLayout({ children }: PublicLayoutProps) {
                     <X className="h-5 w-5" />
                   </button>
                 </div>
-
-                {/* Nav links */}
                 <nav className="flex-1 px-3 py-2 space-y-1 overflow-y-auto">
                   <p className="px-3 pt-2 pb-2 font-heading text-[10px] tracking-[0.25em] uppercase text-muted-foreground/60">
                     Navigate
                   </p>
-{[
+                  {[
                     { label: "How It Works", href: "/how-it-works", icon: <ShieldQuestion className="h-[18px] w-[18px]" /> },
                     { label: "Developers", href: "/developers", icon: <Code className="h-[18px] w-[18px]" /> },
                     { label: "Docs", href: "/docs", icon: <BookOpen className="h-[18px] w-[18px]" /> },
@@ -187,7 +170,6 @@ export function PublicLayout({ children }: PublicLayoutProps) {
                       <span>{item.label}</span>
                     </Link>
                   ))}
-
                   <p className="px-3 pt-6 pb-2 font-heading text-[10px] tracking-[0.25em] uppercase text-muted-foreground/60">
                     Legal
                   </p>
@@ -206,12 +188,8 @@ export function PublicLayout({ children }: PublicLayoutProps) {
                     </Link>
                   ))}
                 </nav>
-
-                {/* Bottom: Theme toggle */}
                 <div className="shrink-0 border-t border-white/[0.06] px-4 py-4">
-                  <motion.button
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
+                  <button
                     onClick={toggleTheme}
                     className={cn(
                       "flex items-center gap-3 w-full rounded-xl px-4 py-2.5",
@@ -232,10 +210,8 @@ export function PublicLayout({ children }: PublicLayoutProps) {
                     <span className="flex-1 text-left text-foreground">
                       {isDark ? "Light Mode" : "Dark Mode"}
                     </span>
-                  </motion.button>
+                  </button>
                 </div>
-
-                {/* Copyright */}
                 <div className="shrink-0 border-t border-white/[0.04] px-5 py-3">
                   <p className="text-[10px] text-muted-foreground/40">
                     &copy; {new Date().getFullYear()} Moistello
