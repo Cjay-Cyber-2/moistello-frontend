@@ -49,20 +49,14 @@
 - "Revoke all other sessions" button
 - Empty state if only current session
 
-### 7. /settings/delete ❌
-- Warning explaining consequences (circles orphaned, data removed)
-- Confirmation: type "DELETE" to enable the button
-- Destructive red delete button
-- Second confirmation modal
-
-### 8. /settings/theme ❌
+### 7. /settings/theme ❌
 - Theme selector: Light / Dark / System (cards with preview)
 - Density: Comfortable / Compact
 - Accent color: preset picker (4-6 options)
 - Font size: Small / Medium / Large
 - Auto-save (no button)
 
-### 9. /settings/payment ❌
+### 8. /settings/payment ❌
 - Saved bank accounts list: bank name, account number, account name
 - Add bank account form: bank selector, account number, account name fields
 - Set default withdrawal bank: radio selector per account
@@ -78,68 +72,68 @@
 - Empty state per tab
 - Quick stats: total circles, active count, completion rate
 
-### 10. /circles/organizing ❌
+### 9. /circles/organizing ❌
 - Tabs: Active / Completed / Drafts
 - Grid of circles user organizes + member count, round progress
 - Quick actions: invite members, manage, close circle
 - Create new circle button (prominent CTA)
 
-### 11. /circles/saved ❌
+### 10. /circles/saved ❌
 - Grid of bookmarked circles (name, contribution amount, frequency, member count)
 - Unsave button per card
 - Empty state with link to browse circles
 
-### 12. /circles/templates ❌
+### 11. /circles/templates ❌
 - Template cards: pre-built configs (e.g. "Monthly Savings - 10 members")
 - Name, description, member count, contribution range, frequency, payout type badges
 - "Use template" button → pre-fills create wizard
 - Empty state
 
-### 13. /circles/featured ❌
+### 12. /circles/featured ❌
 - Curated/admin-picked featured circles
 - Featured badge on cards
 - Spotlight section at top
 - Pagination
 
-### 14. /circles/create/templates/:id ❌
+### 13. /circles/create/templates/:id ❌
 - Same 4-step wizard as /circles/create but pre-filled from template
 - Template badge showing source
 - All steps populated, user can edit before submitting
 
-### 15. /circles/compare ❌
+### 14. /circles/compare ❌
 - Checkbox selector (pick 2-4 circles)
 - Comparison table: rows = attributes, columns = circles
 - Highlight differences between them
 - Share comparison link
 
-### 16. /circles/:id/activity ❌
+### 15. /circles/:id/activity ❌
 - Chronological activity feed (member joined, contributed, payout, dispute, late report)
 - Filter by type dropdown
 - Each item: icon, description, timestamp, user avatar
 - Load more / pagination
 - Empty state
 
-### 17. /circles/:id/export ❌
+### 16. /circles/:id/export ❌
 - Export options: CSV or JSON
 - Scope: Members, Contributions, Payouts, Full (checkboxes)
 - Date range picker (optional)
 - Export button → downloads file
 - Previous exports list
 
-### 18. /circles/:id/analytics ❌
+### 17. /circles/:id/analytics ❌
 - Contribution completion rate bar chart (per round)
 - Member activity heatmap
 - Payout distribution pie/bar chart
 - Round timeline with status indicators
 - Stats cards: total contributed, paid out, average time, late rate
 
-### 19. /circles/:id/schedule ❌
+### 18. /circles/:id/schedule ❌
 - Monthly calendar view with payout dates and deadlines
 - Round markers: contribution deadline, payout date
 - Current round highlighted with countdown
 - Legend: deadline, payout, completed, missed
 
-### 20. /circles/:id/comments ❌
+### 19. /circles/:id/comments ❌
 - Single-threaded comments per round (not free-form chat)
 - Only circle members can post
 - System auto-posts: "Round 3 completed", "Member joined"
@@ -158,14 +152,14 @@
 
 ## People & Community (9 pages)
 
-### 21. /people ❌
+### 20. /people ❌
 - Search bar (by name or username)
 - Filters: recently active, most circles, highest reputation
 - Results grid: avatar, name, badges, circles count, join date
 - Pagination
 - Empty state
 
-### 22. /people/:id ❌
+### 21. /people/:id ❌
 - Profile header: avatar, display name, username, join date
 - Stats: circles joined, completed, current streak
 - Bio (if public)
@@ -173,40 +167,40 @@
 - Badges
 - Actions: Add friend / Message / Block / Report
 
-### 23. /people/:id/circles ❌
+### 22. /people/:id/circles ❌
 - Grid of public circles the user belongs to
 - Filter: active / completed
 - Each card: circle name, member count, role badge (organizer/member)
 - Empty state
 
-### 24. /people/:id/activity ❌
+### 23. /people/:id/activity ❌
 - Public activity feed (circles completed, contributions with amounts hidden, payouts received)
 - Chronological timeline
 - Respects user's privacy settings
 
-### 25. /friends ❌
+### 24. /friends ❌
 - Tabs: All Friends / Pending / Sent Requests
 - Friends grid: avatar, name, friends-since date, message button
 - Unfriend button with confirmation
 - Empty state + invite CTA
 
-### 26. /friends/requests ❌
+### 25. /friends/requests ❌
 - Incoming requests: avatar, name, Accept / Decline buttons
 - Outgoing requests: avatar, name, "Sent" badge, Cancel button
 - Empty state per tab
 
-### 27. /friends/invite ❌
+### 26. /friends/invite ❌
 - Shareable invite link (copy button)
 - Native share API button
 - QR code (scannable)
 - Recent invites list (pending / joined)
 
-### 28. /people/search ❌
+### 27. /people/search ❌
 - Advanced search: name, username, tags
 - Results table: avatar, name, circles count, join date, add friend button
 - Pagination
 
-### 29. /people/suggested ❌
+### 28. /people/suggested ❌
 - Grid of suggested members (based on shared circles, same frequency/currency)
 - "Why suggested" label per card
 - Add friend button
@@ -216,24 +210,24 @@
 
 ## Dashboard & Insights (4 pages)
 
-### 30. /dashboard/customize ❌
+### 29. /dashboard/customize ❌
 - Widget list: stats, circles, activity, chart
 - Drag to reorder
 - Toggle visibility per widget
 - Save layout button
 
-### 31. /dashboard/quick-actions ❌
+### 30. /dashboard/quick-actions ❌
 - Large action tiles: Create Circle, Join Circle, View Contributions, View Payouts
 - Recent actions (last 5, one-click repeat)
 - Edit / customize shortcuts
 
-### 32. /insights/contributions ❌
+### 31. /insights/contributions ❌
 - Time chart: contributions over time (line/bar, filterable by week/month/all)
 - Frequency heatmap (which days contribute most)
 - Per-circle breakdown (stacked bars)
 - Summary stats: total contributed, average per round, longest streak
 
-### 33. /insights/activity ❌
+### 32. /insights/activity ❌
 - All platform actions across all circles (timeline)
 - Summary cards: circles completed, contributions, payouts on-time average
 - Current streak (consecutive on-time contributions)
@@ -248,26 +242,26 @@
 
 ## Wallet (4 pages)
 
-### 34. /wallet/transactions ❌
+### 33. /wallet/transactions ❌
 - Transaction table: date, type, amount, status, circle name, Stellar txn link
 - Filters: by type, circle, date range
 - Search by memo / transaction hash
 - Pagination
 - Export CSV button
 
-### 35. /wallet/transactions/:id ❌
+### 34. /wallet/transactions/:id ❌
 - Full transaction detail: txn hash, date, amount, circle, counterparty, fee, memo, status, block
 - Stellar.expert link
 - Copy hash button
 - Related transactions (same circle/round)
 
-### 36. /wallet/verification ❌
+### 35. /wallet/verification ❌
 - Purpose: prove wallet ownership
 - Sign message prompt ("Sign this nonce to verify")
 - Verified badge (after successful signing)
 - Next steps (optional links)
 
-### 37. /wallet/addresses ❌
+### 36. /wallet/addresses ❌
 - Connected addresses list: public key, wallet type, nickname, connected date
 - Primary badge on one address
 - Add / remove address UI
@@ -280,13 +274,13 @@
 
 ## Notifications & Communication (2 pages)
 
-### 38. /notifications/archive ❌
+### 37. /notifications/archive ❌
 - Same layout as /notifications but shows all read notifications
 - Sort: newest / oldest
 - Filter by type badges
 - Clear all archive button
 
-### 39. /notifications/settings ❌
+### 38. /notifications/settings ❌
 - Per-category toggles (same as settings/notifications)
 - Frequency per category
 - Links back to main settings
@@ -298,53 +292,53 @@
 
 ## Moderator Tools (8 pages)
 
-### 40. /mod/users ❌
+### 39. /mod/users ❌
 - User table: avatar, name, username, status, circles count, flags count, join date
 - Search by name/username/wallet
 - Filters: status, date range
 - Actions: view, suspend, add note
 - Pagination
 
-### 41. /mod/users/:id ❌
+### 40. /mod/users/:id ❌
 - Full user details, wallet addresses, join date
 - Activity log (chronological)
 - Flagged content / reports against this user
 - Mod notes section (add note form)
 - Actions: Suspend / Reinstate / Delete
 
-### 42. /mod/users/:id/notes ❌
+### 41. /mod/users/:id/notes ❌
 - Internal mod notes list (newest first)
 - Add note textarea + submit
 - Author + timestamp per note
 - Delete own note
 
-### 43. /mod/users/:id/suspend ❌
+### 42. /mod/users/:id/suspend ❌
 - Reason dropdown: spam, abuse, suspicious activity, other
 - Duration: hours / days / permanent
 - Internal note (optional)
 - Preview: what user sees when suspended
 - Confirm / Reinstate buttons
 
-### 44. /mod/circles ❌
+### 43. /mod/circles ❌
 - Circle table: name, organizer, member count, status, created date, flags count
 - Search by name
 - Filters: status, type
 - Actions: view, force-close
 - Pagination
 
-### 45. /mod/circles/:id ❌
+### 44. /mod/circles/:id ❌
 - Full circle info, member list, round progress, recent activity
 - Flags/reports against this circle
 - Actions: force-close, remove member, add mod note
 - Mod notes section
 
-### 46. /mod/reports ❌
+### 45. /mod/reports ❌
 - Reports queue table: reported item, reporter, reason, date, status
 - Filters: status, reason type
 - Actions: view, resolve, dismiss
 - Pagination
 
-### 47. /mod/reports/:id ❌
+### 46. /mod/reports/:id ❌
 - Report details: reporter, reported user/circle, reason, description, evidence, date
 - Embedded view of reported content
 - Resolution: Dismiss / Issue warning / Suspend user
@@ -355,72 +349,72 @@
 ## Platform Management (12 pages)
 **Scope**: Controls platform health (UI/content layer only). Never touches smart contracts or user funds. Powers: suspend bad actors, force-close stuck circles (emergency break-glass), toggle features, view read-only metrics. The smart contracts remain the canonical source of truth for all financial state.
 
-### 48. /admin ❌
+### 47. /admin ❌
 - Dashboard: total users, active circles, new today, circles created today, contributions
 - Quick links: users, circles, announcements, feature flags
 - Recent activity (last 10 events)
 - System health: API status, DB status, last migration
 
-### 49. /admin/users ❌
+### 48. /admin/users ❌
 - User table: avatar, name, username, wallet, status, circles count, created, last active
 - Search by name/username/wallet
 - Filters: status, date range
 - Bulk actions: suspend, delete, export selected
 - Pagination
 
-### 50. /admin/users/:id ❌
+### 49. /admin/users/:id ❌
 - Full context: profile, wallets, circles, contributions, payouts, activity log, mod notes, flags, sessions
 - Quick actions: suspend, delete, change role (user/mod/admin)
 - Override fields (display name, role)
 
-### 51. /admin/circles ❌
+### 50. /admin/circles ❌
 - Circle table: name, organizer, status, type, member count, created date, last round
 - Search by name
 - Filters: status, type
 - Actions: view, force-close
 - Pagination
 
-### 52. /admin/circles/:id ❌
+### 51. /admin/circles/:id ❌
 - Full circle view, member list, round timeline, contributions, payouts, activity
 - Actions: force-close, change status (pause/resume), remove member
 - Mod notes
 
-### 53. /admin/circles/:id/force-close ❌
+### 52. /admin/circles/:id/force-close ❌
 - Warning with consequences
 - Reason text input
 - Type circle name to confirm
 - Destructive force-close button
 
-### 54. /admin/feature-flags ❌
+### 53. /admin/feature-flags ❌
 - Flag list: name, description, current state, toggle
 - Flags: registration_open, circle_creation_open, new_circle_types, experimental_ui, maintenance_mode
 - Audit log of changes
 
-### 55. /admin/announcements ❌
+### 54. /admin/announcements ❌
 - Announcement list: title, body, created, sent, read count
 - Create: title, body, target (all, active only, specific), schedule date
 - Send button
 
-### 56. /admin/audit-log ❌
+### 55. /admin/audit-log ❌
 - Log table: timestamp, user, action, resource, details (expandable JSON)
 - Filters: user, action type, date range, resource type
 - Export CSV
 - Pagination
 
-### 57. /admin/metrics ❌
+### 56. /admin/metrics ❌
 - Charts: new users, circles created, contributions, active users (daily/weekly/monthly)
 - Date range selector: 7d / 30d / 90d / custom
 - Summary cards: total users, total circles, total contributions, DAU, MAU
 - Export chart data (CSV)
 
-### 58. /admin/tags ❌
+### 57. /admin/tags ❌
 - Tag list: name, usage count, created date
 - Create tag: name, color, save
 - Edit tag: rename, recolor
 - Delete tag (confirmation, removes from circles)
 - Drag to reorder
 
-### 59. /admin/branding ❌
+### 58. /admin/branding ❌
 - Platform name input
 - Logo upload + preview
 - Favicon upload + preview
@@ -433,38 +427,38 @@
 
 ## Help & Support (7 pages)
 
-### 60. /help/circles ❌
+### 59. /help/circles ❌
 - Explains ROSCA model, how circles work, rounds, contributions, deadlines, payout types
 - Visual diagram of flow
 - Related links
 
-### 61. /help/wallet ❌
+### 60. /help/wallet ❌
 - Stellar wallet explanation, Freighter, Passkey, security tips
 - Troubleshooting common wallet issues
 
-### 62. /help/troubleshooting ❌
+### 61. /help/troubleshooting ❌
 - Accordion: stuck transaction, wallet connection, contribution not recorded, circle stuck on pending
 - Each: cause, solution steps, when to contact support
 
-### 63. /help/glossary ❌
+### 62. /help/glossary ❌
 - A-Z searchable glossary
 - Terms: Circle, Round, Contribution, Payout, Frequency, Collateral, Late Fee, Strike, Default, Dispute, ROSCA, MoiScore, etc.
 
-### 64. /support/tickets ❌
+### 63. /support/tickets ❌
 - Ticket list: ID, subject, status, date, last update
 - Filters: status
 - Create ticket button
 - Empty state
 - Pagination
 
-### 65. /support/tickets/create ❌
+### 64. /support/tickets/create ❌
 - Category: account, circle issue, technical, feature request, other
 - Subject input
 - Description textarea
 - File upload (optional)
 - Submit → redirects to ticket detail
 
-### 66. /support/tickets/:id ❌
+### 65. /support/tickets/:id ❌
 - Header: ID, subject, status badge, category
 - Conversation: staff + user replies (chronological)
 - Reply form: textarea + submit
@@ -479,49 +473,49 @@
 
 ## Onboarding & Education (8 pages)
 
-### 67. /onboarding/welcome ❌
+### 66. /onboarding/welcome ❌
 - Step 1/5: welcome message, logo, brief intro
 - "Get Started" button → step 2
 - Skip link → dashboard
 
-### 68. /onboarding/connect-wallet ❌
+### 67. /onboarding/connect-wallet ❌
 - Step 2/5: wallet connection prompt
 - Options: Freighter / Passkey / WalletConnect
 - Visual guide with icons
 - Success state with wallet address
 - "Next" after connection
 
-### 69. /onboarding/first-circle ❌
+### 68. /onboarding/first-circle ❌
 - Step 3/5: join or create first circle
 - Browse featured circles / Create your own / Skip
 - Recommendation for new users
 
-### 70. /onboarding/profile ❌
+### 69. /onboarding/profile ❌
 - Step 4/5: complete profile
 - Avatar (optional)
 - Display name (required)
 - Bio (optional)
 - "Continue" button
 
-### 71. /tour ❌
+### 70. /tour ❌
 - Interactive overlay highlighting UI elements
 - Steps: sidebar, header, dashboard, circles, notifications, profile
 - Progress indicator
 - Dismiss / skip
 
-### 72. /tutorials ❌
+### 71. /tutorials ❌
 - Cards grid: thumbnail, title, duration, difficulty badge
 - Categories: Getting Started, Circles, Wallet, Advanced
 - Search
 - Empty state
 
-### 73. /tutorials/:id ❌
+### 72. /tutorials/:id ❌
 - Video embed
 - Steps list below
 - Related tutorials sidebar
 - Mark complete button
 
-### 74. /changelog ❌
+### 73. /changelog ❌
 - Chronological entries with version tag
 - Bullet changes (new features, fixes, improvements)
 - RSS / Atom feed link
@@ -531,14 +525,14 @@
 
 ## Developer (2 pages)
 
-### 75. /developers/api-keys ❌
+### 74. /developers/api-keys ❌
 - Keys table: name, preview, created, last used, permissions
 - Create key: name, permission checkboxes
 - Reveal key modal (shown once)
 - Revoke with confirmation
 - Empty state
 
-### 76. /developers/webhooks ❌
+### 75. /developers/webhooks ❌
 - Webhooks table: URL, events, status, last delivery
 - Create: URL, event checkboxes
 - Test button → send test payload
@@ -553,20 +547,20 @@
 
 ## Platform (3 pages)
 
-### 77. /roadmap ❌
+### 76. /roadmap ❌
 - Timeline by quarter/month
 - Columns: Planned / In Progress / Shipped
 - Feature cards with status badge
 - Vote/upvote (requires login)
 - Submit idea link
 
-### 78. /blog ❌
+### 77. /blog ❌
 - Cards grid: image, title, excerpt, author, date, read time, tags
 - Load more button
 - Category filter
 - Search
 
-### 79. /blog/:slug ❌
+### 78. /blog/:slug ❌
 - Featured image, title, author, date, read time
 - Body rendered from markdown
 - Share buttons
@@ -577,7 +571,7 @@
 
 ## Extras (5 pages)
 
-### 80. /history ❌
+### 79. /history ❌
 - Unified activity timeline across all features (circles, contributions, payouts, wallet, referrals)
 - Filter by type: circles, contributions, payouts, wallet, referrals
 - Date range filter
@@ -587,14 +581,14 @@
 - Infinite scroll / pagination
 - Empty state
 
-### 81. /settings/language ❌
+### 80. /settings/language ❌
 - Language picker: searchable list of available languages
 - Region selector (affects date, time, number formats)
 - Auto-detect from browser toggle
 - Preview section showing how dates, times, and currencies look in selected locale
 - Save button
 
-### 82. /settings/savings ❌
+### 81. /settings/savings ❌
 - Savings goals list: name, target amount, current progress, target date
 - Create goal form: name, target amount, target date, circle auto-join toggle
 - Auto-contribute rules: frequency (daily/weekly/monthly), amount, source wallet
@@ -602,7 +596,7 @@
 - Savings streak tracker and rewards badge
 - Save button per section
 
-### 83. /promos ❌
+### 82. /promos ❌
 - Active promotions carousel: banner with image, title, description, CTA
 - Referral rewards section: referral code, share buttons, QR code, earnings summary
 - Referral history table: referred user, date, reward status, amount
@@ -610,7 +604,7 @@
 - Promo code entry: text input + redeem button
 - Empty state per section
 
-### 84. /support ❌
+### 83. /support ❌
 - Unified support landing page
 - Quick actions: search knowledge base, create ticket, view my tickets, live chat (if available)
 - Knowledge base search bar (prominent, centered)
@@ -656,6 +650,6 @@
 
 ---
 
-**Total: 84 pages to build + 30 existing = 114**
+**Total: 83 pages to build + 30 existing = 113**
 
 > Note: 84 numbered items in the file. 30 existing pages counted from the table below. 84 + 30 = 114.

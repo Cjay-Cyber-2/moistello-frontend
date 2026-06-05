@@ -1,9 +1,8 @@
 "use client"
 
-import React, { useState, useEffect } from "react"
+import { useState, useEffect } from "react"
 import { useParams, useRouter } from "next/navigation"
 import Link from "next/link"
-import { motion } from "framer-motion"
 import {
   ArrowLeft,
   Settings,
@@ -16,16 +15,17 @@ import {
   Users,
   Clock,
 } from "lucide-react"
+import { motion } from "framer-motion"
 import { useCircle } from "@/hooks/use-circles"
 import { useAuth } from "@/hooks/use-auth"
 import { PageHeader } from "@/components/shared/page-header"
 import { EmptyState } from "@/components/shared/empty-state"
-import { ConfirmDialog } from "@/components/shared/confirm-dialog"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { Skeleton } from "@/components/ui/skeleton"
 import { CopyButton } from "@/components/shared/copy-button"
+import { del } from "@/lib/api-client"
 import type { Invite } from "@/types"
 
 const sectionVariants = {
@@ -44,8 +44,8 @@ export default function CircleSettingsPage() {
   const [name, setName] = useState("")
   const [description, setDescription] = useState("")
   const [saving, setSaving] = useState(false)
-  const [showCancelDialog, setShowCancelDialog] = useState(false)
-  const [cancelling, setCancelling] = useState(false)
+  const [deleteConfirm, setDeleteConfirm] = useState("")
+  const [deleting, setDeleting] = useState(false)
 
   const [inviteMaxUses, setInviteMaxUses] = useState(5)
   const [inviteExpiration, setInviteExpiration] = useState("")
@@ -95,14 +95,13 @@ export default function CircleSettingsPage() {
     }
   }
 
-  const handleCancelCircle = async () => {
-    setCancelling(true)
+  const handleDeleteCircle = async () => {
+    setDeleting(true)
     try {
-      await new Promise((r) => setTimeout(r, 600))
+      await del(`/circles/${circleId}`)
       router.push("/circles")
     } finally {
-      setCancelling(false)
-      setShowCancelDialog(false)
+      setDeleting(false)
     }
   }
 
@@ -321,11 +320,7 @@ export default function CircleSettingsPage() {
           )}
         </motion.div>
 
-        <motion.div
-          variants={sectionVariants}
-          className="glass rounded-2xl p-6 space-y-4"
-          style={{ borderColor: "rgb(239 68 68 / 0.2)" }}
-        >
+        <div className="glass rounded-2xl p-6 space-y-4" style={{ borderColor: "rgb(239 68 68 / 0.2)" }}>
           <div className="flex items-center gap-2 mb-1">
             <AlertTriangle className="h-5 w-5 text-red-400" />
             <h3 className="font-heading text-lg font-semibold text-red-400">
@@ -334,33 +329,36 @@ export default function CircleSettingsPage() {
           </div>
 
           <p className="text-sm text-muted-foreground font-body">
-            Cancelling a circle is permanent. All active rounds will be terminated and
+            Deleting this circle is permanent. All active rounds will be terminated and
             remaining contributions may be refunded. This action cannot be undone.
           </p>
 
-          <Button
-            variant="outline"
-            size="md"
-            leftIcon={<Trash2 className="h-4 w-4" />}
-            onClick={() => setShowCancelDialog(true)}
-            className="text-red-400 border-red-500/20 hover:bg-red-500/10 hover:border-red-500/40"
-          >
-            Cancel Circle
-          </Button>
-        </motion.div>
+          <div>
+            <label className="block text-xs font-medium text-muted-foreground mb-1.5">
+              Type the circle name to confirm deletion
+            </label>
+            <div className="flex gap-2">
+              <Input
+                placeholder={circle?.name ?? "Circle name"}
+                value={deleteConfirm}
+                onChange={(e) => setDeleteConfirm(e.target.value)}
+                className="flex-1"
+              />
+              <Button
+                variant="outline"
+                size="md"
+                leftIcon={<Trash2 className="h-4 w-4" />}
+                onClick={handleDeleteCircle}
+                isLoading={deleting}
+                disabled={deleteConfirm !== circle?.name}
+                className="text-red-400 border-red-500/20 hover:bg-red-500/10 hover:border-red-500/40"
+              >
+                Delete Circle
+              </Button>
+            </div>
+          </div>
+        </div>
       </motion.div>
-
-      <ConfirmDialog
-        isOpen={showCancelDialog}
-        onClose={() => setShowCancelDialog(false)}
-        onConfirm={handleCancelCircle}
-        title="Cancel Circle"
-        message={`Are you sure you want to cancel "${circle.name}"? This action cannot be undone. All members will be notified and remaining contributions will be refunded.`}
-        confirmLabel="Cancel Circle"
-        cancelLabel="Keep Circle"
-        variant="danger"
-        isLoading={cancelling}
-      />
     </div>
   )
 }

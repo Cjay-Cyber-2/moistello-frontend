@@ -6,7 +6,6 @@ import {
   Bell,
   Shield,
   Clock,
-  Trash2,
   Palette,
   CreditCard,
   Globe,
@@ -90,13 +89,6 @@ const sections: SettingSection[] = [
     href: "/settings/savings",
     description: "Goals, auto-contribute, round-ups",
   },
-  {
-    id: "delete",
-    label: "Delete Account",
-    icon: <Trash2 className="h-5 w-5" />,
-    href: "/settings/delete",
-    description: "Permanently remove your account",
-  },
 ]
 
 export default function SettingsHubPage() {
@@ -170,24 +162,18 @@ export default function SettingsHubPage() {
                 className={cn(
                   "glass rounded-2xl p-5 h-full transition-all duration-200",
                   "hover:glass-strong hover:-translate-y-0.5 cursor-pointer",
-                  s.id === "delete" && "border border-red-500/10 hover:border-red-500/20",
                 )}
               >
                 <div
                   className={cn(
                     "flex h-10 w-10 items-center justify-center rounded-xl mb-3",
-                    s.id === "delete"
-                      ? "bg-red-500/10 text-red-400"
-                      : "bg-gradient-to-br from-aurora-violet/20 to-aurora-indigo/20 text-aurora-violet",
+                    "bg-gradient-to-br from-aurora-violet/20 to-aurora-indigo/20 text-aurora-violet",
                   )}
                 >
                   {s.icon}
                 </div>
                 <h3
-                  className={cn(
-                    "font-heading text-sm font-semibold mb-1",
-                    s.id === "delete" ? "text-red-400" : "text-foreground",
-                  )}
+                  className="font-heading text-sm font-semibold mb-1 text-foreground"
                 >
                   {s.label}
                 </h3>

@@ -2,12 +2,13 @@
 
 import { useState, useEffect, useCallback } from "react"
 import Link from "next/link"
-import { ArrowLeft, Save, Check } from "lucide-react"
+import { ArrowLeft, Save, Check, Trash2 } from "lucide-react"
 import { useAuth } from "@/hooks/use-auth"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Select } from "@/components/ui/select"
-import { patch } from "@/lib/api-client"
+import { ConfirmDialog } from "@/components/shared/confirm-dialog"
+import { patch, del } from "@/lib/api-client"
 
 const COUNTRIES = [
   { value: "US", label: "United States" },
@@ -48,6 +49,9 @@ export default function AccountSettingsPage() {
   const [language, setLanguage] = useState("en")
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
+  const [deleteConfirm, setDeleteConfirm] = useState("")
+  const [deleting, setDeleting] = useState(false)
+  const [showDeleteModal, setShowDeleteModal] = useState(false)
 
   useEffect(() => {
     if (user) {
@@ -76,6 +80,17 @@ export default function AccountSettingsPage() {
       setSaving(false)
     }
   }, [displayName, email, phone, country, language])
+
+  const handleDeleteAccount = useCallback(async () => {
+    setDeleting(true)
+    try {
+      await del("/users/me")
+      window.location.href = "/login"
+    } catch {
+      setDeleting(false)
+      setShowDeleteModal(false)
+    }
+  }, [])
 
   if (authLoading) {
     return (
@@ -143,6 +158,41 @@ export default function AccountSettingsPage() {
         </div>
       </div>
 
+      {/* Delete Account */}
+      <div className="rounded-2xl border border-red-500/15 p-6 space-y-4">
+        <div className="flex items-center gap-2">
+          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-red-500/20">
+            <Trash2 className="h-4 w-4 text-red-400" />
+          </div>
+          <h3 className="font-heading text-base font-semibold text-red-400">Delete Account</h3>
+        </div>
+        <p className="text-sm text-muted-foreground">
+          Permanently delete your account and all associated data. Cirles you organize will be orphaned. This action cannot be undone.
+        </p>
+        <div>
+          <label className="block text-xs font-medium text-muted-foreground mb-1.5">
+            Type your username to confirm
+          </label>
+          <div className="flex gap-2">
+            <Input
+              placeholder={user?.displayName ?? "Type your name"}
+              value={deleteConfirm}
+              onChange={(e) => setDeleteConfirm(e.target.value)}
+              className="flex-1"
+            />
+            <Button
+              variant="destructive"
+              size="md"
+              onClick={() => setShowDeleteModal(true)}
+              isLoading={deleting}
+              disabled={deleteConfirm !== (user?.displayName ?? "")}
+            >
+              Delete Account
+            </Button>
+          </div>
+        </div>
+      </div>
+
       <div className="flex items-center justify-end gap-3">
         <Link href="/settings">
           <Button variant="outline" size="md">Cancel</Button>
@@ -156,6 +206,17 @@ export default function AccountSettingsPage() {
           Save Changes
         </Button>
       </div>
+
+      <ConfirmDialog
+        isOpen={showDeleteModal}
+        onClose={() => setShowDeleteModal(false)}
+        onConfirm={handleDeleteAccount}
+        title="Delete Account"
+        message={`This will permanently delete your account "${user?.displayName ?? ""}" and all associated data. Circles you organize will be orphaned. This cannot be undone.`}
+        confirmLabel="Delete My Account"
+        variant="danger"
+        isLoading={deleting}
+      />
     </div>
   )
 }
