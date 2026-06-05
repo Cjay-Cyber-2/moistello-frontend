@@ -10,6 +10,7 @@ import {
   Bell,
   Home,
   CircleDot,
+  Users,
 } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { formatAddress } from "@/lib/formatters";
@@ -21,6 +22,7 @@ import { useNotificationStore } from "@/stores/notification-store";
 const navLinks: { label: string; href: string; icon: React.ReactNode }[] = [
   { label: "Dashboard", href: Routes.DASHBOARD, icon: <Home className="h-4 w-4" /> },
   { label: "Circles", href: Routes.CIRCLES, icon: <CircleDot className="h-4 w-4" /> },
+  { label: "Groups", href: Routes.GROUPS, icon: <Users className="h-4 w-4" /> },
 ];
 
 interface HeaderProps {

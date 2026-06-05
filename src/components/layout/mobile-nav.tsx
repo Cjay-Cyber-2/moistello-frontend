@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, CircleDot, User } from "lucide-react";
+import { LayoutDashboard, CircleDot, Users, User } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { Routes } from "@/lib/constants";
 
@@ -22,6 +22,11 @@ const navItems: MobileNavItem[] = [
     label: "Circles",
     href: Routes.CIRCLES,
     icon: <CircleDot className="h-5 w-5" />,
+  },
+  {
+    label: "Groups",
+    href: Routes.GROUPS,
+    icon: <Users className="h-5 w-5" />,
   },
   {
     label: "Profile",
