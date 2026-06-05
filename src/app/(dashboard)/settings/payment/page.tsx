@@ -6,6 +6,7 @@ import { ArrowLeft, CreditCard, Plus, Trash2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Select } from "@/components/ui/select"
+import { post, del } from "@/lib/api-client"
 
 interface BankAccount {
   id: string
@@ -48,21 +49,29 @@ export default function PaymentSettingsPage() {
 
   const handleAddAccount = useCallback(async () => {
     setAdding(true)
-    await new Promise((r) => setTimeout(r, 500))
-    setAccounts((prev) => [
-      ...prev,
-      { id: String(Date.now()), bankName: BANKS.find((b) => b.value === bankCode)?.label ?? "", accountNumber: accNumber, accountName: accName, isDefault: prev.length === 0 },
-    ])
-    setBankCode("")
-    setAccNumber("")
-    setAccName("")
-    setShowForm(false)
-    setAdding(false)
+    try {
+      const res = await post<{ account: BankAccount }>("/bank-accounts", {
+        bankCode,
+        accountNumber: accNumber,
+        accountName: accName,
+      })
+      setAccounts((prev) => [...prev, { ...res.account, isDefault: prev.length === 0 }])
+      setBankCode("")
+      setAccNumber("")
+      setAccName("")
+      setShowForm(false)
+    } catch {
+    } finally {
+      setAdding(false)
+    }
   }, [bankCode, accNumber, accName])
 
   const handleRemove = useCallback(async (id: string) => {
-    await new Promise((r) => setTimeout(r, 300))
-    setAccounts((prev) => prev.filter((a) => a.id !== id))
+    try {
+      await del(`/bank-accounts/${id}`)
+      setAccounts((prev) => prev.filter((a) => a.id !== id))
+    } catch {
+    }
   }, [])
 
   const handleSetDefault = useCallback(async (id: string) => {

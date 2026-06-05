@@ -4,6 +4,7 @@ import { useState, useCallback } from "react"
 import Link from "next/link"
 import { ArrowLeft, Clock, Trash2, Monitor, Smartphone, Globe } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { del } from "@/lib/api-client"
 
 interface Session {
   id: string
@@ -63,13 +64,19 @@ export default function SessionsSettingsPage() {
   const [sessions] = useState<Session[]>(mockSessions)
   const [confirmRevoke, setConfirmRevoke] = useState<string | null>(null)
 
-  const handleRevoke = useCallback(async () => {
-    await new Promise((r) => setTimeout(r, 500))
+  const handleRevoke = useCallback(async (sessionId: string) => {
+    try {
+      await del(`/sessions/${sessionId}`)
+    } catch {
+    }
     setConfirmRevoke(null)
   }, [])
 
   const handleRevokeAll = useCallback(async () => {
-    await new Promise((r) => setTimeout(r, 1000))
+    try {
+      await del("/sessions")
+    } catch {
+    }
   }, [])
 
   return (
@@ -139,7 +146,7 @@ export default function SessionsSettingsPage() {
                     <Button
                       variant="destructive"
                       size="sm"
-                      onClick={() => handleRevoke()}
+                      onClick={() => handleRevoke(session.id)}
                       className="h-8 text-xs"
                     >
                       Confirm
