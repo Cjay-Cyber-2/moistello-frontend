@@ -73,7 +73,7 @@ export const Routes = {
   CIRCLES: "/circles",
   CIRCLE_DETAIL: (id: string) => `/circles/${id}`,
   CREATE_CIRCLE: "/circles/create",
-  PROFILE: "/reputation",
+  PROFILE: "/people/me",
   PROFILE_SETTINGS: "/settings",
   PROFILE_SCORE: "/reputation",
   GOVERNANCE: "/governance",
