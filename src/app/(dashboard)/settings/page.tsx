@@ -30,7 +30,7 @@ const sections: SettingSection[] = [
     id: "profile",
     label: "Profile",
     icon: <User className="h-5 w-5" />,
-    href: "/settings/profile",
+    href: "/profile",
     description: "Display name, avatar, public profile",
   },
   {

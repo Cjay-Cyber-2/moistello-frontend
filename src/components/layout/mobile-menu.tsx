@@ -25,7 +25,7 @@ const navLinks = [
   { label: "Circles", href: Routes.CIRCLES, icon: <CircleDot className="h-4 w-4" /> },
   { label: "Contributions", href: "/contributions", icon: <ArrowUpCircle className="h-4 w-4" /> },
   { label: "Payouts", href: "/payouts", icon: <ArrowDownCircle className="h-4 w-4" /> },
-  { label: "Reputation", href: Routes.PROFILE_SCORE, icon: <Award className="h-4 w-4" /> },
+  { label: "Groups", href: Routes.GROUPS, icon: <Award className="h-4 w-4" /> },
 ];
 
 const accountLinks = [

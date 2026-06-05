@@ -7,7 +7,7 @@ import {
   CircleDot,
   ArrowUpCircle,
   ArrowDownCircle,
-  Award,
+  Users,
   Bell,
   Settings,
   Wallet,
@@ -54,11 +54,11 @@ export function Sidebar() {
       ],
     },
     {
-      title: "Activity",
+      title: "Community",
       items: [
+        { label: "Groups", href: Routes.GROUPS, icon: <Users className="h-[18px] w-[18px]" /> },
         { label: "Contributions", href: "/contributions", icon: <ArrowUpCircle className="h-[18px] w-[18px]" /> },
         { label: "Payouts", href: "/payouts", icon: <ArrowDownCircle className="h-[18px] w-[18px]" /> },
-        { label: "Reputation", href: Routes.PROFILE_SCORE, icon: <Award className="h-[18px] w-[18px]" /> },
       ],
     },
     {
