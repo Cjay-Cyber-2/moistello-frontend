@@ -4,6 +4,7 @@ import { useState, useCallback } from "react"
 import Link from "next/link"
 import { ArrowLeft, Shield, Check } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { patch } from "@/lib/api-client"
 
 export default function PrivacySettingsPage() {
   const [profileVisibility, setProfileVisibility] = useState("public")
@@ -14,11 +15,19 @@ export default function PrivacySettingsPage() {
 
   const handleSave = useCallback(async () => {
     setSaving(true)
-    await new Promise((r) => setTimeout(r, 500))
-    setSaved(true)
-    setTimeout(() => setSaved(false), 3000)
-    setSaving(false)
-  }, [])
+    try {
+      await patch("/users/me", {
+        profileVisibility,
+        showOnLeaderboard: showLeaderboard,
+        allowFriendRequests,
+      })
+      setSaved(true)
+      setTimeout(() => setSaved(false), 3000)
+    } catch {
+    } finally {
+      setSaving(false)
+    }
+  }, [profileVisibility, showLeaderboard, allowFriendRequests])
 
   const VISIBILITY_OPTIONS = [
     { value: "public", label: "Public", desc: "Anyone can see your profile and activity" },

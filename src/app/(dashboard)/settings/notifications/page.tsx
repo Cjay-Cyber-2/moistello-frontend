@@ -4,6 +4,7 @@ import { useState, useCallback } from "react"
 import Link from "next/link"
 import { ArrowLeft, Bell, Check } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { put } from "@/lib/api-client"
 
 interface ToggleRow {
   key: string
@@ -38,11 +39,21 @@ export default function NotificationsSettingsPage() {
 
   const handleSave = useCallback(async () => {
     setSaving(true)
-    await new Promise((r) => setTimeout(r, 500))
-    setSaved(true)
-    setTimeout(() => setSaved(false), 3000)
-    setSaving(false)
-  }, [])
+    try {
+      const enabledKeys = Object.entries(toggles)
+        .filter(([, v]) => v)
+        .map(([k]) => k)
+      await put("/notifications/preferences", {
+        channels: enabledKeys,
+        frequency,
+      })
+      setSaved(true)
+      setTimeout(() => setSaved(false), 3000)
+    } catch {
+    } finally {
+      setSaving(false)
+    }
+  }, [toggles, frequency])
 
   const toggle = (key: string) => {
     setToggles((prev) => ({ ...prev, [key]: !prev[key] }))

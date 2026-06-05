@@ -15,7 +15,6 @@ import {
   Users,
   Clock,
 } from "lucide-react"
-import { motion } from "framer-motion"
 import { useCircle } from "@/hooks/use-circles"
 import { useAuth } from "@/hooks/use-auth"
 import { PageHeader } from "@/components/shared/page-header"
@@ -25,13 +24,8 @@ import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { Skeleton } from "@/components/ui/skeleton"
 import { CopyButton } from "@/components/shared/copy-button"
-import { del } from "@/lib/api-client"
+import { del, patch, post } from "@/lib/api-client"
 import type { Invite } from "@/types"
-
-const sectionVariants = {
-  hidden: { opacity: 0, y: 16 },
-  show: { opacity: 1, y: 0 },
-}
 
 export default function CircleSettingsPage() {
   const params = useParams()
@@ -65,7 +59,11 @@ export default function CircleSettingsPage() {
   const handleSaveSettings = async () => {
     setSaving(true)
     try {
-      await new Promise((r) => setTimeout(r, 600))
+      await patch(`/circles/${circleId}`, {
+        name: name.trim(),
+        description: description.trim() || undefined,
+      })
+    } catch {
     } finally {
       setSaving(false)
     }
@@ -74,22 +72,17 @@ export default function CircleSettingsPage() {
   const handleGenerateInvite = async () => {
     setGeneratingInvite(true)
     try {
-      await new Promise((r) => setTimeout(r, 800))
-      const code = `ML-${Math.random().toString(36).substring(2, 10).toUpperCase()}`
-      setGeneratedCode(code)
-      setExistingInvites((prev) => [
-        {
-          id: crypto.randomUUID?.() ?? String(Date.now()),
-          circleId,
-          code,
-          createdBy: user?.id ?? "",
-          maxUses: inviteMaxUses,
-          useCount: 0,
-          expiresAt: inviteExpiration || null,
-          createdAt: new Date().toISOString(),
-        },
-        ...prev,
-      ])
+      const ttlHours = inviteExpiration
+        ? Math.max(1, Math.round((new Date(inviteExpiration).getTime() - Date.now()) / 3600000))
+        : 168
+      const res = await post<{ invite: Invite }>(`/circles/${circleId}/invites`, {
+        maxUses: inviteMaxUses,
+        ttlHours,
+      })
+      const invite = res.invite
+      setGeneratedCode(invite.code)
+      setExistingInvites((prev) => [invite, ...prev])
+    } catch {
     } finally {
       setGeneratingInvite(false)
     }
@@ -157,10 +150,7 @@ export default function CircleSettingsPage() {
             </Link>
           }
         />
-        <motion.div
-          initial={{ opacity: 0, y: 16 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="glass-flagship rounded-2xl flex flex-col items-center justify-center py-20 holo-border"
+        <div className="glass-flagship rounded-2xl flex flex-col items-center justify-center py-20 holo-border"
         >
           <Shield className="mb-4 h-14 w-14 text-muted-foreground" />
           <p className="font-heading text-xl font-semibold text-foreground dark:text-white">
@@ -172,7 +162,7 @@ export default function CircleSettingsPage() {
           <Link href={`/circles/${circleId}`} className="mt-6">
             <Button variant="primary">Back to Circle</Button>
           </Link>
-        </motion.div>
+        </div>
       </div>
     )
   }
@@ -196,13 +186,8 @@ export default function CircleSettingsPage() {
         }
       />
 
-      <motion.div
-        initial="hidden"
-        animate="show"
-        variants={{ show: { transition: { staggerChildren: 0.1 } } }}
-        className="space-y-6"
-      >
-        <motion.div variants={sectionVariants} className="glass-premium rounded-2xl p-6 space-y-4 holo-border">
+      <div className="space-y-6">
+        <div className="glass-premium rounded-2xl p-6 space-y-4 holo-border">
           <div className="flex items-center gap-2 mb-1">
             <Settings className="h-5 w-5 gradient-text" />
             <h3 className="font-heading text-lg font-semibold text-foreground dark:text-white">
@@ -231,9 +216,9 @@ export default function CircleSettingsPage() {
               Save Changes
             </Button>
           </div>
-        </motion.div>
+        </div>
 
-        <motion.div variants={sectionVariants} className="glass rounded-2xl p-6 space-y-4">
+        <div className="glass rounded-2xl p-6 space-y-4">
           <div className="flex items-center gap-2 mb-1">
             <Link2 className="h-5 w-5 gradient-text" />
             <h3 className="font-heading text-lg font-semibold text-foreground dark:text-white">
@@ -318,7 +303,7 @@ export default function CircleSettingsPage() {
               </div>
             </div>
           )}
-        </motion.div>
+        </div>
 
         <div className="glass rounded-2xl p-6 space-y-4" style={{ borderColor: "rgb(239 68 68 / 0.2)" }}>
           <div className="flex items-center gap-2 mb-1">
@@ -358,7 +343,7 @@ export default function CircleSettingsPage() {
             </div>
           </div>
         </div>
-      </motion.div>
+      </div>
     </div>
   )
 }
