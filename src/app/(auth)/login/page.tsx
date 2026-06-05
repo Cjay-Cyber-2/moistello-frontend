@@ -1,6 +1,7 @@
 "use client"
 
-import { useCallback, useEffect, useRef } from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
+import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { Shield } from "lucide-react"
 import { useAuthFlow, AuthFlowProvider } from "@/hooks/auth-flow-context"
@@ -42,8 +43,11 @@ function LoginPageContent() {
   const addToast = useUIStore((s) => s.addToast)
   const authenticatingRef = useRef(false)
 
+  const [hasCredential, setHasCredential] = useState<boolean | null>(null)
+
   useEffect(() => {
     startLoginFlow()
+    setHasCredential(!!localStorage.getItem("moistello_passkey_credential"))
   }, [startLoginFlow])
 
   useEffect(() => {
@@ -62,6 +66,16 @@ function LoginPageContent() {
     try {
       const adapter = getWalletRegistry().getAdapter("passkey")
       if (!adapter) throw new Error("Passkey adapter not found")
+
+      const storedCredential = localStorage.getItem("moistello_passkey_credential")
+      if (!storedCredential) {
+        authenticatingRef.current = false
+        recordMetric("auth.login.no_credential", 1)
+        addToast({ type: "info", title: "No account found", description: "Create one to get started." })
+        router.replace("/register")
+        return
+      }
+
       // Cancel any pending conditional mediation (browser can't have two WebAuthn calls)
       abortConditionalMediation()
       // Clear stale in-memory session from previous login in same tab
@@ -178,6 +192,13 @@ function LoginPageContent() {
             {error && (
               <div className="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-400" role="alert">
                 {error.message}
+              </div>
+            )}
+
+            {hasCredential === false && (
+              <div className="rounded-xl border border-aurora-violet/30 bg-aurora-violet/10 px-4 py-3 text-sm text-aurora-violet" role="status">
+                No passkey found on this device.{" "}
+                <Link href="/register" className="underline font-medium">Create an account</Link> to get started.
               </div>
             )}
 

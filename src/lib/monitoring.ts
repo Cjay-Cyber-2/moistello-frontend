@@ -20,6 +20,7 @@ export type MetricName =
   | "page.view"
   | "error.unhandled"
   | "auth.flow.started"
+  | "auth.login.no_credential"
   | "auth.sign.completed"
   | "auth.error.caught"
 
