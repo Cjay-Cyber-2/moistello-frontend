@@ -3,6 +3,7 @@ import Link from "next/link";
 import { Shield, Globe, Award, Zap, Shuffle, Coins, ArrowRight } from "lucide-react";
 import { Routes } from "@/lib/constants";
 import { PublicLayout } from "@/components/layout/public-layout";
+import { AuthRedirect } from "@/components/shared/auth-redirect";
 
 export const metadata: Metadata = {
   title: "Moistello — Stellar Savings Circles",
@@ -42,7 +43,8 @@ const features = [
 
 export default function Home() {
   return (
-    <PublicLayout>
+    <>
+      <PublicLayout>
       <div className="auroral-mesh min-h-screen">
         {/* Hero */}
         <section className="relative z-10 min-h-[90vh] flex flex-col justify-center">
@@ -127,5 +129,7 @@ export default function Home() {
         </section>
       </div>
     </PublicLayout>
+      <AuthRedirect />
+    </>
   );
 }
