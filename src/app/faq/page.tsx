@@ -53,7 +53,7 @@ export default function FAQPage() {
           <div className="text-center p-8 rounded-2xl glass-premium max-w-md mx-auto">
             <h2 className="font-heading text-xl font-bold mb-2">Still have questions?</h2>
             <p className="text-muted-foreground mb-4">Join our Discord or open an issue on GitHub.</p>
-            <Link href="/login" className="gradient-bg-premium h-10 px-6 rounded-xl text-white font-heading font-semibold inline-flex items-center gap-2">Get Started</Link>
+            <Link href="/register" className="gradient-bg-premium h-10 px-6 rounded-xl text-white font-heading font-semibold inline-flex items-center gap-2">Get Started</Link>
           </div>
         </div>
       </div>

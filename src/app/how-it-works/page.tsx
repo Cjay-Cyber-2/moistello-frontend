@@ -74,7 +74,7 @@ export default function HowItWorksPage() {
           <div className="text-center p-12 rounded-2xl glass-premium max-w-lg mx-auto">
             <h2 className="font-heading text-2xl font-bold mb-3 gradient-text">Ready?</h2>
             <p className="text-muted-foreground mb-6">Create your first savings circle in under two minutes.</p>
-            <Link href="/login" className="gradient-bg-premium h-12 px-8 rounded-2xl text-white font-heading font-semibold inline-flex items-center gap-2 holo-glow">Get Started</Link>
+            <Link href="/register" className="gradient-bg-premium h-12 px-8 rounded-2xl text-white font-heading font-semibold inline-flex items-center gap-2 holo-glow">Get Started</Link>
           </div>
         </div>
       </div>
