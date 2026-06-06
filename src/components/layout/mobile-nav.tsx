@@ -24,8 +24,8 @@ const navItems: MobileNavItem[] = [
     icon: <CircleDot className="h-5 w-5" />,
   },
   {
-    label: "Groups",
-    href: Routes.GROUPS,
+    label: "Communities",
+    href: Routes.COMMUNITIES,
     icon: <Users className="h-5 w-5" />,
   },
   {
