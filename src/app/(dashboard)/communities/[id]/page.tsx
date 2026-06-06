@@ -6,7 +6,7 @@ import Link from "next/link"
 import {
   Users, Calendar, Globe, Heart, Share2, UserPlus,
   MessageSquare, DollarSign, TrendingUp, Award, Shield,
-  Sparkles,
+  Sparkles, Pin, Trash2, Crown,
 } from "lucide-react"
 import { useAuth } from "@/hooks/use-auth"
 import { PageHeader } from "@/components/shared/page-header"
@@ -156,6 +156,57 @@ export default function CommunityDetailPage() {
     }
   }
 
+  const handleTogglePin = async (a: Announcement) => {
+    try {
+      const { patch } = await import("@/lib/api-client")
+      await patch(`/communities/${communityId}/announcements/${a.id}/pin`, { pinned: !a.isPinned })
+      setAnnouncements((prev) => prev.map((x) => x.id === a.id ? { ...x, isPinned: !x.isPinned } : x))
+      addToast({ type: "success", title: a.isPinned ? "Unpinned" : "Pinned!" })
+    } catch {
+      addToast({ type: "error", title: "Failed" })
+    }
+  }
+
+  const handleDeleteAnnouncement = async (id: string) => {
+    try {
+      const { del } = await import("@/lib/api-client")
+      await del(`/communities/${communityId}/announcements/${id}`)
+      setAnnouncements((prev) => prev.filter((a) => a.id !== id))
+      addToast({ type: "success", title: "Deleted" })
+    } catch {
+      addToast({ type: "error", title: "Failed to delete" })
+    }
+  }
+
+  const handleRemoveMember = async (targetId: string, name: string) => {
+    try {
+      const { del } = await import("@/lib/api-client")
+      await del(`/communities/${communityId}/members/${targetId}`)
+      setMembers((prev) => prev.filter((m) => m.userId !== targetId))
+      setCommunity((prev) => prev ? { ...prev, memberCount: prev.memberCount - 1 } : prev)
+      addToast({ type: "success", title: `${name} removed` })
+    } catch {
+      addToast({ type: "error", title: "Failed to remove member" })
+    }
+  }
+
+  const [transferTarget, setTransferTarget] = useState("")
+  const [showTransfer, setShowTransfer] = useState(false)
+
+  const handleTransferOwnership = async () => {
+    if (!transferTarget) return
+    try {
+      const { post } = await import("@/lib/api-client")
+      await post(`/communities/${communityId}/transfer-ownership`, { newOwnerId: transferTarget })
+      addToast({ type: "success", title: "Ownership transferred!" })
+      setShowTransfer(false)
+      setTransferTarget("")
+      load()
+    } catch {
+      addToast({ type: "error", title: "Failed to transfer ownership" })
+    }
+  }
+
   if (loading) {
     return (
       <div className="space-y-6">
@@ -280,13 +331,21 @@ export default function CommunityDetailPage() {
               </div>
               <div className="flex flex-wrap gap-3">
                 {members.slice(0, maxAvatarPreview).map((m) => (
-                  <div key={m.userId} className="flex flex-col items-center gap-1">
+                  <div key={m.userId} className="flex flex-col items-center gap-1 group relative">
                     <div className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-aurora-violet/30 to-aurora-indigo/30 text-foreground font-mono text-xs font-bold">
                       {(m.displayName?.charAt(0) ?? "U").toUpperCase()}
                     </div>
                     <span className="text-[10px] text-muted-foreground truncate max-w-[60px] text-center">
                       {m.role === "admin" ? "Admin" : m.role === "moderator" ? "Mod" : ""}
                     </span>
+                    {isOrganizer && m.role !== "admin" && (
+                      <button
+                        onClick={() => handleRemoveMember(m.userId, m.displayName ?? "Member")}
+                        className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500/80 text-white opacity-0 group-hover:opacity-100 transition-opacity"
+                      >
+                        <Trash2 className="h-2.5 w-2.5" />
+                      </button>
+                    )}
                   </div>
                 ))}
                 {members.length > maxAvatarPreview && (
@@ -369,6 +428,22 @@ export default function CommunityDetailPage() {
                         <button className="flex items-center gap-1 hover:text-foreground transition-colors">
                           <Heart className="h-3 w-3" /> {a.likeCount}
                         </button>
+                        {isOrganizer && (
+                          <>
+                            <button
+                              onClick={() => handleTogglePin(a)}
+                              className="flex items-center gap-1 hover:text-amber-400 transition-colors"
+                            >
+                              <Pin className={cn("h-3 w-3", a.isPinned && "text-amber-400")} />
+                            </button>
+                            <button
+                              onClick={() => handleDeleteAnnouncement(a.id)}
+                              className="flex items-center gap-1 hover:text-red-400 transition-colors"
+                            >
+                              <Trash2 className="h-3 w-3" />
+                            </button>
+                          </>
+                        )}
                       </div>
                     </div>
                   ))}
@@ -399,6 +474,37 @@ export default function CommunityDetailPage() {
                   </div>
                 ))}
               </div>
+
+              {isOrganizer && (
+                <div className="mt-4 pt-4 border-t border-white/[0.06] space-y-2">
+                  {!showTransfer ? (
+                    <Button variant="outline" size="sm" className="w-full" onClick={() => setShowTransfer(true)} leftIcon={<Crown className="h-3.5 w-3.5" />}>
+                      Transfer Ownership
+                    </Button>
+                  ) : (
+                    <div className="space-y-2">
+                      <select
+                        value={transferTarget}
+                        onChange={(e) => setTransferTarget(e.target.value)}
+                        className="w-full h-9 rounded-lg bg-white/5 border border-white/10 px-3 text-xs text-foreground"
+                      >
+                        <option value="">Select new owner...</option>
+                        {members.filter((m) => m.userId !== user?.id).map((m) => (
+                          <option key={m.userId} value={m.userId}>{m.displayName ?? m.userId.slice(0, 8)}</option>
+                        ))}
+                      </select>
+                      <div className="flex gap-2">
+                        <Button variant="ghost" size="sm" className="flex-1" onClick={() => setShowTransfer(false)}>
+                          Cancel
+                        </Button>
+                        <Button variant="primary" size="sm" className="flex-1" onClick={handleTransferOwnership} disabled={!transferTarget}>
+                          Transfer
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           </div>
         </div>
