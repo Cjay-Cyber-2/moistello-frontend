@@ -46,13 +46,10 @@ export function ProfileStep({
       </div>
 
       {/* Generated Name */}
-      <div className="glass-premium rounded-2xl p-5 text-center">
-        <div className="font-heading text-xl font-bold gradient-text-extended">
+      <div className="glass-premium rounded-2xl p-6 text-center">
+        <div className="font-heading text-2xl font-black gradient-text-extended tracking-tight select-none pointer-events-none">
           {displayName}
         </div>
-        <p className="text-xs text-muted-foreground mt-1">
-          This is your public name and cannot be changed.
-        </p>
       </div>
 
       {/* Language Select */}
