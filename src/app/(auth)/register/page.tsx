@@ -8,11 +8,11 @@ import { useAuthFlowStore } from "@/stores/auth-flow-store"
 import { useMultiWalletStore } from "@/stores/multi-wallet-store"
 import { useUIStore } from "@/stores/ui-store"
 import { useSignMessage } from "@/hooks/use-sign-message"
-import { useProfileForm } from "@/hooks/use-profile-form"
 import { useRedirectIfAuthenticated } from "@/hooks/use-redirect-if-authenticated"
 import { recordMetric } from "@/lib/monitoring"
 import { getWalletRegistry } from "@/lib/wallet/registry"
 import { createPasskeyAdapter } from "@/lib/wallet/adapters/passkey"
+import { post, patch } from "@/lib/api-client"
 import { AuthLayout } from "@/components/auth/auth-layout"
 import { AuthStepIndicator } from "@/components/auth/auth-step-indicator"
 import { ProfileStep } from "@/components/auth/profile-step"
@@ -49,12 +49,13 @@ function RegisterPageContent() {
   const setPasskeyPublicKey = useMultiWalletStore((s) => s.setPasskeyPublicKey)
 
   const { sign } = useSignMessage()
-  const { profile, updateField, setFieldError } = useProfileForm()
 
   const addToast = useUIStore((s) => s.addToast)
   const [localStep, setLocalStep] = useState<Step>("choose")
   const [isCreatingPasskey, setIsCreatingPasskey] = useState(false)
   const creatingPasskeyRef = useRef(false)
+  const [claimedName, setClaimedName] = useState("")
+  const [language, setLanguage] = useState("en")
 
   const effectiveStep = localStep
 
@@ -73,6 +74,17 @@ function RegisterPageContent() {
       setLocalStep("profile")
     }
   }, [effectiveStep, status])
+
+  useEffect(() => {
+    if (effectiveStep === "profile" && !claimedName) {
+      post<{ name: string }>("/claim-name").then((res) => {
+        const data = res as unknown as { name?: string }
+        setClaimedName(data?.name ?? "")
+      }).catch(() => {
+        setClaimedName("Anonymous")
+      })
+    }
+  }, [effectiveStep, claimedName])
 
   const handlePasskeyStart = useCallback(async () => {
     if (creatingPasskeyRef.current) return
@@ -110,9 +122,21 @@ function RegisterPageContent() {
     }
   }, [connectStart, connectSuccess, setPasskeyPublicKey, addToast])
 
-  const handleProfileSubmit = useCallback(() => {
+  const handleProfileSubmit = useCallback(async () => {
+    if (!claimedName) return
+    try {
+      await patch("/users/me", {
+        displayName: claimedName,
+        preferredLanguage: language,
+      })
+    } catch {
+      // Name collision — shouldn't happen with counter-based generator
+      addToast({ type: "error", title: "Name taken", description: "A new name will be generated." })
+      setClaimedName("")
+      return
+    }
     setLocalStep("sign")
-  }, [])
+  }, [claimedName, language, addToast])
 
   const handleSignSubmit = useCallback(async () => {
     await sign()
@@ -126,7 +150,6 @@ function RegisterPageContent() {
           const enc = new TextEncoder()
           const seedBuf = await crypto.subtle.digest("SHA-256", enc.encode(credentialId))
           const passkeySeed = Array.from(new Uint8Array(seedBuf)).map(b => b.toString(16).padStart(2, "0")).join("")
-          const { post } = await import("@/lib/api-client")
           await post("/wallets", { passkeySeed })
         }
       } catch (e) {
@@ -137,7 +160,7 @@ function RegisterPageContent() {
         title: "Welcome to Moistello!",
         description: "Your account has been created.",
       })
-      router.replace("/dashboard")
+      router.replace("/")
     }
   }, [sign, router, addToast])
 
@@ -230,11 +253,11 @@ function RegisterPageContent() {
 
         {effectiveStep === "profile" && (
           <ProfileStep
-            profile={profile}
-            onUpdateField={updateField}
-            onSetFieldError={setFieldError}
-            onBack={() => setLocalStep("choose")}
+            displayName={claimedName || "Generating..."}
+            language={language}
+            onUpdateLanguage={setLanguage}
             onSubmit={handleProfileSubmit}
+            isSubmitting={!claimedName}
           />
         )}
 
@@ -242,7 +265,7 @@ function RegisterPageContent() {
           <SignStep
             mode="register"
             connection={connection}
-            profile={profile}
+            profile={{ displayName: claimedName, countryCode: "", language }}
             auth={auth}
             status={status}
             error={error}
