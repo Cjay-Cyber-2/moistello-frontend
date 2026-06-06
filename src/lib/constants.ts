@@ -69,7 +69,7 @@ export const Routes = {
   HOME: "/",
   LOGIN: "/login",
   REGISTER: "/register",
-  DASHBOARD: "/dashboard",
+  DASHBOARD: "/",
   CIRCLES: "/circles",
   CIRCLE_DETAIL: (id: string) => `/circles/${id}`,
   CREATE_CIRCLE: "/circles/create",
