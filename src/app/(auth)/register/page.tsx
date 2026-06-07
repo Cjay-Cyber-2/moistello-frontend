@@ -77,11 +77,13 @@ function RegisterPageContent() {
 
   useEffect(() => {
     if (effectiveStep === "profile" && !claimedName) {
-      post<{ name: string }>("/claim-name").then((res) => {
-        const data = res as unknown as { name?: string }
-        setClaimedName(data?.name ?? "")
-      }).catch(() => {
-        setClaimedName("Anonymous")
+      post("/claim-name").then((res) => {
+        const envelope = (res as Record<string, unknown>)?.data as Record<string, unknown> ?? res as Record<string, unknown>
+        const name = typeof envelope === "string" ? envelope : (envelope?.name as string ?? "")
+        setClaimedName(name || "")
+      }).catch((err) => {
+        console.error("claim-name error:", err)
+        setClaimedName("")
       })
     }
   }, [effectiveStep, claimedName])
