@@ -108,11 +108,6 @@ function RegisterPageContent() {
         },
       }))
       setLocalStep("profile")
-      addToast({
-        type: "success",
-        title: "Passkey Created",
-        description: "Your wallet is ready. Now set up your profile.",
-      })
     } catch (err: unknown) {
       const message = (err && typeof err === "object" && "message" in err)
         ? (err as { message: string }).message
@@ -157,11 +152,6 @@ function RegisterPageContent() {
       } catch (e) {
         console.error("Failed to create Stellar wallet:", e)
       }
-      addToast({
-        type: "success",
-        title: "Welcome to Moistello!",
-        description: "Your account has been created.",
-      })
       router.replace("/")
     }
   }, [sign, router, addToast])
