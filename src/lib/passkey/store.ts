@@ -99,8 +99,14 @@ export function getRpId(): string {
   return process.env.NEXT_PUBLIC_PASSKEY_RP_ID || "localhost"
 }
 
-export function getExpectedOrigin(): string {
-  return process.env.PASSKEY_EXPECTED_ORIGIN || "http://localhost:1110"
+export function getExpectedOrigin(): string | string[] {
+  const origin = process.env.PASSKEY_EXPECTED_ORIGIN || "http://localhost:1110"
+  // Support both www and non-www
+  if (origin.startsWith("https://") && !origin.includes("www")) {
+    const withWww = origin.replace("https://", "https://www.")
+    return [origin, withWww]
+  }
+  return origin
 }
 
 sweepExpired()
