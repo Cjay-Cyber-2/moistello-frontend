@@ -1,5 +1,7 @@
 "use client"
 
+import { useState, useRef, useEffect } from "react"
+
 const LANGUAGES = [
   { value: "en", label: "English" },
   { value: "aa", label: "Afar" },
@@ -202,6 +204,19 @@ export function ProfileStep({
   onSubmit,
   isSubmitting = false,
 }: ProfileStepProps) {
+  const [open, setOpen] = useState(false)
+  const ref = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    function handleClick(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false)
+    }
+    document.addEventListener("mousedown", handleClick)
+    return () => document.removeEventListener("mousedown", handleClick)
+  }, [])
+
+  const selected = LANGUAGES.find((l) => l.value === language)
+
   return (
     <div className="flex flex-col items-center justify-center min-h-[400px]">
       {/* Thin vertical accent bar */}
@@ -212,27 +227,42 @@ export function ProfileStep({
         {displayName}
       </p>
 
-      {/* Language — polished select */}
+      {/* Language — custom dropdown */}
       <div className="flex flex-col items-center gap-3">
         <label className="text-2xs text-muted-foreground uppercase tracking-[0.2em] font-medium">
           Language
         </label>
-        <div className="relative w-56">
-          <select
-            value={language}
-            onChange={(e) => onUpdateLanguage(e.target.value)}
+        <div ref={ref} className="relative w-56">
+          <button
+            type="button"
+            onClick={() => !isSubmitting && setOpen(!open)}
             disabled={isSubmitting}
-            className="w-full appearance-none bg-white/10 border border-white/25 text-sm text-foreground py-3 pl-4 pr-10 rounded-xl shadow-[0_2px_8px_rgba(0,0,0,0.08)] focus:outline-none focus:border-aurora-violet focus:shadow-[0_0_16px_rgb(var(--aurora-violet)/0.15)] focus:bg-white/[0.12] hover:border-white/40 hover:bg-white/[0.12] transition-all duration-200 cursor-pointer"
+            className="w-full flex items-center justify-between bg-white/10 hover:bg-white/[0.14] border border-white/25 text-sm text-foreground py-3 px-4 rounded-xl shadow-[0_2px_8px_rgba(0,0,0,0.12)] focus:outline-none focus:border-aurora-violet focus:shadow-[0_0_16px_rgb(var(--aurora-violet)/0.2)] transition-all duration-200"
           >
-            {LANGUAGES.map((l) => (
-              <option key={l.value} value={l.value} className="bg-[rgb(var(--background))] text-foreground py-2">
-                {l.label}
-              </option>
-            ))}
-          </select>
-          <span className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground/60 text-[11px] pointer-events-none">
-            ▼
-          </span>
+            <span className={selected ? "text-foreground" : "text-muted-foreground/50"}>
+              {selected?.label ?? "Select language"}
+            </span>
+            <svg className={`w-4 h-4 text-muted-foreground/60 transition-transform duration-200 ${open ? "rotate-180" : ""}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path d="M6 9l6 6 6-6" />
+            </svg>
+          </button>
+
+          {open && (
+            <div className="absolute z-50 top-full mt-1.5 left-0 right-0 max-h-48 overflow-y-auto rounded-xl border border-white/20 bg-[rgb(var(--background))] shadow-[0_8px_32px_rgba(0,0,0,0.3)] backdrop-blur-xl">
+              {LANGUAGES.map((l) => (
+                <button
+                  key={l.value}
+                  type="button"
+                  onClick={() => { onUpdateLanguage(l.value); setOpen(false) }}
+                  className={`w-full text-left px-4 py-2.5 text-sm transition-colors hover:bg-white/10 ${
+                    l.value === language ? "text-aurora-violet font-medium" : "text-foreground"
+                  }`}
+                >
+                  {l.label}
+                </button>
+              ))}
+            </div>
+          )}
         </div>
       </div>
 
@@ -247,7 +277,7 @@ export function ProfileStep({
         className="group relative text-sm font-heading font-medium tracking-wider uppercase text-muted-foreground hover:text-foreground transition-colors duration-300 disabled:opacity-30"
       >
         <span className="relative">
-          {isSubmitting ? "Setting up..." : "Continue"}
+          {isSubmitting ? "Setting up.." : "Continue"}
           <span className="absolute -bottom-1 left-0 right-0 h-px bg-current scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left" />
         </span>
       </button>
