@@ -12,6 +12,7 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { get } from "@/lib/api-client"
 import { cn } from "@/lib/cn"
 import { Routes } from "@/lib/constants"
+import { useTranslate } from "@/lib/locale/context"
 
 interface CommunitySummary {
   id: string
@@ -37,6 +38,7 @@ const CATEGORIES = [
 ]
 
 export default function CommunitiesPage() {
+  const { t } = useTranslate()
   const [search, setSearch] = useState("")
   const [category, setCategory] = useState("")
   const [communities, setCommunities] = useState<CommunitySummary[]>([])
@@ -86,12 +88,12 @@ export default function CommunitiesPage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Communities"
-        description="Discover groups, find your people, and save together."
+        title={t("comm.title")}
+        description="Discover communities and find your people."
         action={
           <Link href={`${Routes.COMMUNITIES}/create`}>
             <Button variant="primary" size="md" leftIcon={<Plus className="h-4 w-4" />}>
-              Create Community
+              {t("comm.create")}
             </Button>
           </Link>
         }

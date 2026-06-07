@@ -104,7 +104,7 @@ function CircleCard({ circle }: { circle: Circle }) {
             variant={circle.status === "active" ? "success" : circle.status === "pending" ? "warning" : "default"}
             size="sm"
           >
-            {circle.status}
+            {t("circles." + circle.status)}
           </Badge>
         </div>
 
@@ -130,7 +130,7 @@ function CircleCard({ circle }: { circle: Circle }) {
 
         <div className="space-y-1.5">
           <div className="flex items-center justify-between text-2xs text-muted-foreground">
-            <span>Round Progress</span>
+            <span>{t("dash.roundProgress")}</span>
             <span>
               {circle.currentRound}/{circle.maxMembers}
             </span>
@@ -154,10 +154,10 @@ function CreateCircleCard() {
           <Plus className="h-6 w-6" />
         </div>
         <p className="font-heading text-sm font-semibold text-foreground dark:text-white">
-          Start a Circle
+          {t("dash.startCircle")}
         </p>
         <p className="text-xs text-muted-foreground mt-1">
-          Create a new savings circle
+          {t("dash.createCircleDesc")}
         </p>
       </motion.div>
     </Link>
@@ -201,6 +201,7 @@ function ActivityTimelineItem({
 export default function DashboardPage() {
   const { user, isLoading: authLoading } = useAuth()
   const { data, isLoading: circlesLoading } = useCircles()
+  const { t } = useTranslate()
 
   const circles = useMemo(() => data?.circles ?? [], [data])
   const isLoading = authLoading || circlesLoading
@@ -236,7 +237,7 @@ export default function DashboardPage() {
   if (isLoading) {
     return (
       <div className="space-y-8">
-        <PageHeader title="Dashboard" />
+        <PageHeader title={t("dash.title")} />
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {Array.from({ length: 4 }).map((_, i) => (
             <Skeleton key={i} variant="card" className="h-24 rounded-2xl" />
@@ -263,8 +264,8 @@ export default function DashboardPage() {
   return (
     <div className="space-y-8">
       <PageHeader
-        title="Dashboard"
-        description="Welcome back! Here's a summary of your savings circles."
+        title={t("dash.title")}
+        description={t("dash.welcome")}
       />
 
       <motion.div
@@ -274,25 +275,25 @@ export default function DashboardPage() {
         className="grid grid-cols-2 md:grid-cols-4 gap-4"
       >
         <StatCard
-          label="Active Circles"
+          label={t("dash.activeCircles")}
           value={String(stats.activeCircles)}
           icon={<CircleDot className="h-5 w-5" />}
           gradient="from-aurora-indigo to-aurora-violet"
         />
         <StatCard
-          label="Total Contributed"
+          label={t("dash.totalContributed")}
           value={stats.totalContributed}
           icon={<ArrowUpCircle className="h-5 w-5" />}
           gradient="from-aurora-cyan to-aurora-indigo"
         />
         <StatCard
-          label="Total Received"
+          label={t("dash.totalReceived")}
           value={stats.totalReceived}
           icon={<ArrowDownCircle className="h-5 w-5" />}
           gradient="from-emerald-500 to-aurora-cyan"
         />
         <StatCard
-          label="MoiScore"
+          label={t("dash.moiScore")}
           value={stats.moiScore}
           icon={<Award className="h-5 w-5" />}
           gradient="from-aurora-amber to-aurora-violet"
@@ -309,13 +310,13 @@ export default function DashboardPage() {
         <div className="lg:col-span-2 space-y-4">
           <div className="flex items-center justify-between">
             <h3 className="font-heading text-lg font-semibold text-foreground dark:text-white">
-              Your Circles
+              {t("dash.yourCircles")}
             </h3>
             <Link
               href="/circles"
               className="text-sm text-muted-foreground hover:text-foreground transition-colors font-body"
             >
-              Browse all &rarr;
+              {t("dash.browseAll")} &rarr;
             </Link>
           </div>
 
@@ -330,10 +331,10 @@ export default function DashboardPage() {
             <motion.div variants={fadeInItem}>
               <EmptyState
                 icon={<Users className="h-6 w-6" />}
-                title="No circles yet"
-                description="You haven't joined any circles. Browse available circles or create your own."
+                title={t("dash.noCircles")}
+                description={t("dash.noCirclesDesc")}
                 action={{
-                  label: "Create Circle",
+                  label: t("dash.createCircle"),
                   onClick: () => {
                     window.location.href = "/circles/create"
                   },
@@ -345,7 +346,7 @@ export default function DashboardPage() {
 
         <div className="space-y-4">
           <h3 className="font-heading text-lg font-semibold text-foreground dark:text-white">
-            Recent Activity
+            {t("dash.recentActivity")}
           </h3>
 
           {recentActivity.length > 0 ? (
@@ -369,8 +370,8 @@ export default function DashboardPage() {
           ) : (
             <EmptyState
               icon={<Inbox className="h-6 w-6" />}
-              title="No activity yet"
-              description="Your circle activity will appear here."
+              title={t("dash.noActivity")}
+              description={t("dash.noActivityDesc")}
             />
           )}
         </div>

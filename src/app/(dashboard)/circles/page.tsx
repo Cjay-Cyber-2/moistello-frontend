@@ -24,6 +24,7 @@ import { Progress } from "@/components/ui/progress"
 import { cn } from "@/lib/cn"
 import { formatCurrency } from "@/lib/formatters"
 import type { Circle, CircleType, Currency } from "@/types"
+import { useTranslate } from "@/lib/locale/context"
 
 const TYPE_TABS = [
   { value: "all", label: "All" },
@@ -134,6 +135,7 @@ function CircleGridCard({ circle }: { circle: Circle }) {
 }
 
 export default function CirclesBrowsePage() {
+  const { t } = useTranslate()
   const [search, setSearch] = useState("")
   const deferredSearch = useDeferredValue(search)
   const [typeFilter, setTypeFilter] = useState("all")
@@ -163,12 +165,12 @@ export default function CirclesBrowsePage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Discover Circles"
+        title={t("circles.title")}
         description="Browse and join savings circles on the Stellar network."
         action={
           <Link href="/circles/create">
             <Button variant="premium" size="md" leftIcon={<Plus className="h-4 w-4" />}>
-              Create Circle
+              {t("circles.create")}
             </Button>
           </Link>
         }
@@ -176,7 +178,7 @@ export default function CirclesBrowsePage() {
 
       <div className="relative">
         <Input
-          placeholder="Search circles by name..."
+          placeholder={t("circles.search")}
           leftIcon={<Search className="h-4 w-4" />}
           value={search}
           onChange={(e) => {
@@ -205,7 +207,7 @@ export default function CirclesBrowsePage() {
                   : "glass-whisper text-muted-foreground hover:text-foreground dark:hover:text-white",
               )}
             >
-              {f.label}
+              {t("circles." + f.value)}
             </motion.button>
           ))}
         </div>
@@ -247,8 +249,8 @@ export default function CirclesBrowsePage() {
       ) : filteredCircles.length === 0 ? (
         <EmptyState
           icon={<Search className="h-6 w-6" />}
-          title="No circles found"
-          description="Try adjusting your search or filters."
+          title={t("circles.noCircles")}
+          description={t("circles.tryDifferent")}
         />
       ) : (
         <motion.div
