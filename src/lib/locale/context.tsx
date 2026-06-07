@@ -1,13 +1,11 @@
 "use client"
 
 import { createContext, useContext, useState, useCallback, useEffect, ReactNode } from "react"
-import en from "./en.json"
-import fr from "./fr.json"
+import ALL from "./translations.json"
 import { useAuthStore } from "@/stores/auth-store"
 
 type TranslationDict = Record<string, string>
-
-const LOCALE_MAP: Record<string, TranslationDict> = { en, fr }
+const ALL_LOCALES = ALL as unknown as Record<string, TranslationDict>
 
 interface LocaleContextType {
   locale: string
@@ -30,9 +28,7 @@ export function LocaleProvider({ children }: { children: ReactNode }) {
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated)
 
   const [locale, setLocaleState] = useState("en")
-  const [tick, setTick] = useState(0)
 
-  // Force re-render when auth changes
   useEffect(() => {
     if (isAuthenticated && authUser?.preferredLanguage) {
       setLocaleState(authUser.preferredLanguage)
@@ -41,26 +37,25 @@ export function LocaleProvider({ children }: { children: ReactNode }) {
     }
     const stored = typeof window !== "undefined" ? localStorage.getItem("moistello_locale") : null
     if (stored) setLocaleState(stored)
-  }, [isAuthenticated, authUser?.preferredLanguage, tick])
+  }, [isAuthenticated, authUser?.preferredLanguage])
 
   const setLocale = useCallback((lang: string) => {
     setLocaleState(lang)
     if (typeof window !== "undefined") localStorage.setItem("moistello_locale", lang)
-    // Only persist to backend if authenticated
     const state = useAuthStore.getState()
     if (state.isAuthenticated && state.user) {
       import("@/lib/api-client").then(({ patch }) => {
         patch("/users/me", { preferredLanguage: lang }).catch(() => {})
       })
     }
-    setTick((t) => t + 1)
   }, [])
 
   const t = useCallback(
     (key: string): string => {
-      const dict = LOCALE_MAP[locale]
+      const dict = ALL_LOCALES[locale]
       if (dict && key in dict) return dict[key]
-      if (key in en) return (en as TranslationDict)[key]
+      const enDict = ALL_LOCALES.en
+      if (enDict && key in enDict) return enDict[key]
       return key
     },
     [locale],
