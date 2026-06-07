@@ -4,190 +4,25 @@ import React, { useState, useRef } from "react"
 import { useTranslate } from "@/lib/locale/context"
 
 const LANGUAGES = [
-  { value: "en", label: "English" },
-  { value: "aa", label: "Afar" },
-  { value: "ab", label: "Abkhazian" },
-  { value: "ae", label: "Avestan" },
-  { value: "af", label: "Afrikaans" },
-  { value: "ak", label: "Akan" },
-  { value: "am", label: "Amharic" },
-  { value: "an", label: "Aragonese" },
-  { value: "ar", label: "Arabic" },
-  { value: "as", label: "Assamese" },
-  { value: "av", label: "Avaric" },
-  { value: "ay", label: "Aymara" },
-  { value: "az", label: "Azerbaijani" },
-  { value: "ba", label: "Bashkir" },
-  { value: "be", label: "Belarusian" },
-  { value: "bg", label: "Bulgarian" },
-  { value: "bh", label: "Bihari" },
-  { value: "bi", label: "Bislama" },
-  { value: "bm", label: "Bambara" },
-  { value: "bn", label: "Bengali" },
-  { value: "bo", label: "Tibetan" },
-  { value: "br", label: "Breton" },
-  { value: "bs", label: "Bosnian" },
-  { value: "ca", label: "Catalan" },
-  { value: "ce", label: "Chechen" },
-  { value: "ch", label: "Chamorro" },
-  { value: "co", label: "Corsican" },
-  { value: "cr", label: "Cree" },
-  { value: "cs", label: "Czech" },
-  { value: "cu", label: "Old Church Slavonic" },
-  { value: "cv", label: "Chuvash" },
-  { value: "cy", label: "Welsh" },
-  { value: "da", label: "Danish" },
-  { value: "de", label: "German" },
-  { value: "dv", label: "Divehi" },
-  { value: "dz", label: "Dzongkha" },
-  { value: "ee", label: "Ewe" },
-  { value: "el", label: "Greek" },
-  { value: "eo", label: "Esperanto" },
-  { value: "es", label: "Spanish" },
-  { value: "et", label: "Estonian" },
-  { value: "eu", label: "Basque" },
-  { value: "fa", label: "Persian" },
-  { value: "ff", label: "Fulah" },
-  { value: "fi", label: "Finnish" },
-  { value: "fj", label: "Fijian" },
-  { value: "fo", label: "Faroese" },
-  { value: "fr", label: "French" },
-  { value: "fy", label: "Western Frisian" },
-  { value: "ga", label: "Irish" },
-  { value: "gd", label: "Scottish Gaelic" },
-  { value: "gl", label: "Galician" },
-  { value: "gn", label: "Guarani" },
-  { value: "gu", label: "Gujarati" },
-  { value: "gv", label: "Manx" },
-  { value: "ha", label: "Hausa" },
-  { value: "he", label: "Hebrew" },
-  { value: "hi", label: "Hindi" },
-  { value: "ho", label: "Hiri Motu" },
-  { value: "hr", label: "Croatian" },
-  { value: "ht", label: "Haitian Creole" },
-  { value: "hu", label: "Hungarian" },
-  { value: "hy", label: "Armenian" },
-  { value: "hz", label: "Herero" },
-  { value: "ia", label: "Interlingua" },
-  { value: "id", label: "Indonesian" },
-  { value: "ie", label: "Interlingue" },
-  { value: "ig", label: "Igbo" },
-  { value: "ii", label: "Sichuan Yi" },
-  { value: "ik", label: "Inupiaq" },
-  { value: "io", label: "Ido" },
-  { value: "is", label: "Icelandic" },
-  { value: "it", label: "Italian" },
-  { value: "iu", label: "Inuktitut" },
-  { value: "ja", label: "Japanese" },
-  { value: "jv", label: "Javanese" },
-  { value: "ka", label: "Georgian" },
-  { value: "kg", label: "Kongo" },
-  { value: "ki", label: "Kikuyu" },
-  { value: "kj", label: "Kwanyama" },
-  { value: "kk", label: "Kazakh" },
-  { value: "kl", label: "Kalaallisut" },
-  { value: "km", label: "Khmer" },
-  { value: "kn", label: "Kannada" },
-  { value: "ko", label: "Korean" },
-  { value: "kr", label: "Kanuri" },
-  { value: "ks", label: "Kashmiri" },
-  { value: "ku", label: "Kurdish" },
-  { value: "kv", label: "Komi" },
-  { value: "kw", label: "Cornish" },
-  { value: "ky", label: "Kyrgyz" },
-  { value: "la", label: "Latin" },
-  { value: "lb", label: "Luxembourgish" },
-  { value: "lg", label: "Ganda" },
-  { value: "li", label: "Limburgish" },
-  { value: "ln", label: "Lingala" },
-  { value: "lo", label: "Lao" },
-  { value: "lt", label: "Lithuanian" },
-  { value: "lu", label: "Luba-Katanga" },
-  { value: "lv", label: "Latvian" },
-  { value: "mg", label: "Malagasy" },
-  { value: "mh", label: "Marshallese" },
-  { value: "mi", label: "Maori" },
-  { value: "mk", label: "Macedonian" },
-  { value: "ml", label: "Malayalam" },
-  { value: "mn", label: "Mongolian" },
-  { value: "mr", label: "Marathi" },
-  { value: "ms", label: "Malay" },
-  { value: "mt", label: "Maltese" },
-  { value: "my", label: "Burmese" },
-  { value: "na", label: "Nauru" },
-  { value: "nb", label: "Norwegian Bokmal" },
-  { value: "nd", label: "North Ndebele" },
-  { value: "ne", label: "Nepali" },
-  { value: "ng", label: "Ndonga" },
-  { value: "nl", label: "Dutch" },
-  { value: "nn", label: "Norwegian Nynorsk" },
-  { value: "no", label: "Norwegian" },
-  { value: "nr", label: "South Ndebele" },
-  { value: "nv", label: "Navajo" },
-  { value: "ny", label: "Chichewa" },
-  { value: "oc", label: "Occitan" },
-  { value: "oj", label: "Ojibwa" },
-  { value: "om", label: "Oromo" },
-  { value: "or", label: "Oriya" },
-  { value: "os", label: "Ossetian" },
-  { value: "pa", label: "Punjabi" },
-  { value: "pi", label: "Pali" },
-  { value: "pl", label: "Polish" },
-  { value: "ps", label: "Pashto" },
-  { value: "pt", label: "Portuguese" },
-  { value: "qu", label: "Quechua" },
-  { value: "rm", label: "Romansh" },
-  { value: "rn", label: "Kirundi" },
-  { value: "ro", label: "Romanian" },
-  { value: "ru", label: "Russian" },
-  { value: "rw", label: "Kinyarwanda" },
-  { value: "sa", label: "Sanskrit" },
-  { value: "sc", label: "Sardinian" },
-  { value: "sd", label: "Sindhi" },
-  { value: "se", label: "Northern Sami" },
-  { value: "sg", label: "Sango" },
-  { value: "si", label: "Sinhala" },
-  { value: "sk", label: "Slovak" },
-  { value: "sl", label: "Slovenian" },
-  { value: "sm", label: "Samoan" },
-  { value: "sn", label: "Shona" },
-  { value: "so", label: "Somali" },
-  { value: "sq", label: "Albanian" },
-  { value: "sr", label: "Serbian" },
-  { value: "ss", label: "Swati" },
-  { value: "st", label: "Southern Sotho" },
-  { value: "su", label: "Sundanese" },
-  { value: "sv", label: "Swedish" },
-  { value: "sw", label: "Swahili" },
-  { value: "ta", label: "Tamil" },
-  { value: "te", label: "Telugu" },
-  { value: "tg", label: "Tajik" },
-  { value: "th", label: "Thai" },
-  { value: "ti", label: "Tigrinya" },
-  { value: "tk", label: "Turkmen" },
-  { value: "tl", label: "Tagalog" },
-  { value: "tn", label: "Tswana" },
-  { value: "to", label: "Tonga" },
-  { value: "tr", label: "Turkish" },
-  { value: "ts", label: "Tsonga" },
-  { value: "tt", label: "Tatar" },
-  { value: "tw", label: "Twi" },
-  { value: "ty", label: "Tahitian" },
-  { value: "ug", label: "Uyghur" },
-  { value: "uk", label: "Ukrainian" },
-  { value: "ur", label: "Urdu" },
-  { value: "uz", label: "Uzbek" },
-  { value: "ve", label: "Venda" },
-  { value: "vi", label: "Vietnamese" },
-  { value: "vo", label: "Volapuk" },
-  { value: "wa", label: "Walloon" },
-  { value: "wo", label: "Wolof" },
-  { value: "xh", label: "Xhosa" },
-  { value: "yi", label: "Yiddish" },
-  { value: "yo", label: "Yoruba" },
-  { value: "za", label: "Zhuang" },
-  { value: "zh", label: "Chinese" },
-  { value: "zu", label: "Zulu" },
+  "en", "aa", "ab", "ae", "af", "ak", "am", "an", "ar", "as",
+  "av", "ay", "az", "ba", "be", "bg", "bh", "bi", "bm", "bn",
+  "bo", "br", "bs", "ca", "ce", "ch", "co", "cr", "cs", "cu",
+  "cv", "cy", "da", "de", "dv", "dz", "ee", "el", "eo", "es",
+  "et", "eu", "fa", "ff", "fi", "fj", "fo", "fr", "fy", "ga",
+  "gd", "gl", "gn", "gu", "gv", "ha", "he", "hi", "ho", "hr",
+  "ht", "hu", "hy", "hz", "ia", "id", "ie", "ig", "ii", "ik",
+  "io", "is", "it", "iu", "ja", "jv", "ka", "kg", "ki", "kj",
+  "kk", "kl", "km", "kn", "ko", "kr", "ks", "ku", "kv", "kw",
+  "ky", "la", "lb", "lg", "li", "ln", "lo", "lt", "lu", "lv",
+  "mg", "mh", "mi", "mk", "ml", "mn", "mr", "ms", "mt", "my",
+  "na", "nb", "nd", "ne", "ng", "nl", "nn", "no", "nr", "nv",
+  "ny", "oc", "oj", "om", "or", "os", "pa", "pi", "pl", "ps",
+  "pt", "qu", "rm", "rn", "ro", "ru", "rw", "sa", "sc", "sd",
+  "se", "sg", "si", "sk", "sl", "sm", "sn", "so", "sq", "sr",
+  "ss", "st", "su", "sv", "sw", "ta", "te", "tg", "th", "ti",
+  "tk", "tl", "tn", "to", "tr", "ts", "tt", "tw", "ty", "ug",
+  "uk", "ur", "uz", "ve", "vi", "vo", "wa", "wo", "xh", "yi",
+  "yo", "za", "zh", "zu",
 ]
 
 interface ProfileStepProps {
@@ -198,6 +33,14 @@ interface ProfileStepProps {
   isSubmitting?: boolean
 }
 
+function langLabel(code: string, displayLang: string): string {
+  try {
+    return new Intl.DisplayNames([displayLang], { type: "language", languageDisplay: "standard" }).of(code) ?? code
+  } catch {
+    return code
+  }
+}
+
 export function ProfileStep({
   displayName,
   language,
@@ -205,7 +48,7 @@ export function ProfileStep({
   onSubmit,
   isSubmitting = false,
 }: ProfileStepProps) {
-  const { t, setLocale } = useTranslate()
+  const { t, locale, setLocale } = useTranslate()
   const [open, setOpen] = useState(false)
   const ref = useRef<HTMLDivElement>(null)
 
@@ -217,7 +60,7 @@ export function ProfileStep({
     return () => document.removeEventListener("mousedown", handleClick)
   }, [])
 
-  const selected = LANGUAGES.find((l) => l.value === language)
+  const selected = language
 
   return (
     <div className={`flex flex-col items-center min-h-[500px] pt-48 transition-all duration-300 ${open ? "-translate-y-40" : ""}`}>
@@ -245,7 +88,7 @@ export function ProfileStep({
             className="w-full flex items-center justify-between bg-white/10 hover:bg-white/[0.14] border border-white/25 text-sm text-foreground py-3 px-4 rounded-xl focus:outline-none focus:border-white/40 transition-all"
           >
             <span className={selected ? "text-foreground" : "text-muted-foreground/50"}>
-              {selected?.label ?? t("auth.profile.selectLanguage")}
+              {selected ? langLabel(selected, locale) : t("auth.profile.selectLanguage")}
             </span>
             <svg className={`w-4 h-4 text-muted-foreground/60 transition-transform duration-200 ${open ? "rotate-180" : ""}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path d="M6 9l6 6 6-6" />
@@ -254,16 +97,16 @@ export function ProfileStep({
 
           {open && (
             <div className="absolute z-50 top-full mt-1.5 left-0 right-0 max-h-48 overflow-y-auto rounded-xl border border-white/20 bg-[rgb(var(--background))]">
-              {LANGUAGES.map((l) => (
+              {LANGUAGES.map((code) => (
                 <button
-                  key={l.value}
+                  key={code}
                   type="button"
-                  onClick={() => { onUpdateLanguage(l.value); setLocale(l.value); setOpen(false) }}
+                  onClick={() => { onUpdateLanguage(code); setLocale(code); setOpen(false) }}
                   className={`w-full text-left px-4 py-2.5 text-sm transition-colors hover:bg-white/10 ${
-                    l.value === language ? "text-foreground font-medium" : "text-muted-foreground"
+                    code === language ? "text-foreground font-medium" : "text-muted-foreground"
                   }`}
                 >
-                  {l.label}
+                  {langLabel(code, locale)}
                 </button>
               ))}
             </div>
