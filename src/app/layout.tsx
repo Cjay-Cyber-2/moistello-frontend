@@ -8,6 +8,7 @@ import { ThemeProvider } from "@/providers/theme-provider"
 import { AuthProvider } from "@/providers/auth-provider"
 import { ToastProvider } from "@/providers/toast-provider"
 import { MonitoringProvider } from "@/providers/monitoring-provider"
+import { LocaleProvider } from "@/lib/locale/context"
 
 const spaceGrotesk = Space_Grotesk({
   subsets: ["latin"],
@@ -153,12 +154,14 @@ ym(109691925, 'init', {ssr:true, webvisor:true, clickmap:true, ecommerce:"dataLa
         <QueryProvider>
           <ThemeProvider>
             <AuthProvider>
-              <ToastProvider>
-                <MonitoringProvider>
-                  <meta name="csrf-token" content="" />
-                  {children}
-                </MonitoringProvider>
-              </ToastProvider>
+              <LocaleProvider>
+                <ToastProvider>
+                  <MonitoringProvider>
+                    <meta name="csrf-token" content="" />
+                    {children}
+                  </MonitoringProvider>
+                </ToastProvider>
+              </LocaleProvider>
             </AuthProvider>
           </ThemeProvider>
         </QueryProvider>

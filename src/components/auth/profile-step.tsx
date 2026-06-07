@@ -1,6 +1,7 @@
 "use client"
 
-import { useState, useRef, useEffect } from "react"
+import React, { useState, useRef } from "react"
+import { useTranslate } from "@/lib/locale/context"
 
 const LANGUAGES = [
   { value: "en", label: "English" },
@@ -204,10 +205,11 @@ export function ProfileStep({
   onSubmit,
   isSubmitting = false,
 }: ProfileStepProps) {
+  const { t, setLocale } = useTranslate()
   const [open, setOpen] = useState(false)
   const ref = useRef<HTMLDivElement>(null)
 
-  useEffect(() => {
+  React.useEffect(() => {
     function handleClick(e: MouseEvent) {
       if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false)
     }
@@ -222,7 +224,7 @@ export function ProfileStep({
 
       {/* Welcome aboard */}
       <p className="text-sm text-muted-foreground font-heading tracking-wider mb-3">
-        Welcome aboard
+        {t("auth.profile.welcome")}
       </p>
 
       {/* Name */}
@@ -233,7 +235,7 @@ export function ProfileStep({
       {/* Language — custom dropdown */}
       <div className="flex flex-col items-center gap-3">
         <label className="text-2xs text-muted-foreground uppercase tracking-[0.2em] font-medium">
-          Language
+          {t("auth.profile.language")}
         </label>
         <div ref={ref} className="relative w-56">
           <button
@@ -243,7 +245,7 @@ export function ProfileStep({
             className="w-full flex items-center justify-between bg-white/10 hover:bg-white/[0.14] border border-white/25 text-sm text-foreground py-3 px-4 rounded-xl focus:outline-none focus:border-white/40 transition-all"
           >
             <span className={selected ? "text-foreground" : "text-muted-foreground/50"}>
-              {selected?.label ?? "Select language"}
+              {selected?.label ?? t("auth.profile.selectLanguage")}
             </span>
             <svg className={`w-4 h-4 text-muted-foreground/60 transition-transform duration-200 ${open ? "rotate-180" : ""}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path d="M6 9l6 6 6-6" />
@@ -256,7 +258,7 @@ export function ProfileStep({
                 <button
                   key={l.value}
                   type="button"
-                  onClick={() => { onUpdateLanguage(l.value); setOpen(false) }}
+                  onClick={() => { onUpdateLanguage(l.value); setLocale(l.value); setOpen(false) }}
                   className={`w-full text-left px-4 py-2.5 text-sm transition-colors hover:bg-white/10 ${
                     l.value === language ? "text-foreground font-medium" : "text-muted-foreground"
                   }`}
@@ -279,7 +281,7 @@ export function ProfileStep({
         disabled={isSubmitting}
         className="text-sm font-heading font-medium tracking-wider uppercase text-muted-foreground hover:text-foreground transition-colors disabled:opacity-30"
       >
-        {isSubmitting ? "Setting up.." : "Continue"}
+        {isSubmitting ? t("auth.profile.settingUp") : t("auth.profile.continue")}
       </button>
     </div>
   )
