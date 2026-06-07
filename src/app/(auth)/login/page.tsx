@@ -99,7 +99,7 @@ function LoginPageContent() {
       if (useAuthFlowStore.getState().status.status === "authenticated") {
         authenticatingRef.current = false
         addToast({ type: "success", title: t("auth.login.welcomeBack"), description: t("auth.login.welcomeDescription") })
-        router.replace("/dashboard")
+        router.replace("/")
       }
     } catch (err: unknown) {
       authenticatingRef.current = false
@@ -140,7 +140,7 @@ function LoginPageContent() {
         title: t("auth.login.welcomeBack"),
         description: t("auth.login.welcomeDescription"),
       })
-      router.replace("/dashboard")
+      router.replace("/")
     }
   }, [sign, router, addToast])
 
