@@ -48,16 +48,29 @@ export function LocaleProvider({
     }
   }, [isAuthenticated, authUser?.preferredLanguage])
 
+  const persistLocale = useCallback(async (lang: string) => {
+    const { patch } = await import("@/lib/api-client")
+    for (let i = 0; i < 3; i++) {
+      try {
+        await patch("/users/me", { preferredLanguage: lang })
+        return
+      } catch {
+        if (i === 2) {
+          console.warn(`[locale] failed to persist language "${lang}" after 3 attempts`)
+          return
+        }
+        await new Promise((r) => setTimeout(r, 1000 * (i + 1)))
+      }
+    }
+  }, [])
+
   const setLocale = useCallback((lang: string) => {
     setLocaleState(lang)
     if (typeof window !== "undefined") {
       localStorage.setItem("moistello_locale", lang)
     }
-    // Persist to backend — fire and forget (user object will update on next checkAuth)
-    import("@/lib/api-client").then(({ patch }) => {
-      patch("/users/me", { preferredLanguage: lang }).catch(() => {})
-    })
-  }, [])
+    persistLocale(lang)
+  }, [persistLocale])
 
   const t = useCallback(
     (key: string): string => {
