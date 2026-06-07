@@ -6,12 +6,12 @@ import { Routes } from "@/lib/constants"
 import { useTranslate } from "@/lib/locale/context"
 
 const features = [
-  { icon: Shield, title: "Trustless & Transparent", description: "Smart contracts enforce every rule. No organizer can run with the pool. Every contribution verified on-chain.", colSpan: "lg:col-span-2", featured: true },
-  { icon: Globe, title: "Global Access", description: "Anyone with a Stellar wallet. No bank account. No credit check. No borders.", colSpan: "lg:col-span-1" },
-  { icon: Award, title: "On-Chain Reputation", description: "Build your MoiScore with every on-time contribution. Portable financial identity.", colSpan: "lg:col-span-1" },
-  { icon: Zap, title: "Near-Zero Fees", description: "Stellar's sub-cent transactions make daily circles practical. No platform fees to create or join.", colSpan: "lg:col-span-2", featured: true },
-  { icon: Shuffle, title: "Flexible Rules", description: "Random, fixed, auction, or vote. Your circle, your rules.", colSpan: "lg:col-span-1" },
-  { icon: Coins, title: "Multi-Currency", description: "USDC today. More stablecoins on the roadmap.", colSpan: "lg:col-span-1" },
+  { icon: Shield, titleKey: "landing.feat1Title", descKey: "landing.feat1Desc", colSpan: "lg:col-span-2", featured: true },
+  { icon: Globe, titleKey: "landing.feat2Title", descKey: "landing.feat2Desc", colSpan: "lg:col-span-1" },
+  { icon: Award, titleKey: "landing.feat3Title", descKey: "landing.feat3Desc", colSpan: "lg:col-span-1" },
+  { icon: Zap, titleKey: "landing.feat4Title", descKey: "landing.feat4Desc", colSpan: "lg:col-span-2", featured: true },
+  { icon: Shuffle, titleKey: "landing.feat5Title", descKey: "landing.feat5Desc", colSpan: "lg:col-span-1" },
+  { icon: Coins, titleKey: "landing.feat6Title", descKey: "landing.feat6Desc", colSpan: "lg:col-span-1" },
 ]
 
 export function LandingContent() {
@@ -53,15 +53,15 @@ export function LandingContent() {
           <div className="container-premium">
             <h2 className="font-heading text-4xl md:text-5xl gradient-text-extended text-center mb-16">{t("landing.architectureTitle")}</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
-              {features.map((feature) => {
+              {features.map((feature, i) => {
                 const Icon = feature.icon;
                 return (
-                  <div key={feature.title} className={`glass-premium rounded-2xl p-6 md:p-8 tilt-hover ${feature.colSpan} ${feature.featured ? "holo-border" : ""}`}>
+                  <div key={i} className={`glass-premium rounded-2xl p-6 md:p-8 tilt-hover ${feature.colSpan} ${feature.featured ? "holo-border" : ""}`}>
                     <div className="w-12 h-12 rounded-2xl gradient-bg-extended flex items-center justify-center text-white mb-5">
                       <Icon className="h-5 w-5" />
                     </div>
-                    <h3 className="font-heading text-lg md:text-xl font-semibold mb-2">{feature.title}</h3>
-                    <p className="text-muted-foreground text-sm leading-relaxed">{feature.description}</p>
+                    <h3 className="font-heading text-lg md:text-xl font-semibold mb-2">{t(feature.titleKey)}</h3>
+                    <p className="text-muted-foreground text-sm leading-relaxed">{t(feature.descKey)}</p>
                   </div>
                 );
               })}
