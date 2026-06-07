@@ -218,7 +218,7 @@ export function ProfileStep({
   const selected = LANGUAGES.find((l) => l.value === language)
 
   return (
-    <div className={`flex flex-col items-center min-h-[400px] pt-24 transition-all duration-300 ${open ? "-translate-y-32" : ""}`}>
+    <div className={`flex flex-col items-center min-h-[500px] pt-48 transition-all duration-300 ${open ? "-translate-y-40" : ""}`}>
 
       {/* Welcome aboard */}
       <p className="text-sm text-muted-foreground font-heading tracking-wider mb-3">
