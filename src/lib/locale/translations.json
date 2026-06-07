@@ -84,7 +84,16 @@
     "common.active": "Active",
     "common.completed": "Completed",
     "error.generic": "Something went wrong",
-    "error.tryAgain": "Please try again"
+    "error.tryAgain": "Please try again",
+    "nav.howItWorks": "How It Works",
+    "nav.developers": "Developers",
+    "nav.docs": "Docs",
+    "nav.support": "Support",
+    "nav.about": "About",
+    "nav.faq": "FAQ",
+    "nav.terms": "Terms",
+    "nav.privacy": "Privacy",
+    "nav.builtOnStellar": "Built on Stellar"
   },
   "aa": {
     "auth.profile.welcome": "unkaq muquk temeetem",
@@ -171,7 +180,16 @@
     "common.active": "Abinah",
     "common.completed": "Gaba kalteh",
     "error.generic": "tukteena hoxat tan",
-    "error.tryAgain": "Ku maganak qagitaak gibbat"
+    "error.tryAgain": "Ku maganak qagitaak gibbat",
+    "nav.howItWorks": "Mannal taamitam",
+    "nav.developers": "Dadliseenit",
+    "nav.docs": "Sanaditte",
+    "nav.support": "Qokol",
+    "nav.about": "wagittam",
+    "nav.faq": "FAQ",
+    "nav.terms": "waktitte",
+    "nav.privacy": "Cankiinu",
+    "nav.builtOnStellar": "cutuktal xissiime"
   },
   "ab": {
     "auth.profile.welcome": "Бзиала шәаабеит",
@@ -258,7 +276,16 @@
     "common.active": "Активтә",
     "common.completed": "Ихыркәшоуп",
     "error.generic": "Акы еиқәымшәеит",
-    "error.tryAgain": "Даҽазнык шәҽазышәшәа"
+    "error.tryAgain": "Даҽазнык шәҽазышәшәа",
+    "nav.howItWorks": "Уи аус шауа",
+    "nav.developers": "Аҿиаҩцәа",
+    "nav.docs": "Адокументқәа",
+    "nav.support": "Ацхыраара",
+    "nav.about": "Иазкны",
+    "nav.faq": "FAQ",
+    "nav.terms": "Атерминқәа",
+    "nav.privacy": "Амаӡара",
+    "nav.builtOnStellar": "Стеллар аҿы иаргылоуп"
   },
   "ae": {
     "auth.profile.welcome": "Welcome aboard",
@@ -345,7 +372,16 @@
     "common.active": "Active",
     "common.completed": "Completed",
     "error.generic": "Something went wrong",
-    "error.tryAgain": "Please try again"
+    "error.tryAgain": "Please try again",
+    "nav.howItWorks": "How It Works",
+    "nav.developers": "Developers",
+    "nav.docs": "Docs",
+    "nav.support": "Support",
+    "nav.about": "About",
+    "nav.faq": "FAQ",
+    "nav.terms": "Terms",
+    "nav.privacy": "Privacy",
+    "nav.builtOnStellar": "Built on Stellar"
   },
   "af": {
     "auth.profile.welcome": "Welkom aan boord",
@@ -432,7 +468,16 @@
     "common.active": "Aktief",
     "common.completed": "Voltooi",
     "error.generic": "Iets het verkeerd geloop",
-    "error.tryAgain": "Probeer asseblief weer"
+    "error.tryAgain": "Probeer asseblief weer",
+    "nav.howItWorks": "Hoe dit werk",
+    "nav.developers": "Ontwikkelaars",
+    "nav.docs": "Dokumente",
+    "nav.support": "Ondersteuning",
+    "nav.about": "Oor",
+    "nav.faq": "Gereelde vrae",
+    "nav.terms": "Bepalings",
+    "nav.privacy": "Privaatheid",
+    "nav.builtOnStellar": "Gebou op Stellar"
   },
   "ak": {
     "auth.profile.welcome": "Yɛma wo akwaaba ba hyɛn no mu",
@@ -519,7 +564,16 @@
     "common.active": "Ɛyɛ nnam",
     "common.completed": "Wɔawie",
     "error.generic": "Biribi ankɔ yiye",
-    "error.tryAgain": "Yɛsrɛ sɛ sɔ hwɛ bio"
+    "error.tryAgain": "Yɛsrɛ sɛ sɔ hwɛ bio",
+    "nav.howItWorks": "Sɛnea Ɛyɛ Adwuma",
+    "nav.developers": "Wɔn a wɔyɛ nneɛma",
+    "nav.docs": "Docs",
+    "nav.support": "Mmoa",
+    "nav.about": "Ɛfa",
+    "nav.faq": "FAQ",
+    "nav.terms": "Nsɛmfua a Wɔde Di Dwuma",
+    "nav.privacy": "Kokoam nsɛm a wɔde sie",
+    "nav.builtOnStellar": "Wɔkyekyee wɔ Stellar so"
   },
   "am": {
     "auth.profile.welcome": "እንኳን በደህና መጡ",
@@ -606,7 +660,16 @@
     "common.active": "ንቁ",
     "common.completed": "ተጠናቀቀ",
     "error.generic": "የሆነ ችግር ተፈጥሯል።",
-    "error.tryAgain": "እባክዎ እንደገና ይሞክሩ"
+    "error.tryAgain": "እባክዎ እንደገና ይሞክሩ",
+    "nav.howItWorks": "እንዴት እንደሚሰራ",
+    "nav.developers": "ገንቢዎች",
+    "nav.docs": "ሰነዶች",
+    "nav.support": "ድጋፍ",
+    "nav.about": "ስለ",
+    "nav.faq": "የሚጠየቁ ጥያቄዎች",
+    "nav.terms": "ውሎች",
+    "nav.privacy": "ግላዊነት",
+    "nav.builtOnStellar": "በስቴላር ላይ የተገነባ"
   },
   "an": {
     "auth.profile.welcome": "Welcome aboard",
@@ -693,7 +756,16 @@
     "common.active": "Active",
     "common.completed": "Completed",
     "error.generic": "Something went wrong",
-    "error.tryAgain": "Please try again"
+    "error.tryAgain": "Please try again",
+    "nav.howItWorks": "How It Works",
+    "nav.developers": "Developers",
+    "nav.docs": "Docs",
+    "nav.support": "Support",
+    "nav.about": "About",
+    "nav.faq": "FAQ",
+    "nav.terms": "Terms",
+    "nav.privacy": "Privacy",
+    "nav.builtOnStellar": "Built on Stellar"
   },
   "ar": {
     "auth.profile.welcome": "مرحبا بكم على متن الطائرة",
@@ -780,7 +852,16 @@
     "common.active": "نشط",
     "common.completed": "مكتمل",
     "error.generic": "حدث خطأ ما",
-    "error.tryAgain": "يرجى المحاولة مرة أخرى"
+    "error.tryAgain": "يرجى المحاولة مرة أخرى",
+    "nav.howItWorks": "كيف يعمل",
+    "nav.developers": "المطورين",
+    "nav.docs": "المستندات",
+    "nav.support": "الدعم",
+    "nav.about": "حول",
+    "nav.faq": "الأسئلة الشائعة",
+    "nav.terms": "الشروط",
+    "nav.privacy": "الخصوصية",
+    "nav.builtOnStellar": "بنيت على ممتاز"
   },
   "as": {
     "auth.profile.welcome": "জাহাজত উঠি আপোনাক স্বাগতম",
@@ -867,7 +948,16 @@
     "common.active": "সক্ৰিয়",
     "common.completed": "সম্পূৰ্ণ হ’ল",
     "error.generic": "কিবা এটা ভুল হ’ল",
-    "error.tryAgain": "অনুগ্ৰহ কৰি পুনৰ চেষ্টা কৰক"
+    "error.tryAgain": "অনুগ্ৰহ কৰি পুনৰ চেষ্টা কৰক",
+    "nav.howItWorks": "কেনেকৈ কাম কৰে",
+    "nav.developers": "ডেভেলপাৰসকল",
+    "nav.docs": "ডক্স",
+    "nav.support": "সমৰ্থন",
+    "nav.about": "সম্পৰ্কে",
+    "nav.faq": "FAQ",
+    "nav.terms": "চৰ্তসমূহ",
+    "nav.privacy": "গোপনীয়তা",
+    "nav.builtOnStellar": "ষ্টেলাৰৰ ওপৰত নিৰ্মিত"
   },
   "av": {
     "auth.profile.welcome": "РорчӀами борталда",
@@ -954,7 +1044,16 @@
     "common.active": "Жигараб",
     "common.completed": "ЛъугӀана",
     "error.generic": "Цо жо мекъи ккана .",
-    "error.tryAgain": "Гьарула цоги нухалъ хӀалбихье"
+    "error.tryAgain": "Гьарула цоги нухалъ хӀалбихье",
+    "nav.howItWorks": "Гьеб хӀалтӀулеб куц .",
+    "nav.developers": "Разработчикал",
+    "nav.docs": "Документал",
+    "nav.support": "Квербакъи",
+    "nav.about": "1999 соналъул хӀакъалъулъ.",
+    "nav.faq": "FAQ",
+    "nav.terms": "ШартӀал",
+    "nav.privacy": "Щаклъи гьечӀолъи",
+    "nav.builtOnStellar": "Стелларалда тӀад бана ."
   },
   "ay": {
     "auth.profile.welcome": "Uka barcor mantañax walikpun jutapxtaxa",
@@ -1041,7 +1140,16 @@
     "common.active": "Activo ukhamawa",
     "common.completed": "Tukuyatäxiwa",
     "error.generic": "Kunas jan waliruw puriwayi",
-    "error.tryAgain": "Ukhamaraki, mayampi yant’apxañani"
+    "error.tryAgain": "Ukhamaraki, mayampi yant’apxañani",
+    "nav.howItWorks": "Kunjamsa Irnaqaski",
+    "nav.developers": "Uñstayirinaka",
+    "nav.docs": "Docs",
+    "nav.support": "Yanapt’awi",
+    "nav.about": "Uka tuqitxa",
+    "nav.faq": "Jiskt’awinaka",
+    "nav.terms": "Terminos ukanaka",
+    "nav.privacy": "Privacidad tuqit yatxataña",
+    "nav.builtOnStellar": "Stellar ukan luratawa"
   },
   "az": {
     "auth.profile.welcome": "Xoş gəlmisiniz!",
@@ -1128,7 +1236,16 @@
     "common.active": "Aktiv",
     "common.completed": "Tamamlandı",
     "error.generic": "Nəsə xəta baş verdi",
-    "error.tryAgain": "Yenidən cəhd edin"
+    "error.tryAgain": "Yenidən cəhd edin",
+    "nav.howItWorks": "Necə işləyir",
+    "nav.developers": "Tərtibatçılar",
+    "nav.docs": "Sənədlər",
+    "nav.support": "Dəstək",
+    "nav.about": "Haqqında",
+    "nav.faq": "Tez-tez verilən suallar",
+    "nav.terms": "Şərtlər",
+    "nav.privacy": "Məxfilik",
+    "nav.builtOnStellar": "Stellar üzərində qurulmuşdur"
   },
   "ba": {
     "auth.profile.welcome": "Бортҡа рәхим итегеҙ",
@@ -1215,7 +1332,16 @@
     "common.active": "Әүҙем",
     "common.completed": "Тамамланды",
     "error.generic": "Нимәлер дөрөҫ булманы .",
-    "error.tryAgain": "Зинһар, яңынан тырышығыҙ"
+    "error.tryAgain": "Зинһар, яңынан тырышығыҙ",
+    "nav.howItWorks": "Нисек эшләй",
+    "nav.developers": "Төҙөүселәр",
+    "nav.docs": "Документтар",
+    "nav.support": "Ярҙам",
+    "nav.about": "тураһында.",
+    "nav.faq": "FAQ",
+    "nav.terms": "Шарттар",
+    "nav.privacy": "Шәхси тормош",
+    "nav.builtOnStellar": "Йондоҙло өҫтөндә төҙөлгән"
   },
   "be": {
     "auth.profile.welcome": "Сардэчна запрашаем на борт",
@@ -1302,7 +1428,16 @@
     "common.active": "Актыўны",
     "common.completed": "Завершана",
     "error.generic": "Нешта пайшло не так",
-    "error.tryAgain": "Калі ласка, паспрабуйце яшчэ раз"
+    "error.tryAgain": "Калі ласка, паспрабуйце яшчэ раз",
+    "nav.howItWorks": "Як гэта працуе",
+    "nav.developers": "Распрацоўшчыкі",
+    "nav.docs": "Дакументы",
+    "nav.support": "Падтрымка",
+    "nav.about": "Аб",
+    "nav.faq": "FAQ",
+    "nav.terms": "Умовы",
+    "nav.privacy": "Прыватнасць",
+    "nav.builtOnStellar": "Пабудаваны на Stellar"
   },
   "bg": {
     "auth.profile.welcome": "Добре дошли на борда",
@@ -1389,7 +1524,16 @@
     "common.active": "Активен",
     "common.completed": "Завършено",
     "error.generic": "Нещо се обърка",
-    "error.tryAgain": "Моля, опитайте отново"
+    "error.tryAgain": "Моля, опитайте отново",
+    "nav.howItWorks": "Как работи",
+    "nav.developers": "Разработчици",
+    "nav.docs": "Документи",
+    "nav.support": "поддръжка",
+    "nav.about": "За",
+    "nav.faq": "ЧЗВ",
+    "nav.terms": "Условия",
+    "nav.privacy": "Поверителност",
+    "nav.builtOnStellar": "Създаден на Stellar"
   },
   "bh": {
     "auth.profile.welcome": "सवार होके राउर स्वागत बा",
@@ -1476,7 +1620,16 @@
     "common.active": "सक्रिय बा",
     "common.completed": "पूरा हो गइल बा",
     "error.generic": "कुछ गड़बड़ हो गइल",
-    "error.tryAgain": "कृपया दोबारा कोशिश करीं"
+    "error.tryAgain": "कृपया दोबारा कोशिश करीं",
+    "nav.howItWorks": "ई कइसे काम करेला",
+    "nav.developers": "डेवलपर लोग के बा",
+    "nav.docs": "डॉक्स के बारे में बतावल गइल बा",
+    "nav.support": "समर्थन बा",
+    "nav.about": "के बारे में",
+    "nav.faq": "पूछल जाए वाला सवाल",
+    "nav.terms": "शर्तन के बा",
+    "nav.privacy": "निजता के बारे में बतावल गइल बा",
+    "nav.builtOnStellar": "स्टेलर पर बनल बा"
   },
   "bi": {
     "auth.profile.welcome": "Welcome aboard",
@@ -1563,7 +1716,16 @@
     "common.active": "Active",
     "common.completed": "Completed",
     "error.generic": "Something went wrong",
-    "error.tryAgain": "Please try again"
+    "error.tryAgain": "Please try again",
+    "nav.howItWorks": "How It Works",
+    "nav.developers": "Developers",
+    "nav.docs": "Docs",
+    "nav.support": "Support",
+    "nav.about": "About",
+    "nav.faq": "FAQ",
+    "nav.terms": "Terms",
+    "nav.privacy": "Privacy",
+    "nav.builtOnStellar": "Built on Stellar"
   },
   "bm": {
     "auth.profile.welcome": "Aw ni ce kurun kɔnɔ",
@@ -1650,7 +1812,16 @@
     "common.active": "Active (walekɛla).",
     "common.completed": "A dafara",
     "error.generic": "Fɛn dɔ ma ɲɛ",
-    "error.tryAgain": "Aw ye aw jija ka segin a kan"
+    "error.tryAgain": "Aw ye aw jija ka segin a kan",
+    "nav.howItWorks": "A bɛ baara kɛ cogo min na",
+    "nav.developers": "Fɛn dilannikɛlaw",
+    "nav.docs": "Docs",
+    "nav.support": "Dɛmɛ don",
+    "nav.about": "Ko la",
+    "nav.faq": "Ɲininkaliw",
+    "nav.terms": "Sariyasenw",
+    "nav.privacy": "Kunnafoni dogolenw",
+    "nav.builtOnStellar": "A jɔlen bɛ Stellar kan"
   },
   "bn": {
     "auth.profile.welcome": "জাহাজে স্বাগতম",
@@ -1737,7 +1908,16 @@
     "common.active": "সক্রিয়",
     "common.completed": "সম্পন্ন",
     "error.generic": "কিছু ভুল হয়েছে",
-    "error.tryAgain": "আবার চেষ্টা করুন"
+    "error.tryAgain": "আবার চেষ্টা করুন",
+    "nav.howItWorks": "কিভাবে এটা কাজ করে",
+    "nav.developers": "বিকাশকারীরা",
+    "nav.docs": "ডক্স",
+    "nav.support": "সমর্থন",
+    "nav.about": "সম্পর্কে",
+    "nav.faq": "FAQ",
+    "nav.terms": "শর্তাবলী",
+    "nav.privacy": "গোপনীয়তা",
+    "nav.builtOnStellar": "স্টেলারে নির্মিত"
   },
   "bo": {
     "auth.profile.welcome": "གྲུ་ཁར་ཕེབས་པར་དགའ་བསུ་ཞུ།",
@@ -1824,7 +2004,16 @@
     "common.active": "ཤུགས་ལྡན་པ།",
     "common.completed": "ལེགས་འགྲུབ་བྱུང་།",
     "error.generic": "དོན་དག་ཅིག་ནོར་འཁྲུལ་བྱུང་སོང་།",
-    "error.tryAgain": "ཡང་བསྐྱར་ཚོད་ལྟ་གནང་རོགས།"
+    "error.tryAgain": "ཡང་བསྐྱར་ཚོད་ལྟ་གནང་རོགས།",
+    "nav.howItWorks": "བྱེད་སྟངས།",
+    "nav.developers": "འཕེལ་རྒྱས་གཏོང་མཁན།",
+    "nav.docs": "ཡིག་ཆ།",
+    "nav.support": "རྒྱབ་སྐྱོར།",
+    "nav.about": "སྐོར།",
+    "nav.faq": "དྲི་བ་དྲིས་ལན།",
+    "nav.terms": "ཆ་རྐྱེན།",
+    "nav.privacy": "གསང་བ།",
+    "nav.builtOnStellar": "སྐར་མའི་སྟེང་དུ་བསྐྲུན་པ།"
   },
   "br": {
     "auth.profile.welcome": "Degemer mat war ar vag",
@@ -1911,7 +2100,16 @@
     "common.active": "Oberiant",
     "common.completed": "Echu",
     "error.generic": "Un dra bennak a zo aet fall",
-    "error.tryAgain": "Klaskit en-dro mar plij"
+    "error.tryAgain": "Klaskit en-dro mar plij",
+    "nav.howItWorks": "Penaos e ya en-dro",
+    "nav.developers": "Diorroerien",
+    "nav.docs": "Teulioù",
+    "nav.support": "Skoazell",
+    "nav.about": "Diwar-benn",
+    "nav.faq": "FAQ",
+    "nav.terms": "Termenoù",
+    "nav.privacy": "Prevezded",
+    "nav.builtOnStellar": "Savet war Stellar"
   },
   "bs": {
     "auth.profile.welcome": "Dobrodošli na brod",
@@ -1998,7 +2196,16 @@
     "common.active": "Aktivan",
     "common.completed": "Završeno",
     "error.generic": "Nešto je pošlo po zlu",
-    "error.tryAgain": "Molimo pokušajte ponovo"
+    "error.tryAgain": "Molimo pokušajte ponovo",
+    "nav.howItWorks": "Kako radi",
+    "nav.developers": "Developers",
+    "nav.docs": "Docs",
+    "nav.support": "Podrška",
+    "nav.about": "O",
+    "nav.faq": "FAQ",
+    "nav.terms": "Uslovi",
+    "nav.privacy": "Privatnost",
+    "nav.builtOnStellar": "Izgrađen na Stellaru"
   },
   "ca": {
     "auth.profile.welcome": "Benvingut a bord",
@@ -2085,7 +2292,16 @@
     "common.active": "Actius",
     "common.completed": "Completat",
     "error.generic": "Alguna cosa va fallar",
-    "error.tryAgain": "Si us plau, torna-ho a provar"
+    "error.tryAgain": "Si us plau, torna-ho a provar",
+    "nav.howItWorks": "Com funciona",
+    "nav.developers": "Desenvolupadors",
+    "nav.docs": "Docs",
+    "nav.support": "Suport",
+    "nav.about": "Sobre",
+    "nav.faq": "Preguntes freqüents",
+    "nav.terms": "Termes",
+    "nav.privacy": "Privadesa",
+    "nav.builtOnStellar": "Construït sobre Stellar"
   },
   "ce": {
     "auth.profile.welcome": "Марша вогӀийла хьо кеманна тӀе",
@@ -2172,7 +2388,16 @@
     "common.active": "Жигара",
     "common.completed": "Чекхдаьлла",
     "error.generic": "Цхьа хӀума галдаьлла .",
-    "error.tryAgain": "Юха хьажахьара ахь ."
+    "error.tryAgain": "Юха хьажахьара ахь .",
+    "nav.howItWorks": "Цо болх муха бо .",
+    "nav.developers": "Девелоперашка",
+    "nav.docs": "Документаш",
+    "nav.support": "ГӀоьналла",
+    "nav.about": "1999 ш.",
+    "nav.faq": "FAQ",
+    "nav.terms": "Терминаш",
+    "nav.privacy": "Къайленаш",
+    "nav.builtOnStellar": "Стеллар тӀехь йина ."
   },
   "ch": {
     "auth.profile.welcome": "Magof na hålom gi i batko",
@@ -2259,7 +2484,16 @@
     "common.active": "Aktibu",
     "common.completed": "Ma kumple",
     "error.generic": "Guaha ti maolek",
-    "error.tryAgain": "På'go, prutehi ta'lo"
+    "error.tryAgain": "På'go, prutehi ta'lo",
+    "nav.howItWorks": "Taimanu Ha Cho'cho'",
+    "nav.developers": "Manma'gås-ñiha",
+    "nav.docs": "Dokumento siha",
+    "nav.support": "Supotte",
+    "nav.about": "Put",
+    "nav.faq": "FAQ",
+    "nav.terms": "Terms",
+    "nav.privacy": "Pribåsi",
+    "nav.builtOnStellar": "Ma fa'tinas gi Stellar"
   },
   "co": {
     "auth.profile.welcome": "Benvenuti à bordu",
@@ -2346,7 +2580,16 @@
     "common.active": "Attivu",
     "common.completed": "Cumplitu",
     "error.generic": "Qualcosa hè andatu male",
-    "error.tryAgain": "Per piacè pruvate di novu"
+    "error.tryAgain": "Per piacè pruvate di novu",
+    "nav.howItWorks": "Cumu Funziona",
+    "nav.developers": "Sviluppatori",
+    "nav.docs": "Docs",
+    "nav.support": "Supportu",
+    "nav.about": "À propositu",
+    "nav.faq": "FAQ",
+    "nav.terms": "Termini",
+    "nav.privacy": "Privacy",
+    "nav.builtOnStellar": "Custruitu nantu à Stellar"
   },
   "cr": {
     "auth.profile.welcome": "Welcome aboard",
@@ -2433,7 +2676,16 @@
     "common.active": "Active",
     "common.completed": "Completed",
     "error.generic": "Something went wrong",
-    "error.tryAgain": "Please try again"
+    "error.tryAgain": "Please try again",
+    "nav.howItWorks": "How It Works",
+    "nav.developers": "Developers",
+    "nav.docs": "Docs",
+    "nav.support": "Support",
+    "nav.about": "About",
+    "nav.faq": "FAQ",
+    "nav.terms": "Terms",
+    "nav.privacy": "Privacy",
+    "nav.builtOnStellar": "Built on Stellar"
   },
   "cs": {
     "auth.profile.welcome": "Vítejte na palubě",
@@ -2520,7 +2772,16 @@
     "common.active": "Aktivní",
     "common.completed": "Dokončeno",
     "error.generic": "Něco se pokazilo",
-    "error.tryAgain": "Zkuste to prosím znovu"
+    "error.tryAgain": "Zkuste to prosím znovu",
+    "nav.howItWorks": "Jak to funguje",
+    "nav.developers": "Vývojáři",
+    "nav.docs": "Docs",
+    "nav.support": "Podpora",
+    "nav.about": "O",
+    "nav.faq": "FAQ",
+    "nav.terms": "Podmínky",
+    "nav.privacy": "soukromí",
+    "nav.builtOnStellar": "Postaveno na Stellar"
   },
   "cu": {
     "auth.profile.welcome": "Welcome aboard",
@@ -2607,7 +2868,16 @@
     "common.active": "Active",
     "common.completed": "Completed",
     "error.generic": "Something went wrong",
-    "error.tryAgain": "Please try again"
+    "error.tryAgain": "Please try again",
+    "nav.howItWorks": "How It Works",
+    "nav.developers": "Developers",
+    "nav.docs": "Docs",
+    "nav.support": "Support",
+    "nav.about": "About",
+    "nav.faq": "FAQ",
+    "nav.terms": "Terms",
+    "nav.privacy": "Privacy",
+    "nav.builtOnStellar": "Built on Stellar"
   },
   "cv": {
     "auth.profile.welcome": "Борт ҫине хапӑл туса кӗтетпӗр",
@@ -2694,7 +2964,16 @@
     "common.active": "Активлӑ",
     "common.completed": "Пӗтернӗ",
     "error.generic": "Темскер йӑнӑш пулчӗ",
-    "error.tryAgain": "Тархасшӑн, тепӗр хут тытӑнса пӑхӑр"
+    "error.tryAgain": "Тархасшӑн, тепӗр хут тытӑнса пӑхӑр",
+    "nav.howItWorks": "Вӑл мӗнле ӗҫлет",
+    "nav.developers": "Разработчиксем",
+    "nav.docs": "Документсем",
+    "nav.support": "Тӗрев",
+    "nav.about": "ҫинчен",
+    "nav.faq": "FAQ",
+    "nav.terms": "Условисем",
+    "nav.privacy": "Конфиденциаллӑх",
+    "nav.builtOnStellar": "Stellar ҫинче тунӑ"
   },
   "cy": {
     "auth.profile.welcome": "Croeso ar fwrdd",
@@ -2781,7 +3060,16 @@
     "common.active": "Actif",
     "common.completed": "Cwblhawyd",
     "error.generic": "Aeth rhywbeth o'i le",
-    "error.tryAgain": "Ceisiwch eto"
+    "error.tryAgain": "Ceisiwch eto",
+    "nav.howItWorks": "Sut Mae'n Gweithio",
+    "nav.developers": "Datblygwyr",
+    "nav.docs": "Docs",
+    "nav.support": "Cefnogaeth",
+    "nav.about": "Ynghylch",
+    "nav.faq": "FAQ",
+    "nav.terms": "Termau",
+    "nav.privacy": "Preifatrwydd",
+    "nav.builtOnStellar": "Adeiladwyd ar Stellar"
   },
   "da": {
     "auth.profile.welcome": "Velkommen ombord",
@@ -2868,7 +3156,16 @@
     "common.active": "Aktiv",
     "common.completed": "Afsluttet",
     "error.generic": "Noget gik galt",
-    "error.tryAgain": "Prøv venligst igen"
+    "error.tryAgain": "Prøv venligst igen",
+    "nav.howItWorks": "Hvordan det virker",
+    "nav.developers": "Udviklere",
+    "nav.docs": "Dokumenter",
+    "nav.support": "Support",
+    "nav.about": "Om",
+    "nav.faq": "FAQ",
+    "nav.terms": "Vilkår",
+    "nav.privacy": "Privatliv",
+    "nav.builtOnStellar": "Bygget på Stellar"
   },
   "de": {
     "auth.profile.welcome": "Willkommen an Bord",
@@ -2955,7 +3252,16 @@
     "common.active": "Aktiv",
     "common.completed": "Abgeschlossen",
     "error.generic": "Etwas ist schief gelaufen",
-    "error.tryAgain": "Bitte versuchen Sie es erneut"
+    "error.tryAgain": "Bitte versuchen Sie es erneut",
+    "nav.howItWorks": "Wie es funktioniert",
+    "nav.developers": "Entwickler",
+    "nav.docs": "Dokumente",
+    "nav.support": "Unterstützung",
+    "nav.about": "Über",
+    "nav.faq": "FAQ",
+    "nav.terms": "Bedingungen",
+    "nav.privacy": "Privatsphäre",
+    "nav.builtOnStellar": "Auf Stellar aufgebaut"
   },
   "dv": {
     "auth.profile.welcome": "މަރުހަބާ ބޯޓަށް",
@@ -3042,7 +3348,16 @@
     "common.active": "އެކްޓިވް",
     "common.completed": "ނިމިއްޖެއެވެ",
     "error.generic": "ކަމެއް ގޯސްވީއެވެ",
-    "error.tryAgain": "އަނެއްކާވެސް މަސައްކަތް ކުރައްވާށެވެ"
+    "error.tryAgain": "އަނެއްކާވެސް މަސައްކަތް ކުރައްވާށެވެ",
+    "nav.howItWorks": "އެކަން ކުރާ ގޮތް",
+    "nav.developers": "ޑިވެލޮޕަރުން",
+    "nav.docs": "ޑޮކްސް",
+    "nav.support": "ސަޕޯޓް",
+    "nav.about": "އާ ބެހޭ...",
+    "nav.faq": "އެފްއޭކިއު",
+    "nav.terms": "ޝަރުތުތައް",
+    "nav.privacy": "ޕްރައިވެސީ",
+    "nav.builtOnStellar": "ސްޓެލާގެ މައްޗަށް ބިނާކޮށްފައިވެއެވެ"
   },
   "dz": {
     "auth.profile.welcome": "གྲུ་ནང་ལུ་ཕེབས་བསུ་ཞུ།",
@@ -3129,7 +3444,16 @@
     "common.active": "ཤུགས་ལྡན་ཅན།",
     "common.completed": "མཇུག་བསྡུ་ཡོདཔ།",
     "error.generic": "ག་ཅི་ཅིག་འཛོལ་སོང་ནུག།",
-    "error.tryAgain": "འབད་རྩོལ་བསྐྱེད་གནང་།"
+    "error.tryAgain": "འབད་རྩོལ་བསྐྱེད་གནང་།",
+    "nav.howItWorks": "ལཱ་འབད་ཐངས།",
+    "nav.developers": "Developers",
+    "nav.docs": "Docs",
+    "nav.support": "Support",
+    "nav.about": "About",
+    "nav.faq": "FAQ",
+    "nav.terms": "Terms",
+    "nav.privacy": "Privacy",
+    "nav.builtOnStellar": "Built on Stellar"
   },
   "ee": {
     "auth.profile.welcome": "Míexɔ wò nyuie ɖe ʋua me",
@@ -3216,7 +3540,16 @@
     "common.active": "Active",
     "common.completed": "Wowu enu",
     "error.generic": "Nane gblẽ",
-    "error.tryAgain": "Taflatse gadze agbagba ake"
+    "error.tryAgain": "Taflatse gadze agbagba ake",
+    "nav.howItWorks": "Ale Si Wòwɔa Dɔe",
+    "nav.developers": "Dɔwɔlawo",
+    "nav.docs": "Docs",
+    "nav.support": "Kpekpeɖeŋunana",
+    "nav.about": "Ku ɖe",
+    "nav.faq": "Nyabiasewo ƒe Nyabiasewo",
+    "nav.terms": "Nyawo",
+    "nav.privacy": "Ame ŋutɔ ƒe nyawo gbɔgblɔ",
+    "nav.builtOnStellar": "Wotue ɖe Stellar dzi"
   },
   "el": {
     "auth.profile.welcome": "Καλώς ήρθατε στο πλοίο",
@@ -3303,7 +3636,16 @@
     "common.active": "Ενεργός",
     "common.completed": "Ολοκληρώθηκε",
     "error.generic": "Κάτι πήγε στραβά",
-    "error.tryAgain": "Δοκιμάστε ξανά"
+    "error.tryAgain": "Δοκιμάστε ξανά",
+    "nav.howItWorks": "Πώς λειτουργεί",
+    "nav.developers": "προγραμματιστές",
+    "nav.docs": "Έγγραφα",
+    "nav.support": "Υποστήριξη",
+    "nav.about": "Περίπου",
+    "nav.faq": "FAQ",
+    "nav.terms": "Όροι",
+    "nav.privacy": "Απόρρητο",
+    "nav.builtOnStellar": "Χτισμένο στο Stellar"
   },
   "eo": {
     "auth.profile.welcome": "Bonvenon surŝipe",
@@ -3390,7 +3732,16 @@
     "common.active": "Aktiva",
     "common.completed": "Kompletigita",
     "error.generic": "Io misfunkciis",
-    "error.tryAgain": "Bonvolu provi denove"
+    "error.tryAgain": "Bonvolu provi denove",
+    "nav.howItWorks": "Kiel Ĝi Funkcias",
+    "nav.developers": "Programistoj",
+    "nav.docs": "Docs",
+    "nav.support": "Subteno",
+    "nav.about": "Pri",
+    "nav.faq": "Oftaj Demandoj",
+    "nav.terms": "Kondiĉoj",
+    "nav.privacy": "Privateco",
+    "nav.builtOnStellar": "Konstruite sur Stellar"
   },
   "es": {
     "auth.profile.welcome": "Bienvenido a bordo",
@@ -3477,7 +3828,16 @@
     "common.active": "Activo",
     "common.completed": "Completado",
     "error.generic": "algo salió mal",
-    "error.tryAgain": "Por favor inténtalo de nuevo"
+    "error.tryAgain": "Por favor inténtalo de nuevo",
+    "nav.howItWorks": "Cómo funciona",
+    "nav.developers": "Desarrolladores",
+    "nav.docs": "Documentos",
+    "nav.support": "Soporte",
+    "nav.about": "Acerca de",
+    "nav.faq": "Preguntas frecuentes",
+    "nav.terms": "Términos",
+    "nav.privacy": "Privacidad",
+    "nav.builtOnStellar": "Construido sobre estelar"
   },
   "et": {
     "auth.profile.welcome": "Tere tulemast pardale",
@@ -3564,7 +3924,16 @@
     "common.active": "Aktiivne",
     "common.completed": "Lõpetatud",
     "error.generic": "Midagi läks valesti",
-    "error.tryAgain": "Palun proovi uuesti"
+    "error.tryAgain": "Palun proovi uuesti",
+    "nav.howItWorks": "Kuidas see töötab",
+    "nav.developers": "Arendajad",
+    "nav.docs": "Dokumendid",
+    "nav.support": "Toetus",
+    "nav.about": "Umbes",
+    "nav.faq": "KKK",
+    "nav.terms": "Tingimused",
+    "nav.privacy": "Privaatsus",
+    "nav.builtOnStellar": "Ehitatud Stellarile"
   },
   "eu": {
     "auth.profile.welcome": "Ongi etorri itsasontzian",
@@ -3651,7 +4020,16 @@
     "common.active": "Aktiboa",
     "common.completed": "Osatua",
     "error.generic": "Zerbait gaizki joan da",
-    "error.tryAgain": "Mesedez, saiatu berriro"
+    "error.tryAgain": "Mesedez, saiatu berriro",
+    "nav.howItWorks": "Nola Funtzionatzen Du",
+    "nav.developers": "Garatzaileak",
+    "nav.docs": "Dokumentuak",
+    "nav.support": "Laguntza",
+    "nav.about": "Buruz",
+    "nav.faq": "Ohiko galderak",
+    "nav.terms": "Baldintzak",
+    "nav.privacy": "Pribatutasuna",
+    "nav.builtOnStellar": "Stellar-en gainean eraikia"
   },
   "fa": {
     "auth.profile.welcome": "خوش آمدید",
@@ -3738,7 +4116,16 @@
     "common.active": "فعال",
     "common.completed": "تکمیل شد",
     "error.generic": "مشکلی پیش آمد",
-    "error.tryAgain": "لطفا دوباره امتحان کنید"
+    "error.tryAgain": "لطفا دوباره امتحان کنید",
+    "nav.howItWorks": "چگونه کار می کند",
+    "nav.developers": "توسعه دهندگان",
+    "nav.docs": "اسناد",
+    "nav.support": "پشتیبانی کنید",
+    "nav.about": "درباره",
+    "nav.faq": "سوالات متداول",
+    "nav.terms": "شرایط",
+    "nav.privacy": "حریم خصوصی",
+    "nav.builtOnStellar": "ساخته شده بر روی استلار"
   },
   "ff": {
     "auth.profile.welcome": "On njaraama e nder laana",
@@ -3825,7 +4212,16 @@
     "common.active": "Golloowo",
     "common.completed": "Timminii",
     "error.generic": "Won ko ŋakki",
-    "error.tryAgain": "Tiiɗno enndu kadi"
+    "error.tryAgain": "Tiiɗno enndu kadi",
+    "nav.howItWorks": "No Nde Gollirta",
+    "nav.developers": "Ƴellitooɓe",
+    "nav.docs": "Dokimaaji",
+    "nav.support": "Ballal",
+    "nav.about": "Ko fayti e",
+    "nav.faq": "FAQ",
+    "nav.terms": "Sarɗiiji",
+    "nav.privacy": "Sirlu",
+    "nav.builtOnStellar": "Mahi ko e dow Stellar"
   },
   "fi": {
     "auth.profile.welcome": "Tervetuloa kyytiin",
@@ -3912,7 +4308,16 @@
     "common.active": "Aktiivinen",
     "common.completed": "Valmis",
     "error.generic": "Jotain meni pieleen",
-    "error.tryAgain": "Yritä uudelleen"
+    "error.tryAgain": "Yritä uudelleen",
+    "nav.howItWorks": "Miten se toimii",
+    "nav.developers": "Kehittäjät",
+    "nav.docs": "Asiakirjat",
+    "nav.support": "Tuki",
+    "nav.about": "Tietoja",
+    "nav.faq": "FAQ",
+    "nav.terms": "Ehdot",
+    "nav.privacy": "Yksityisyys",
+    "nav.builtOnStellar": "Rakennettu Stellarin päälle"
   },
   "fj": {
     "auth.profile.welcome": "Kidavaki kemuni ena waqa",
@@ -3999,7 +4404,16 @@
     "common.active": "Gugumatua",
     "common.completed": "Sa oti",
     "error.generic": "E dua na ka e cala",
-    "error.tryAgain": "Kerekere mo tovolea tale"
+    "error.tryAgain": "Kerekere mo tovolea tale",
+    "nav.howItWorks": "Na kena Cakacaka",
+    "nav.developers": "Vakatorocaketaka",
+    "nav.docs": "iVola",
+    "nav.support": "Veitokoni",
+    "nav.about": "Me baleta",
+    "nav.faq": "FAQ",
+    "nav.terms": "Veivosaki",
+    "nav.privacy": "Na veika vakaitaukei",
+    "nav.builtOnStellar": "Tara ena Stellar"
   },
   "fo": {
     "auth.profile.welcome": "Vælkomin umborð",
@@ -4086,7 +4500,16 @@
     "common.active": "Virkin",
     "common.completed": "Liðugt",
     "error.generic": "Okkurt gekk galið",
-    "error.tryAgain": "Vinarliga royn aftur"
+    "error.tryAgain": "Vinarliga royn aftur",
+    "nav.howItWorks": "Hvussu tað virkar",
+    "nav.developers": "Forritarar",
+    "nav.docs": "Skjøl",
+    "nav.support": "Stuðul",
+    "nav.about": "Um",
+    "nav.faq": "Vanligir spurningar",
+    "nav.terms": "Treytir",
+    "nav.privacy": "Persónligur dátur",
+    "nav.builtOnStellar": "Bygt á Stellar ."
   },
   "fr": {
     "auth.profile.welcome": "Bienvenue",
@@ -4173,7 +4596,16 @@
     "common.active": "Actif",
     "common.completed": "Terminé",
     "error.generic": "Une erreur est survenue",
-    "error.tryAgain": "Veuillez réessayer"
+    "error.tryAgain": "Veuillez réessayer",
+    "nav.howItWorks": "Comment ça marche",
+    "nav.developers": "Développeurs",
+    "nav.docs": "Docs",
+    "nav.support": "Assistance",
+    "nav.about": "À propos",
+    "nav.faq": "FAQ",
+    "nav.terms": "Conditions",
+    "nav.privacy": "Confidentialité",
+    "nav.builtOnStellar": "Construit sur Stellar"
   },
   "fy": {
     "auth.profile.welcome": "Wolkom oan board",
@@ -4260,7 +4692,16 @@
     "common.active": "Aktyf",
     "common.completed": "Foltôge",
     "error.generic": "Der gie wat mis",
-    "error.tryAgain": "Besykje it nochris"
+    "error.tryAgain": "Besykje it nochris",
+    "nav.howItWorks": "Hoe't it wurket",
+    "nav.developers": "Untwikkelders",
+    "nav.docs": "Docs",
+    "nav.support": "Stipe",
+    "nav.about": "Oer",
+    "nav.faq": "FAQ",
+    "nav.terms": "Terms",
+    "nav.privacy": "Privacy",
+    "nav.builtOnStellar": "Boud op Stellar"
   },
   "ga": {
     "auth.profile.welcome": "Fáilte romhat ar bord",
@@ -4347,7 +4788,16 @@
     "common.active": "Gníomhach",
     "common.completed": "Críochnaithe",
     "error.generic": "Chuaigh rud éigin mícheart",
-    "error.tryAgain": "Bain triail eile as"
+    "error.tryAgain": "Bain triail eile as",
+    "nav.howItWorks": "Conas a Oibríonn sé",
+    "nav.developers": "Forbróirí",
+    "nav.docs": "Docs",
+    "nav.support": "Tacaíocht",
+    "nav.about": "Maidir",
+    "nav.faq": "CCanna",
+    "nav.terms": "Téarmaí",
+    "nav.privacy": "Príobháideacht",
+    "nav.builtOnStellar": "Tógtha ar Stellar"
   },
   "gd": {
     "auth.profile.welcome": "Fàilte air bòrd",
@@ -4434,7 +4884,16 @@
     "common.active": "Gnìomhach",
     "common.completed": "Air a chrìochnachadh",
     "error.generic": "Chaidh rudeigin ceàrr",
-    "error.tryAgain": "Feuch ris a-rithist"
+    "error.tryAgain": "Feuch ris a-rithist",
+    "nav.howItWorks": "Mar a tha e ag obair",
+    "nav.developers": "Luchd-leasachaidh",
+    "nav.docs": "Docs",
+    "nav.support": "Taic",
+    "nav.about": "Mu dheidhinn",
+    "nav.faq": "Ceistean Cumanta",
+    "nav.terms": "Teirmean",
+    "nav.privacy": "Prìobhaideachd",
+    "nav.builtOnStellar": "Air a thogail air Stellar"
   },
   "gl": {
     "auth.profile.welcome": "Benvido a bordo",
@@ -4521,7 +4980,16 @@
     "common.active": "Activo",
     "common.completed": "Completado",
     "error.generic": "Algo saíu mal",
-    "error.tryAgain": "Téntao de novo"
+    "error.tryAgain": "Téntao de novo",
+    "nav.howItWorks": "Como funciona",
+    "nav.developers": "Desenvolvedores",
+    "nav.docs": "Docs",
+    "nav.support": "Apoio",
+    "nav.about": "Sobre",
+    "nav.faq": "FAQ",
+    "nav.terms": "Termos",
+    "nav.privacy": "Privacidade",
+    "nav.builtOnStellar": "Construído sobre Stellar"
   },
   "gn": {
     "auth.profile.welcome": "Peju porãite a bordo-pe",
@@ -4608,7 +5076,16 @@
     "common.active": "Activo",
     "common.completed": "Oñemohu’ãma",
     "error.generic": "Oĩ mba’e oho vaíva",
-    "error.tryAgain": "Eñeha’ã jey"
+    "error.tryAgain": "Eñeha’ã jey",
+    "nav.howItWorks": "Mba’éichapa Omba’apo",
+    "nav.developers": "Umi omoheñóiva",
+    "nav.docs": "Docs",
+    "nav.support": "Pytyvõ",
+    "nav.about": "Rehegua",
+    "nav.faq": "FAQ ojeporavóva",
+    "nav.terms": "Ñe’ẽme’ẽ",
+    "nav.privacy": "Privacidad rehegua",
+    "nav.builtOnStellar": "Oñemopu’ã Stellar ári"
   },
   "gu": {
     "auth.profile.welcome": "વહાણમાં સ્વાગત છે",
@@ -4695,7 +5172,16 @@
     "common.active": "સક્રિય",
     "common.completed": "પૂર્ણ થયું",
     "error.generic": "કંઈક ખોટું થયું",
-    "error.tryAgain": "કૃપા કરીને ફરી પ્રયાસ કરો"
+    "error.tryAgain": "કૃપા કરીને ફરી પ્રયાસ કરો",
+    "nav.howItWorks": "તે કેવી રીતે કામ કરે છે",
+    "nav.developers": "વિકાસકર્તાઓ",
+    "nav.docs": "દસ્તાવેજ",
+    "nav.support": "આધાર",
+    "nav.about": "વિશે",
+    "nav.faq": "FAQ",
+    "nav.terms": "શરતો",
+    "nav.privacy": "ગોપનીયતા",
+    "nav.builtOnStellar": "સ્ટેલર પર બિલ્ટ"
   },
   "gv": {
     "auth.profile.welcome": "Cur-my-ner",
@@ -4782,7 +5268,16 @@
     "common.active": "Glan",
     "common.completed": "Cur cliaghtey",
     "error.generic": "Va red erbee er n'gholl er-shaghryn",
-    "error.tryAgain": "Feayrish reesht"
+    "error.tryAgain": "Feayrish reesht",
+    "nav.howItWorks": "Cre'n aght t'eh obbraghey",
+    "nav.developers": "Formagheyderyn",
+    "nav.docs": "Docs",
+    "nav.support": "Tastey;",
+    "nav.about": "Mychione",
+    "nav.faq": "FAQ",
+    "nav.terms": "Termyn",
+    "nav.privacy": "Privacy",
+    "nav.builtOnStellar": "Toiggal er Stellar"
   },
   "ha": {
     "auth.profile.welcome": "Barka da zuwa",
@@ -4869,7 +5364,16 @@
     "common.active": "Mai aiki",
     "common.completed": "An kammala",
     "error.generic": "Wani abu ya faru",
-    "error.tryAgain": "Da fatan za a sake gwadawa"
+    "error.tryAgain": "Da fatan za a sake gwadawa",
+    "nav.howItWorks": "Yadda Ake Aiki",
+    "nav.developers": "Masu haɓakawa",
+    "nav.docs": "Docs",
+    "nav.support": "Taimako",
+    "nav.about": "Game da",
+    "nav.faq": "FAQ",
+    "nav.terms": "Sharuɗɗan",
+    "nav.privacy": "Keɓantawa",
+    "nav.builtOnStellar": "Gina kan Stellar"
   },
   "he": {
     "auth.profile.welcome": "ברוך הבא לסיפון",
@@ -4956,7 +5460,16 @@
     "common.active": "פעיל",
     "common.completed": "הושלם",
     "error.generic": "משהו השתבש",
-    "error.tryAgain": "אנא נסה שוב"
+    "error.tryAgain": "אנא נסה שוב",
+    "nav.howItWorks": "איך זה עובד",
+    "nav.developers": "מפתחים",
+    "nav.docs": "מסמכים",
+    "nav.support": "תמיכה",
+    "nav.about": "בערך",
+    "nav.faq": "שאלות נפוצות",
+    "nav.terms": "תנאים",
+    "nav.privacy": "פרטיות",
+    "nav.builtOnStellar": "בנוי על Stellar"
   },
   "hi": {
     "auth.profile.welcome": "Welcome aboard",
@@ -5043,7 +5556,16 @@
     "common.active": "Active",
     "common.completed": "Completed",
     "error.generic": "Something went wrong",
-    "error.tryAgain": "Please try again"
+    "error.tryAgain": "Please try again",
+    "nav.howItWorks": "How It Works",
+    "nav.developers": "Developers",
+    "nav.docs": "Docs",
+    "nav.support": "Support",
+    "nav.about": "About",
+    "nav.faq": "FAQ",
+    "nav.terms": "Terms",
+    "nav.privacy": "Privacy",
+    "nav.builtOnStellar": "Built on Stellar"
   },
   "ho": {
     "auth.profile.welcome": "Welcome aboard",
@@ -5130,7 +5652,16 @@
     "common.active": "Active",
     "common.completed": "Completed",
     "error.generic": "Something went wrong",
-    "error.tryAgain": "Please try again"
+    "error.tryAgain": "Please try again",
+    "nav.howItWorks": "How It Works",
+    "nav.developers": "Developers",
+    "nav.docs": "Docs",
+    "nav.support": "Support",
+    "nav.about": "About",
+    "nav.faq": "FAQ",
+    "nav.terms": "Terms",
+    "nav.privacy": "Privacy",
+    "nav.builtOnStellar": "Built on Stellar"
   },
   "hr": {
     "auth.profile.welcome": "Dobrodošli na brod",
@@ -5217,7 +5748,16 @@
     "common.active": "Aktivno",
     "common.completed": "Završeno",
     "error.generic": "Nešto nije u redu",
-    "error.tryAgain": "Molimo pokušajte ponovo"
+    "error.tryAgain": "Molimo pokušajte ponovo",
+    "nav.howItWorks": "Kako to radi",
+    "nav.developers": "Programeri",
+    "nav.docs": "dokumenti",
+    "nav.support": "podrška",
+    "nav.about": "O",
+    "nav.faq": "FAQ",
+    "nav.terms": "Uvjeti",
+    "nav.privacy": "Privatnost",
+    "nav.builtOnStellar": "Izgrađeno na Stellaru"
   },
   "ht": {
     "auth.profile.welcome": "Byenvini abò",
@@ -5304,7 +5844,16 @@
     "common.active": "Aktif",
     "common.completed": "Konplete",
     "error.generic": "Yon bagay ale mal",
-    "error.tryAgain": "Tanpri eseye ankò"
+    "error.tryAgain": "Tanpri eseye ankò",
+    "nav.howItWorks": "Ki jan li fonksyone",
+    "nav.developers": "Devlopè",
+    "nav.docs": "Docs",
+    "nav.support": "Sipò",
+    "nav.about": "Konsènan",
+    "nav.faq": "FAQ",
+    "nav.terms": "Regleman",
+    "nav.privacy": "Konfidansyalite",
+    "nav.builtOnStellar": "Bati sou Stellar"
   },
   "hu": {
     "auth.profile.welcome": "Üdvözöljük a fedélzeten",
@@ -5391,7 +5940,16 @@
     "common.active": "Aktív",
     "common.completed": "Befejezve",
     "error.generic": "Valami elromlott",
-    "error.tryAgain": "Kérjük, próbálja újra"
+    "error.tryAgain": "Kérjük, próbálja újra",
+    "nav.howItWorks": "Hogyan működik",
+    "nav.developers": "Fejlesztők",
+    "nav.docs": "Dokumentumok",
+    "nav.support": "Támogatás",
+    "nav.about": "Körülbelül",
+    "nav.faq": "GYIK",
+    "nav.terms": "Feltételek",
+    "nav.privacy": "Adatvédelem",
+    "nav.builtOnStellar": "Csillagokra épült"
   },
   "hy": {
     "auth.profile.welcome": "Բարի գալուստ նավի վրա",
@@ -5478,7 +6036,16 @@
     "common.active": "Ակտիվ",
     "common.completed": "Ավարտված",
     "error.generic": "Սխալ առաջացավ",
-    "error.tryAgain": "Խնդրում ենք կրկին փորձել"
+    "error.tryAgain": "Խնդրում ենք կրկին փորձել",
+    "nav.howItWorks": "Ինչպես է այն աշխատում",
+    "nav.developers": "Կառուցապատողներ",
+    "nav.docs": "Փաստաթղթեր",
+    "nav.support": "Աջակցություն",
+    "nav.about": "Մոտ",
+    "nav.faq": "ՀՏՀ",
+    "nav.terms": "Պայմաններ",
+    "nav.privacy": "Գաղտնիություն",
+    "nav.builtOnStellar": "Կառուցված է Stellar-ի վրա"
   },
   "hz": {
     "auth.profile.welcome": "Welcome aboard",
@@ -5565,7 +6132,16 @@
     "common.active": "Active",
     "common.completed": "Completed",
     "error.generic": "Something went wrong",
-    "error.tryAgain": "Please try again"
+    "error.tryAgain": "Please try again",
+    "nav.howItWorks": "How It Works",
+    "nav.developers": "Developers",
+    "nav.docs": "Docs",
+    "nav.support": "Support",
+    "nav.about": "About",
+    "nav.faq": "FAQ",
+    "nav.terms": "Terms",
+    "nav.privacy": "Privacy",
+    "nav.builtOnStellar": "Built on Stellar"
   },
   "ia": {
     "auth.profile.welcome": "Welcome aboard",
@@ -5652,7 +6228,16 @@
     "common.active": "Active",
     "common.completed": "Completed",
     "error.generic": "Something went wrong",
-    "error.tryAgain": "Please try again"
+    "error.tryAgain": "Please try again",
+    "nav.howItWorks": "How It Works",
+    "nav.developers": "Developers",
+    "nav.docs": "Docs",
+    "nav.support": "Support",
+    "nav.about": "About",
+    "nav.faq": "FAQ",
+    "nav.terms": "Terms",
+    "nav.privacy": "Privacy",
+    "nav.builtOnStellar": "Built on Stellar"
   },
   "id": {
     "auth.profile.welcome": "Selamat datang",
@@ -5739,7 +6324,16 @@
     "common.active": "Aktif",
     "common.completed": "Selesai",
     "error.generic": "Ada yang tidak beres",
-    "error.tryAgain": "Silakan coba lagi"
+    "error.tryAgain": "Silakan coba lagi",
+    "nav.howItWorks": "Cara Kerjanya",
+    "nav.developers": "Pengembang",
+    "nav.docs": "dokumen",
+    "nav.support": "Dukungan",
+    "nav.about": "Tentang",
+    "nav.faq": "Pertanyaan Umum",
+    "nav.terms": "Ketentuan",
+    "nav.privacy": "Privasi",
+    "nav.builtOnStellar": "Dibangun di atas Stellar"
   },
   "ie": {
     "auth.profile.welcome": "Welcome aboard",
@@ -5826,7 +6420,16 @@
     "common.active": "Active",
     "common.completed": "Completed",
     "error.generic": "Something went wrong",
-    "error.tryAgain": "Please try again"
+    "error.tryAgain": "Please try again",
+    "nav.howItWorks": "How It Works",
+    "nav.developers": "Developers",
+    "nav.docs": "Docs",
+    "nav.support": "Support",
+    "nav.about": "About",
+    "nav.faq": "FAQ",
+    "nav.terms": "Terms",
+    "nav.privacy": "Privacy",
+    "nav.builtOnStellar": "Built on Stellar"
   },
   "ig": {
     "auth.profile.welcome": "Nnọọ n'ụgbọ mmiri",
@@ -5913,7 +6516,16 @@
     "common.active": "Na-arụ ọrụ",
     "common.completed": "Emechara",
     "error.generic": "Ọ nwere ihe adịghị mma",
-    "error.tryAgain": "Biko nwaa ọzọ"
+    "error.tryAgain": "Biko nwaa ọzọ",
+    "nav.howItWorks": "Ka o si arụ ọrụ",
+    "nav.developers": "Ndị mmepe",
+    "nav.docs": "Akwụkwọ",
+    "nav.support": "Nkwado",
+    "nav.about": "Ihe gbasara",
+    "nav.faq": "FAQ",
+    "nav.terms": "Usoro",
+    "nav.privacy": "Nzuzo",
+    "nav.builtOnStellar": "Ewuru na Stellar"
   },
   "ii": {
     "auth.profile.welcome": "Welcome aboard",
@@ -6000,7 +6612,16 @@
     "common.active": "Active",
     "common.completed": "Completed",
     "error.generic": "Something went wrong",
-    "error.tryAgain": "Please try again"
+    "error.tryAgain": "Please try again",
+    "nav.howItWorks": "How It Works",
+    "nav.developers": "Developers",
+    "nav.docs": "Docs",
+    "nav.support": "Support",
+    "nav.about": "About",
+    "nav.faq": "FAQ",
+    "nav.terms": "Terms",
+    "nav.privacy": "Privacy",
+    "nav.builtOnStellar": "Built on Stellar"
   },
   "ik": {
     "auth.profile.welcome": "Welcome aboard",
@@ -6087,7 +6708,16 @@
     "common.active": "Active",
     "common.completed": "Completed",
     "error.generic": "Something went wrong",
-    "error.tryAgain": "Please try again"
+    "error.tryAgain": "Please try again",
+    "nav.howItWorks": "How It Works",
+    "nav.developers": "Developers",
+    "nav.docs": "Docs",
+    "nav.support": "Support",
+    "nav.about": "About",
+    "nav.faq": "FAQ",
+    "nav.terms": "Terms",
+    "nav.privacy": "Privacy",
+    "nav.builtOnStellar": "Built on Stellar"
   },
   "io": {
     "auth.profile.welcome": "Welcome aboard",
@@ -6174,7 +6804,16 @@
     "common.active": "Active",
     "common.completed": "Completed",
     "error.generic": "Something went wrong",
-    "error.tryAgain": "Please try again"
+    "error.tryAgain": "Please try again",
+    "nav.howItWorks": "How It Works",
+    "nav.developers": "Developers",
+    "nav.docs": "Docs",
+    "nav.support": "Support",
+    "nav.about": "About",
+    "nav.faq": "FAQ",
+    "nav.terms": "Terms",
+    "nav.privacy": "Privacy",
+    "nav.builtOnStellar": "Built on Stellar"
   },
   "is": {
     "auth.profile.welcome": "Velkomin um borð",
@@ -6261,7 +6900,16 @@
     "common.active": "Virkur",
     "common.completed": "Lokið",
     "error.generic": "Eitthvað fór úrskeiðis",
-    "error.tryAgain": "Vinsamlegast reyndu aftur"
+    "error.tryAgain": "Vinsamlegast reyndu aftur",
+    "nav.howItWorks": "Hvernig það virkar",
+    "nav.developers": "Hönnuðir",
+    "nav.docs": "Skjöl",
+    "nav.support": "Stuðningur",
+    "nav.about": "Um",
+    "nav.faq": "Algengar spurningar",
+    "nav.terms": "Skilmálar",
+    "nav.privacy": "Persónuvernd",
+    "nav.builtOnStellar": "Byggt á Stellar"
   },
   "it": {
     "auth.profile.welcome": "Benvenuto a bordo",
@@ -6348,7 +6996,16 @@
     "common.active": "Attivo",
     "common.completed": "Completato",
     "error.generic": "Qualcosa è andato storto",
-    "error.tryAgain": "Per favore riprova"
+    "error.tryAgain": "Per favore riprova",
+    "nav.howItWorks": "Come funziona",
+    "nav.developers": "Sviluppatori",
+    "nav.docs": "Documenti",
+    "nav.support": "Supporto",
+    "nav.about": "Circa",
+    "nav.faq": "Domande frequenti",
+    "nav.terms": "Termini",
+    "nav.privacy": "Privacy",
+    "nav.builtOnStellar": "Costruito su Stellar"
   },
   "iu": {
     "auth.profile.welcome": "ᑐᙵᓱᒋᑦ ᐅᒥᐊᕐᔪᐊᒧᑦ",
@@ -6435,7 +7092,16 @@
     "common.active": "ᐆᒻᒪᕆᒃᑐᖅ",
     "common.completed": "ᐱᔭᕇᖅᑐᖅ",
     "error.generic": "ᖃᓄᐃᑦᑐᖃᓚᐅᕐᒪᑦ",
-    "error.tryAgain": "ᐆᒃᑐᑲᓐᓂᕆᑦ"
+    "error.tryAgain": "ᐆᒃᑐᑲᓐᓂᕆᑦ",
+    "nav.howItWorks": "ᖃᓄᖅ ᐊᐅᓚᓂᖃᓲᖑᖕᒪᖔᑦ",
+    "nav.developers": "ᐱᕙᓪᓕᐊᑎᑦᑎᔩᑦ",
+    "nav.docs": "ᑎᑎᖅᑲᐃᑦ",
+    "nav.support": "ᐃᑲᔪᖅᓱᕐᓂᖅ",
+    "nav.about": "ᒥᒃᓵᓄᑦ",
+    "nav.faq": "ᐊᐱᖅᑯᑕᐅᒐᔪᒃᑐᑦ",
+    "nav.terms": "ᒪᓕᒐᖏᑦ",
+    "nav.privacy": "ᑲᓐᖑᓇᖅᑐᓕᕆᓂᖅ",
+    "nav.builtOnStellar": "ᓴᓇᔭᐅᓯᒪᔪᖅ ᓯᑎᐊᓗᒥ"
   },
   "ja": {
     "auth.profile.welcome": "ようこそ",
@@ -6522,7 +7188,16 @@
     "common.active": "アクティブ",
     "common.completed": "完了",
     "error.generic": "何か問題が発生しました",
-    "error.tryAgain": "もう一度試してください"
+    "error.tryAgain": "もう一度試してください",
+    "nav.howItWorks": "仕組み",
+    "nav.developers": "開発者",
+    "nav.docs": "ドキュメント",
+    "nav.support": "サポート",
+    "nav.about": "について",
+    "nav.faq": "よくある質問",
+    "nav.terms": "規約",
+    "nav.privacy": "プライバシー",
+    "nav.builtOnStellar": "ステラ上に構築"
   },
   "jv": {
     "auth.profile.welcome": "Sugeng rawuh",
@@ -6609,7 +7284,16 @@
     "common.active": "Aktif",
     "common.completed": "Rampung",
     "error.generic": "Ana sing salah",
-    "error.tryAgain": "Coba maneh"
+    "error.tryAgain": "Coba maneh",
+    "nav.howItWorks": "Cara Kerjane",
+    "nav.developers": "Pangembang",
+    "nav.docs": "Docs",
+    "nav.support": "Dhukungan",
+    "nav.about": "Babagan",
+    "nav.faq": "FAQ",
+    "nav.terms": "Syarat",
+    "nav.privacy": "Privasi",
+    "nav.builtOnStellar": "Dibangun ing Stellar"
   },
   "ka": {
     "auth.profile.welcome": "კეთილი იყოს თქვენი მობრძანება გემზე",
@@ -6696,7 +7380,16 @@
     "common.active": "აქტიური",
     "common.completed": "დასრულებული",
     "error.generic": "რაღაც შეფერხდა",
-    "error.tryAgain": "გთხოვთ, სცადოთ ხელახლა"
+    "error.tryAgain": "გთხოვთ, სცადოთ ხელახლა",
+    "nav.howItWorks": "როგორ მუშაობს",
+    "nav.developers": "დეველოპერები",
+    "nav.docs": "Docs",
+    "nav.support": "მხარდაჭერა",
+    "nav.about": "შესახებ",
+    "nav.faq": "FAQ",
+    "nav.terms": "პირობები",
+    "nav.privacy": "კონფიდენციალურობა",
+    "nav.builtOnStellar": "აშენდა Stellar-ზე"
   },
   "kg": {
     "auth.profile.welcome": "Beno yamba beto na maswa",
@@ -6783,7 +7476,16 @@
     "common.active": "Kusala",
     "common.completed": "Kumanisa",
     "error.generic": "Kima mosi me kwenda ve mbote",
-    "error.tryAgain": "Meka diaka"
+    "error.tryAgain": "Meka diaka",
+    "nav.howItWorks": "Mutindu yo ke salaka",
+    "nav.developers": "Bantu ya ke salaka",
+    "nav.docs": "Mikanda",
+    "nav.support": "Lusadisu",
+    "nav.about": "Na yina me tala",
+    "nav.faq": "FAQ",
+    "nav.terms": "Bansiku",
+    "nav.privacy": "Kinsweki",
+    "nav.builtOnStellar": "Bo tungaka yo na zulu ya Stellar"
   },
   "ki": {
     "auth.profile.welcome": "Welcome aboard",
@@ -6870,7 +7572,16 @@
     "common.active": "Active",
     "common.completed": "Completed",
     "error.generic": "Something went wrong",
-    "error.tryAgain": "Please try again"
+    "error.tryAgain": "Please try again",
+    "nav.howItWorks": "How It Works",
+    "nav.developers": "Developers",
+    "nav.docs": "Docs",
+    "nav.support": "Support",
+    "nav.about": "About",
+    "nav.faq": "FAQ",
+    "nav.terms": "Terms",
+    "nav.privacy": "Privacy",
+    "nav.builtOnStellar": "Built on Stellar"
   },
   "kj": {
     "auth.profile.welcome": "Welcome aboard",
@@ -6957,7 +7668,16 @@
     "common.active": "Active",
     "common.completed": "Completed",
     "error.generic": "Something went wrong",
-    "error.tryAgain": "Please try again"
+    "error.tryAgain": "Please try again",
+    "nav.howItWorks": "How It Works",
+    "nav.developers": "Developers",
+    "nav.docs": "Docs",
+    "nav.support": "Support",
+    "nav.about": "About",
+    "nav.faq": "FAQ",
+    "nav.terms": "Terms",
+    "nav.privacy": "Privacy",
+    "nav.builtOnStellar": "Built on Stellar"
   },
   "kk": {
     "auth.profile.welcome": "Қош келдіңіз!",
@@ -7044,7 +7764,16 @@
     "common.active": "Белсенді",
     "common.completed": "Аяқталды",
     "error.generic": "Бірдеңе дұрыс болмады",
-    "error.tryAgain": "Қайталап көріңіз"
+    "error.tryAgain": "Қайталап көріңіз",
+    "nav.howItWorks": "Бұл қалай жұмыс істейді",
+    "nav.developers": "Әзірлеушілер",
+    "nav.docs": "Құжаттар",
+    "nav.support": "Қолдау",
+    "nav.about": "туралы",
+    "nav.faq": "Жиі қойылатын сұрақтар",
+    "nav.terms": "Шарттар",
+    "nav.privacy": "Құпиялық",
+    "nav.builtOnStellar": "Stellar негізінде салынған"
   },
   "kl": {
     "auth.profile.welcome": "Umiarsuarmut tikilluaqqusaavutit",
@@ -7131,7 +7860,16 @@
     "common.active": "Aktiv",
     "common.completed": "Naammassineqarpoq",
     "error.generic": "Arlaannik ajortoqarpoq",
-    "error.tryAgain": "Misilittariaqarpat"
+    "error.tryAgain": "Misilittariaqarpat",
+    "nav.howItWorks": "Qanoq Sulisarnersoq",
+    "nav.developers": "Ineriartortitsisut",
+    "nav.docs": "Dokumentit",
+    "nav.support": "Tapersersuineq",
+    "nav.about": "Pillugu",
+    "nav.faq": "FAQ",
+    "nav.terms": "Atukkat",
+    "nav.privacy": "Inuttut pisinnaatitaaffiit",
+    "nav.builtOnStellar": "Stellar-imik sananeqarpoq"
   },
   "km": {
     "auth.profile.welcome": "សូមស្វាគមន៍នៅលើយន្តហោះ",
@@ -7218,7 +7956,16 @@
     "common.active": "សកម្ម",
     "common.completed": "បានបញ្ចប់",
     "error.generic": "មានអ្វីមួយខុសប្រក្រតី",
-    "error.tryAgain": "សូមព្យាយាមម្តងទៀត"
+    "error.tryAgain": "សូមព្យាយាមម្តងទៀត",
+    "nav.howItWorks": "របៀបដែលវាដំណើរការ",
+    "nav.developers": "អ្នកអភិវឌ្ឍន៍",
+    "nav.docs": "ឯកសារ",
+    "nav.support": "គាំទ្រ",
+    "nav.about": "អំពី",
+    "nav.faq": "សំណួរគេសួរញឹកញាប់",
+    "nav.terms": "លក្ខខណ្ឌ",
+    "nav.privacy": "ឯកជនភាព",
+    "nav.builtOnStellar": "សាងសង់នៅលើ Stellar"
   },
   "kn": {
     "auth.profile.welcome": "ಹಡಗಿಗೆ ಸ್ವಾಗತ",
@@ -7305,7 +8052,16 @@
     "common.active": "ಸಕ್ರಿಯ",
     "common.completed": "ಪೂರ್ಣಗೊಂಡಿದೆ",
     "error.generic": "ಏನೋ ತಪ್ಪಾಗಿದೆ",
-    "error.tryAgain": "ದಯವಿಟ್ಟು ಮತ್ತೆ ಪ್ರಯತ್ನಿಸಿ"
+    "error.tryAgain": "ದಯವಿಟ್ಟು ಮತ್ತೆ ಪ್ರಯತ್ನಿಸಿ",
+    "nav.howItWorks": "ಇದು ಹೇಗೆ ಕೆಲಸ ಮಾಡುತ್ತದೆ",
+    "nav.developers": "ಡೆವಲಪರ್‌ಗಳು",
+    "nav.docs": "ಡಾಕ್ಸ್",
+    "nav.support": "ಬೆಂಬಲ",
+    "nav.about": "ಬಗ್ಗೆ",
+    "nav.faq": "FAQ",
+    "nav.terms": "ನಿಯಮಗಳು",
+    "nav.privacy": "ಗೌಪ್ಯತೆ",
+    "nav.builtOnStellar": "ಸ್ಟೆಲ್ಲಾರ್ ಮೇಲೆ ನಿರ್ಮಿಸಲಾಗಿದೆ"
   },
   "ko": {
     "auth.profile.welcome": "탑승을 환영합니다",
@@ -7392,7 +8148,16 @@
     "common.active": "활성",
     "common.completed": "완료됨",
     "error.generic": "문제가 발생했습니다.",
-    "error.tryAgain": "다시 시도해 주세요"
+    "error.tryAgain": "다시 시도해 주세요",
+    "nav.howItWorks": "작동 방식",
+    "nav.developers": "개발자",
+    "nav.docs": "문서",
+    "nav.support": "지원",
+    "nav.about": "소개",
+    "nav.faq": "FAQ",
+    "nav.terms": "이용약관",
+    "nav.privacy": "개인 정보 보호",
+    "nav.builtOnStellar": "스텔라를 기반으로 구축"
   },
   "kr": {
     "auth.profile.welcome": "Mara njiyero karǝgǝ kǝji",
@@ -7479,7 +8244,16 @@
     "common.active": "Cidajin",
     "common.completed": "Tamatǝna",
     "error.generic": "Awolagǝ batti lezǝna",
-    "error.tryAgain": "Martəgəne walte jarabne"
+    "error.tryAgain": "Martəgəne walte jarabne",
+    "nav.howItWorks": "Futu Cidajin",
+    "nav.developers": "Fuwutǝwu",
+    "nav.docs": "Kakkadiya",
+    "nav.support": "Bana",
+    "nav.about": "Kǝla",
+    "nav.faq": "FAQ",
+    "nav.terms": "Shertuwa",
+    "nav.privacy": "Sirri",
+    "nav.builtOnStellar": "Kəla Stellarben gartəna"
   },
   "ks": {
     "auth.profile.welcome": "Welcome aboard",
@@ -7566,7 +8340,16 @@
     "common.active": "Active",
     "common.completed": "Completed",
     "error.generic": "Something went wrong",
-    "error.tryAgain": "Please try again"
+    "error.tryAgain": "Please try again",
+    "nav.howItWorks": "How It Works",
+    "nav.developers": "Developers",
+    "nav.docs": "Docs",
+    "nav.support": "Support",
+    "nav.about": "About",
+    "nav.faq": "FAQ",
+    "nav.terms": "Terms",
+    "nav.privacy": "Privacy",
+    "nav.builtOnStellar": "Built on Stellar"
   },
   "ku": {
     "auth.profile.welcome": "Hûn bi xêr hatin",
@@ -7653,7 +8436,16 @@
     "common.active": "Active",
     "common.completed": "Temam kirin",
     "error.generic": "Tiştek xelet derket",
-    "error.tryAgain": "Ji kerema xwe dîsa biceribîne"
+    "error.tryAgain": "Ji kerema xwe dîsa biceribîne",
+    "nav.howItWorks": "Çawa Ew Kar dike",
+    "nav.developers": "Developers",
+    "nav.docs": "Docs",
+    "nav.support": "Piştgirî",
+    "nav.about": "About",
+    "nav.faq": "FAQ",
+    "nav.terms": "Terms",
+    "nav.privacy": "Privacy",
+    "nav.builtOnStellar": "Li ser Stellar hatî çêkirin"
   },
   "kv": {
     "auth.profile.welcome": "Вочавидзӧй борт вылӧ .",
@@ -7740,7 +8532,16 @@
     "common.active": "Активнӧй",
     "common.completed": "Помавны",
     "error.generic": "Мыйкӧ лои .",
-    "error.tryAgain": "Пожалуйста, мӧдысь зіля ."
+    "error.tryAgain": "Пожалуйста, мӧдысь зіля .",
+    "nav.howItWorks": "Кыдзи сійӧ уджалӧ .",
+    "nav.developers": "Разработчикъяс",
+    "nav.docs": "Документъяс",
+    "nav.support": "Поддержка",
+    "nav.about": "йылысь .",
+    "nav.faq": "FAQ",
+    "nav.terms": "Условиеяс",
+    "nav.privacy": "Конфиденциальность",
+    "nav.builtOnStellar": "Стеллар вылын лӧсьӧдӧма ."
   },
   "kw": {
     "auth.profile.welcome": "Welcome aboard",
@@ -7827,7 +8628,16 @@
     "common.active": "Active",
     "common.completed": "Completed",
     "error.generic": "Something went wrong",
-    "error.tryAgain": "Please try again"
+    "error.tryAgain": "Please try again",
+    "nav.howItWorks": "How It Works",
+    "nav.developers": "Developers",
+    "nav.docs": "Docs",
+    "nav.support": "Support",
+    "nav.about": "About",
+    "nav.faq": "FAQ",
+    "nav.terms": "Terms",
+    "nav.privacy": "Privacy",
+    "nav.builtOnStellar": "Built on Stellar"
   },
   "ky": {
     "auth.profile.welcome": "Кош келиңиз!",
@@ -7914,7 +8724,16 @@
     "common.active": "Активдүү",
     "common.completed": "Аякталды",
     "error.generic": "Бир жерден ката кетти",
-    "error.tryAgain": "Сураныч, кайра аракет кылыңыз"
+    "error.tryAgain": "Сураныч, кайра аракет кылыңыз",
+    "nav.howItWorks": "Бул кантип иштейт",
+    "nav.developers": "Иштеп чыгуучулар",
+    "nav.docs": "Документтер",
+    "nav.support": "Колдоо",
+    "nav.about": "Жөнүндө",
+    "nav.faq": "Көп берилүүчү суроолор",
+    "nav.terms": "Шарттары",
+    "nav.privacy": "Купуялык",
+    "nav.builtOnStellar": "Stellar боюнча курулган"
   },
   "la": {
     "auth.profile.welcome": "Grata necatus",
@@ -8001,7 +8820,16 @@
     "common.active": "Active",
     "common.completed": "completed",
     "error.generic": "Aliquid abiit iniuriam",
-    "error.tryAgain": "Quaeso, iterum conare"
+    "error.tryAgain": "Quaeso, iterum conare",
+    "nav.howItWorks": "Quomodo operatur",
+    "nav.developers": "Developers",
+    "nav.docs": "Docs",
+    "nav.support": "Support",
+    "nav.about": "De",
+    "nav.faq": "FAQ",
+    "nav.terms": "Terms",
+    "nav.privacy": "Secretum",
+    "nav.builtOnStellar": "Built in Stellar"
   },
   "lb": {
     "auth.profile.welcome": "Wëllkomm u Bord",
@@ -8088,7 +8916,16 @@
     "common.active": "Aktiv",
     "common.completed": "Ofgeschloss",
     "error.generic": "Eppes ass falsch gaangen",
-    "error.tryAgain": "Probéiert w.e.g. nach eng Kéier"
+    "error.tryAgain": "Probéiert w.e.g. nach eng Kéier",
+    "nav.howItWorks": "Wéi et funktionnéiert",
+    "nav.developers": "Entwéckler",
+    "nav.docs": "Docs",
+    "nav.support": "Ënnerstëtzung",
+    "nav.about": "Iwwer",
+    "nav.faq": "FAQ",
+    "nav.terms": "Konditioune",
+    "nav.privacy": "Privatsphär",
+    "nav.builtOnStellar": "Gebaut op Stellar"
   },
   "lg": {
     "auth.profile.welcome": "Mwaniriziddwa ku lyato",
@@ -8175,7 +9012,16 @@
     "common.active": "Active",
     "common.completed": "Emaliriziddwa",
     "error.generic": "Waliwo ekyatambula obubi",
-    "error.tryAgain": "Nsaba oddemu ogezeeko"
+    "error.tryAgain": "Nsaba oddemu ogezeeko",
+    "nav.howItWorks": "Engeri Gy’ekola",
+    "nav.developers": "Abakola eby’okukola",
+    "nav.docs": "Ebiwandiiko",
+    "nav.support": "Obuwagizi",
+    "nav.about": "Ebikwata ku...",
+    "nav.faq": "Ebibuuzo ebibuuzibwa",
+    "nav.terms": "Ebiragiro",
+    "nav.privacy": "Eby’ekyama",
+    "nav.builtOnStellar": "Yazimbibwa ku Stellar"
   },
   "li": {
     "auth.profile.welcome": "Welkom aan boord",
@@ -8262,7 +9108,16 @@
     "common.active": "Actief",
     "common.completed": "Voltooid",
     "error.generic": "D’r is get fout gegaange",
-    "error.tryAgain": "Probeer nog ummer"
+    "error.tryAgain": "Probeer nog ummer",
+    "nav.howItWorks": "Wie ut wèrk",
+    "nav.developers": "Ontwikkeleers",
+    "nav.docs": "Docs",
+    "nav.support": "Ondersteuning",
+    "nav.about": "Over",
+    "nav.faq": "FAQ",
+    "nav.terms": "Veurwaardes",
+    "nav.privacy": "Privacy",
+    "nav.builtOnStellar": "Gebouwd op Stellar"
   },
   "ln": {
     "auth.profile.welcome": "Boyei malamu na kati ya masuwa",
@@ -8349,7 +9204,16 @@
     "common.active": "Active",
     "common.completed": "Esili",
     "error.generic": "Eloko moko ekendeki mabe",
-    "error.tryAgain": "Svp meka lisusu"
+    "error.tryAgain": "Svp meka lisusu",
+    "nav.howItWorks": "Ndenge Esalaka",
+    "nav.developers": "Ba développeurs",
+    "nav.docs": "Mikanda ya mikanda",
+    "nav.support": "Lisungi",
+    "nav.about": "Na ntina na",
+    "nav.faq": "Mituna oyo batunaka mingi",
+    "nav.terms": "Mibeko",
+    "nav.privacy": "Bomoi ya moto ye moko",
+    "nav.builtOnStellar": "Etongami na Stellar"
   },
   "lo": {
     "auth.profile.welcome": "ຍິນດີຕ້ອນຮັບຂຶ້ນເຮືອ",
@@ -8436,7 +9300,16 @@
     "common.active": "ເຄື່ອນໄຫວ",
     "common.completed": "ສຳເລັດແລ້ວ",
     "error.generic": "ມີບາງຢ່າງຜິດພາດ",
-    "error.tryAgain": "ກະລຸນາລອງອີກຄັ້ງ"
+    "error.tryAgain": "ກະລຸນາລອງອີກຄັ້ງ",
+    "nav.howItWorks": "ມັນເຮັດວຽກແນວໃດ",
+    "nav.developers": "ນັກພັດທະນາ",
+    "nav.docs": "ເອກະສານ",
+    "nav.support": "ສະຫນັບສະຫນູນ",
+    "nav.about": "ກ່ຽວກັບ",
+    "nav.faq": "FAQ",
+    "nav.terms": "ເງື່ອນໄຂ",
+    "nav.privacy": "ຄວາມເປັນສ່ວນຕົວ",
+    "nav.builtOnStellar": "ສ້າງຂຶ້ນໃນ Stellar"
   },
   "lt": {
     "auth.profile.welcome": "Sveiki atvykę į laivą",
@@ -8523,7 +9396,16 @@
     "common.active": "Aktyvus",
     "common.completed": "Užbaigta",
     "error.generic": "Kažkas nutiko",
-    "error.tryAgain": "Bandykite dar kartą"
+    "error.tryAgain": "Bandykite dar kartą",
+    "nav.howItWorks": "Kaip tai veikia",
+    "nav.developers": "Kūrėjai",
+    "nav.docs": "Dokumentai",
+    "nav.support": "Palaikymas",
+    "nav.about": "Apie",
+    "nav.faq": "DUK",
+    "nav.terms": "Sąlygos",
+    "nav.privacy": "Privatumas",
+    "nav.builtOnStellar": "Pastatytas ant Stellar"
   },
   "lu": {
     "auth.profile.welcome": "Welcome aboard",
@@ -8610,7 +9492,16 @@
     "common.active": "Active",
     "common.completed": "Completed",
     "error.generic": "Something went wrong",
-    "error.tryAgain": "Please try again"
+    "error.tryAgain": "Please try again",
+    "nav.howItWorks": "How It Works",
+    "nav.developers": "Developers",
+    "nav.docs": "Docs",
+    "nav.support": "Support",
+    "nav.about": "About",
+    "nav.faq": "FAQ",
+    "nav.terms": "Terms",
+    "nav.privacy": "Privacy",
+    "nav.builtOnStellar": "Built on Stellar"
   },
   "lv": {
     "auth.profile.welcome": "Laipni lūdzam uz klāja",
@@ -8697,7 +9588,16 @@
     "common.active": "Aktīvs",
     "common.completed": "Pabeigts",
     "error.generic": "Kaut kas nogāja greizi",
-    "error.tryAgain": "Lūdzu, mēģiniet vēlreiz"
+    "error.tryAgain": "Lūdzu, mēģiniet vēlreiz",
+    "nav.howItWorks": "Kā tas darbojas",
+    "nav.developers": "Izstrādātāji",
+    "nav.docs": "Dokumenti",
+    "nav.support": "Atbalsts",
+    "nav.about": "Par",
+    "nav.faq": "FAQ",
+    "nav.terms": "Noteikumi",
+    "nav.privacy": "Privātums",
+    "nav.builtOnStellar": "Būvēts uz Stellar"
   },
   "mg": {
     "auth.profile.welcome": "Tongasoa eto an-tsambo",
@@ -8784,7 +9684,16 @@
     "common.active": "Active",
     "common.completed": "vita",
     "error.generic": "Nisy zavatra tsy nety",
-    "error.tryAgain": "Andramo indray azafady"
+    "error.tryAgain": "Andramo indray azafady",
+    "nav.howItWorks": "Ahoana no fiasan'izy io",
+    "nav.developers": "Developers",
+    "nav.docs": "Docs",
+    "nav.support": "Fanohanana",
+    "nav.about": "Momba ny",
+    "nav.faq": "FAQ",
+    "nav.terms": "Fepetra",
+    "nav.privacy": "Privacy",
+    "nav.builtOnStellar": "Naorina tamin'ny Stellar"
   },
   "mh": {
     "auth.profile.welcome": "Yokwe am itok ilo wa eo",
@@ -8871,7 +9780,16 @@
     "common.active": "Ej jerbal",
     "common.completed": "Emōj an dedelok",
     "error.generic": "Ewōr juon men ear jab jimwe",
-    "error.tryAgain": "Jouj im bar kajjioñ"
+    "error.tryAgain": "Jouj im bar kajjioñ",
+    "nav.howItWorks": "Ewi wāween an jerbal",
+    "nav.developers": "Rikōmman",
+    "nav.docs": "Docs",
+    "nav.support": "Jipan",
+    "nav.about": "Kin",
+    "nav.faq": "FAQ",
+    "nav.terms": "Naan ko",
+    "nav.privacy": "Privacy",
+    "nav.builtOnStellar": "Kar kaleke ion Stellar"
   },
   "mi": {
     "auth.profile.welcome": "Nau mai ki runga",
@@ -8958,7 +9876,16 @@
     "common.active": "Hohe",
     "common.completed": "Kua oti",
     "error.generic": "Kua he tetahi",
-    "error.tryAgain": "Me ngana ano"
+    "error.tryAgain": "Me ngana ano",
+    "nav.howItWorks": "Pehea te Mahi",
+    "nav.developers": "Kaihanga",
+    "nav.docs": "Tuhinga",
+    "nav.support": "Tautoko",
+    "nav.about": "Mō",
+    "nav.faq": "FAQ",
+    "nav.terms": "Nga tikanga",
+    "nav.privacy": "Tūmataitinga",
+    "nav.builtOnStellar": "I hangaia i runga i a Stellar"
   },
   "mk": {
     "auth.profile.welcome": "Добредојдовте на бродот",
@@ -9045,7 +9972,16 @@
     "common.active": "Активен",
     "common.completed": "Завршено",
     "error.generic": "Нешто тргна наопаку",
-    "error.tryAgain": "Ве молиме обидете се повторно"
+    "error.tryAgain": "Ве молиме обидете се повторно",
+    "nav.howItWorks": "Како функционира",
+    "nav.developers": "Програмери",
+    "nav.docs": "Документи",
+    "nav.support": "Поддршка",
+    "nav.about": "За",
+    "nav.faq": "Најчесто поставувани прашања",
+    "nav.terms": "Услови",
+    "nav.privacy": "Приватност",
+    "nav.builtOnStellar": "Изграден на Ѕвездената"
   },
   "ml": {
     "auth.profile.welcome": "കപ്പലിലേക്ക് സ്വാഗതം",
@@ -9132,7 +10068,16 @@
     "common.active": "സജീവമാണ്",
     "common.completed": "പൂർത്തിയാക്കി",
     "error.generic": "എന്തോ കുഴപ്പം സംഭവിച്ചു",
-    "error.tryAgain": "ദയവായി വീണ്ടും ശ്രമിക്കുക"
+    "error.tryAgain": "ദയവായി വീണ്ടും ശ്രമിക്കുക",
+    "nav.howItWorks": "ഇത് എങ്ങനെ പ്രവർത്തിക്കുന്നു",
+    "nav.developers": "ഡെവലപ്പർമാർ",
+    "nav.docs": "ഡോക്‌സ്",
+    "nav.support": "പിന്തുണ",
+    "nav.about": "കുറിച്ച്",
+    "nav.faq": "പതിവുചോദ്യങ്ങൾ",
+    "nav.terms": "നിബന്ധനകൾ",
+    "nav.privacy": "സ്വകാര്യത",
+    "nav.builtOnStellar": "സ്റ്റെല്ലാറിൽ നിർമ്മിച്ചത്"
   },
   "mn": {
     "auth.profile.welcome": "Тавтай морил",
@@ -9219,7 +10164,16 @@
     "common.active": "Идэвхтэй",
     "common.completed": "Дууссан",
     "error.generic": "Ямар нэг алдаа гарлаа",
-    "error.tryAgain": "Дахин оролдоно уу"
+    "error.tryAgain": "Дахин оролдоно уу",
+    "nav.howItWorks": "Энэ нь хэрхэн ажилладаг",
+    "nav.developers": "Хөгжүүлэгчид",
+    "nav.docs": "Докс",
+    "nav.support": "Дэмжлэг",
+    "nav.about": "тухай",
+    "nav.faq": "Түгээмэл асуулт",
+    "nav.terms": "Нөхцөл",
+    "nav.privacy": "Нууцлал",
+    "nav.builtOnStellar": "Stellar дээр бүтээгдсэн"
   },
   "mr": {
     "auth.profile.welcome": "जहाजावर स्वागत",
@@ -9306,7 +10260,16 @@
     "common.active": "सक्रिय",
     "common.completed": "पूर्ण झाले",
     "error.generic": "काहीतरी चूक झाली",
-    "error.tryAgain": "कृपया पुन्हा प्रयत्न करा"
+    "error.tryAgain": "कृपया पुन्हा प्रयत्न करा",
+    "nav.howItWorks": "हे कसे कार्य करते",
+    "nav.developers": "विकसक",
+    "nav.docs": "डॉक्स",
+    "nav.support": "सपोर्ट",
+    "nav.about": "बद्दल",
+    "nav.faq": "वारंवार विचारले जाणारे प्रश्न",
+    "nav.terms": "अटी",
+    "nav.privacy": "गोपनीयता",
+    "nav.builtOnStellar": "तार्यांवर बांधलेले"
   },
   "ms": {
     "auth.profile.welcome": "Selamat menaiki kapal",
@@ -9393,7 +10356,16 @@
     "common.active": "Aktif",
     "common.completed": "Selesai",
     "error.generic": "Sesuatu telah berlaku",
-    "error.tryAgain": "Sila cuba lagi"
+    "error.tryAgain": "Sila cuba lagi",
+    "nav.howItWorks": "Bagaimana Ia Berfungsi",
+    "nav.developers": "pemaju",
+    "nav.docs": "Dokumen",
+    "nav.support": "Sokongan",
+    "nav.about": "Tentang",
+    "nav.faq": "Soalan Lazim",
+    "nav.terms": "Syarat",
+    "nav.privacy": "Privasi",
+    "nav.builtOnStellar": "Dibina di atas Stellar"
   },
   "mt": {
     "auth.profile.welcome": "Merħba abbord",
@@ -9480,7 +10452,16 @@
     "common.active": "Attiva",
     "common.completed": "Imlesta",
     "error.generic": "Xi ħaġa marret ħażin",
-    "error.tryAgain": "Jekk jogħġbok erġa' pprova"
+    "error.tryAgain": "Jekk jogħġbok erġa' pprova",
+    "nav.howItWorks": "Kif Taħdem",
+    "nav.developers": "Iżviluppaturi",
+    "nav.docs": "Doks",
+    "nav.support": "Appoġġ",
+    "nav.about": "Dwar",
+    "nav.faq": "FAQ",
+    "nav.terms": "Termini",
+    "nav.privacy": "Privatezza",
+    "nav.builtOnStellar": "Mibnija fuq Stellar"
   },
   "my": {
     "auth.profile.welcome": "သင်္ဘောပေါ်မှကြိုဆိုပါတယ်။",
@@ -9567,7 +10548,16 @@
     "common.active": "လှုပ်လှုပ်ရှားရှား",
     "common.completed": "ပြီးသွားပြီ",
     "error.generic": "တစ်ခုခုမှားသွားသည်။",
-    "error.tryAgain": "ထပ်စမ်းကြည့်ပါ။"
+    "error.tryAgain": "ထပ်စမ်းကြည့်ပါ။",
+    "nav.howItWorks": "ဘယ်လိုအလုပ်လုပ်လဲ။",
+    "nav.developers": "Developer များ",
+    "nav.docs": "စာရွက်စာတမ်းများ",
+    "nav.support": "အထောက်အပံ့",
+    "nav.about": "အကြောင်း",
+    "nav.faq": "FAQ",
+    "nav.terms": "စည်းမျဥ်း",
+    "nav.privacy": "ကိုယ်ရေးကိုယ်တာ",
+    "nav.builtOnStellar": "Stellar ပေါ်တွင်တည်ဆောက်ထားသည်။"
   },
   "na": {
     "auth.profile.welcome": "Welcome aboard",
@@ -9654,7 +10644,16 @@
     "common.active": "Active",
     "common.completed": "Completed",
     "error.generic": "Something went wrong",
-    "error.tryAgain": "Please try again"
+    "error.tryAgain": "Please try again",
+    "nav.howItWorks": "How It Works",
+    "nav.developers": "Developers",
+    "nav.docs": "Docs",
+    "nav.support": "Support",
+    "nav.about": "About",
+    "nav.faq": "FAQ",
+    "nav.terms": "Terms",
+    "nav.privacy": "Privacy",
+    "nav.builtOnStellar": "Built on Stellar"
   },
   "nb": {
     "auth.profile.welcome": "Velkommen ombord",
@@ -9741,7 +10740,16 @@
     "common.active": "Aktiv",
     "common.completed": "Fullført",
     "error.generic": "Noe gikk galt",
-    "error.tryAgain": "Vennligst prøv igjen"
+    "error.tryAgain": "Vennligst prøv igjen",
+    "nav.howItWorks": "Hvordan det fungerer",
+    "nav.developers": "Utviklere",
+    "nav.docs": "Dokumenter",
+    "nav.support": "Support",
+    "nav.about": "Om",
+    "nav.faq": "FAQ",
+    "nav.terms": "Vilkår",
+    "nav.privacy": "Personvern",
+    "nav.builtOnStellar": "Bygget på Stellar"
   },
   "nd": {
     "auth.profile.welcome": "Welcome aboard",
@@ -9828,7 +10836,16 @@
     "common.active": "Active",
     "common.completed": "Completed",
     "error.generic": "Something went wrong",
-    "error.tryAgain": "Please try again"
+    "error.tryAgain": "Please try again",
+    "nav.howItWorks": "How It Works",
+    "nav.developers": "Developers",
+    "nav.docs": "Docs",
+    "nav.support": "Support",
+    "nav.about": "About",
+    "nav.faq": "FAQ",
+    "nav.terms": "Terms",
+    "nav.privacy": "Privacy",
+    "nav.builtOnStellar": "Built on Stellar"
   },
   "ne": {
     "auth.profile.welcome": "जहाजमा स्वागत छ",
@@ -9915,7 +10932,16 @@
     "common.active": "सक्रिय",
     "common.completed": "पूरा भयो",
     "error.generic": "केही गडबड भयो",
-    "error.tryAgain": "कृपया पुन: प्रयास गर्नुहोस्"
+    "error.tryAgain": "कृपया पुन: प्रयास गर्नुहोस्",
+    "nav.howItWorks": "यो कसरी काम गर्दछ",
+    "nav.developers": "विकासकर्ताहरू",
+    "nav.docs": "कागजात",
+    "nav.support": "समर्थन",
+    "nav.about": "बारे",
+    "nav.faq": "FAQ",
+    "nav.terms": "सर्तहरू",
+    "nav.privacy": "गोपनीयता",
+    "nav.builtOnStellar": "स्टेलरमा निर्मित"
   },
   "ng": {
     "auth.profile.welcome": "Welcome aboard",
@@ -10002,7 +11028,16 @@
     "common.active": "Active",
     "common.completed": "Completed",
     "error.generic": "Something went wrong",
-    "error.tryAgain": "Please try again"
+    "error.tryAgain": "Please try again",
+    "nav.howItWorks": "How It Works",
+    "nav.developers": "Developers",
+    "nav.docs": "Docs",
+    "nav.support": "Support",
+    "nav.about": "About",
+    "nav.faq": "FAQ",
+    "nav.terms": "Terms",
+    "nav.privacy": "Privacy",
+    "nav.builtOnStellar": "Built on Stellar"
   },
   "nl": {
     "auth.profile.welcome": "Welkom aan boord",
@@ -10089,7 +11124,16 @@
     "common.active": "Actief",
     "common.completed": "Voltooid",
     "error.generic": "Er is iets misgegaan",
-    "error.tryAgain": "Probeer het opnieuw"
+    "error.tryAgain": "Probeer het opnieuw",
+    "nav.howItWorks": "Hoe het werkt",
+    "nav.developers": "Ontwikkelaars",
+    "nav.docs": "Documenten",
+    "nav.support": "Ondersteuning",
+    "nav.about": "Over",
+    "nav.faq": "Veelgestelde vragen",
+    "nav.terms": "Voorwaarden",
+    "nav.privacy": "Privacy",
+    "nav.builtOnStellar": "Gebouwd op Stellair"
   },
   "nn": {
     "auth.profile.welcome": "Welcome aboard",
@@ -10176,7 +11220,16 @@
     "common.active": "Active",
     "common.completed": "Completed",
     "error.generic": "Something went wrong",
-    "error.tryAgain": "Please try again"
+    "error.tryAgain": "Please try again",
+    "nav.howItWorks": "How It Works",
+    "nav.developers": "Developers",
+    "nav.docs": "Docs",
+    "nav.support": "Support",
+    "nav.about": "About",
+    "nav.faq": "FAQ",
+    "nav.terms": "Terms",
+    "nav.privacy": "Privacy",
+    "nav.builtOnStellar": "Built on Stellar"
   },
   "no": {
     "auth.profile.welcome": "Velkommen ombord",
@@ -10263,7 +11316,16 @@
     "common.active": "Aktiv",
     "common.completed": "Fullført",
     "error.generic": "Noe gikk galt",
-    "error.tryAgain": "Vennligst prøv igjen"
+    "error.tryAgain": "Vennligst prøv igjen",
+    "nav.howItWorks": "Hvordan det fungerer",
+    "nav.developers": "Utviklere",
+    "nav.docs": "Dokumenter",
+    "nav.support": "Support",
+    "nav.about": "Om",
+    "nav.faq": "FAQ",
+    "nav.terms": "Vilkår",
+    "nav.privacy": "Personvern",
+    "nav.builtOnStellar": "Bygget på Stellar"
   },
   "nr": {
     "auth.profile.welcome": "Siyakwamukela",
@@ -10350,7 +11412,16 @@
     "common.active": "Isebenza",
     "common.completed": "Kuphelile",
     "error.generic": "Kukhona okungahambi kuhle",
-    "error.tryAgain": "Sibawa ulinge godu"
+    "error.tryAgain": "Sibawa ulinge godu",
+    "nav.howItWorks": "Indlela Esebenza Ngayo",
+    "nav.developers": "Abathuthukisi",
+    "nav.docs": "Amadokhumende",
+    "nav.support": "Isekelo",
+    "nav.about": "Mayelana",
+    "nav.faq": "I-FAQ",
+    "nav.terms": "Imibandela",
+    "nav.privacy": "Ubumfihlo",
+    "nav.builtOnStellar": "Yakhiwe ku-Stellar"
   },
   "nv": {
     "auth.profile.welcome": "Welcome aboard",
@@ -10437,7 +11508,16 @@
     "common.active": "Active",
     "common.completed": "Completed",
     "error.generic": "Something went wrong",
-    "error.tryAgain": "Please try again"
+    "error.tryAgain": "Please try again",
+    "nav.howItWorks": "How It Works",
+    "nav.developers": "Developers",
+    "nav.docs": "Docs",
+    "nav.support": "Support",
+    "nav.about": "About",
+    "nav.faq": "FAQ",
+    "nav.terms": "Terms",
+    "nav.privacy": "Privacy",
+    "nav.builtOnStellar": "Built on Stellar"
   },
   "ny": {
     "auth.profile.welcome": "Takulandirani kukwera",
@@ -10524,7 +11604,16 @@
     "common.active": "Yogwira",
     "common.completed": "Zamalizidwa",
     "error.generic": "Chinachake chalakwika",
-    "error.tryAgain": "Chonde yesaninso"
+    "error.tryAgain": "Chonde yesaninso",
+    "nav.howItWorks": "Momwe Imagwirira Ntchito",
+    "nav.developers": "Madivelopa",
+    "nav.docs": "Docs",
+    "nav.support": "Thandizo",
+    "nav.about": "Za",
+    "nav.faq": "FAQ",
+    "nav.terms": "Terms",
+    "nav.privacy": "Zazinsinsi",
+    "nav.builtOnStellar": "Yomangidwa pa Stellar"
   },
   "oc": {
     "auth.profile.welcome": "Planvenguda a bòrd",
@@ -10611,7 +11700,16 @@
     "common.active": "Actiu",
     "common.completed": "Completat",
     "error.generic": "Quicòm s'es marrit",
-    "error.tryAgain": "Ensajatz tornarmai"
+    "error.tryAgain": "Ensajatz tornarmai",
+    "nav.howItWorks": "Cossí fonciona",
+    "nav.developers": "Desvolopaires",
+    "nav.docs": "Docs",
+    "nav.support": "Supòrt",
+    "nav.about": "A prepaus de",
+    "nav.faq": "FAQ",
+    "nav.terms": "Condicions",
+    "nav.privacy": "Confidencialitat",
+    "nav.builtOnStellar": "Bastit sus Stellar"
   },
   "oj": {
     "auth.profile.welcome": "Welcome aboard",
@@ -10698,7 +11796,16 @@
     "common.active": "Active",
     "common.completed": "Completed",
     "error.generic": "Something went wrong",
-    "error.tryAgain": "Please try again"
+    "error.tryAgain": "Please try again",
+    "nav.howItWorks": "How It Works",
+    "nav.developers": "Developers",
+    "nav.docs": "Docs",
+    "nav.support": "Support",
+    "nav.about": "About",
+    "nav.faq": "FAQ",
+    "nav.terms": "Terms",
+    "nav.privacy": "Privacy",
+    "nav.builtOnStellar": "Built on Stellar"
   },
   "om": {
     "auth.profile.welcome": "Baga nagaan doonii irra dhuftan",
@@ -10785,7 +11892,16 @@
     "common.active": "Sochii kan qabu",
     "common.completed": "Xumurameera",
     "error.generic": "Waan tokkotu dogoggora ta'e",
-    "error.tryAgain": "Mee irra deebi'ii yaalaa"
+    "error.tryAgain": "Mee irra deebi'ii yaalaa",
+    "nav.howItWorks": "Akkaataa Itti Hojjeta",
+    "nav.developers": "Misoomsitoota",
+    "nav.docs": "Docs",
+    "nav.support": "Deeggarsa",
+    "nav.about": "Waa'ee...",
+    "nav.faq": "FAQ",
+    "nav.terms": "Jechoota",
+    "nav.privacy": "Dhuunfaa",
+    "nav.builtOnStellar": "Stellar irratti ijaarame"
   },
   "or": {
     "auth.profile.welcome": "ଜାହାଜରେ ସ୍ୱାଗତ |",
@@ -10872,7 +11988,16 @@
     "common.active": "ସକ୍ରିୟ |",
     "common.completed": "ସମାପ୍ତ",
     "error.generic": "କିଛି ଭୁଲ୍ ହୋଇଗଲା |",
-    "error.tryAgain": "ଦୟାକରି ପୁନର୍ବାର ଚେଷ୍ଟା କରନ୍ତୁ |"
+    "error.tryAgain": "ଦୟାକରି ପୁନର୍ବାର ଚେଷ୍ଟା କରନ୍ତୁ |",
+    "nav.howItWorks": "ଏହା କିପରି କାମ କରେ |",
+    "nav.developers": "ବିକାଶକାରୀ",
+    "nav.docs": "ଡକସ୍",
+    "nav.support": "ସମର୍ଥନ",
+    "nav.about": "ବିଷୟରେ",
+    "nav.faq": "FAQ",
+    "nav.terms": "ସର୍ତ୍ତାବଳୀ",
+    "nav.privacy": "ଗୋପନୀୟତା",
+    "nav.builtOnStellar": "ନକ୍ଷତ୍ର ଉପରେ ନିର୍ମିତ |"
   },
   "os": {
     "auth.profile.welcome": "Æгас цу науыл",
@@ -10959,7 +12084,16 @@
     "common.active": "Активон",
     "common.completed": "Кæронмæ ахæццæ",
     "error.generic": "Цыдæр æвзæр рауад",
-    "error.tryAgain": "Дæ хорзæхæй, ногæй бафæлвар"
+    "error.tryAgain": "Дæ хорзæхæй, ногæй бафæлвар",
+    "nav.howItWorks": "Куыд кусы",
+    "nav.developers": "Разработчики",
+    "nav.docs": "Документтæ",
+    "nav.support": "Æххуыс",
+    "nav.about": "О",
+    "nav.faq": "FAQ",
+    "nav.terms": "Уагæвæрдтæ",
+    "nav.privacy": "Сусæгдзинад",
+    "nav.builtOnStellar": "Арæзт у Stellar-ыл"
   },
   "pa": {
     "auth.profile.welcome": "ਜਹਾਜ਼ ਵਿੱਚ ਸੁਆਗਤ ਹੈ",
@@ -11046,7 +12180,16 @@
     "common.active": "ਕਿਰਿਆਸ਼ੀਲ",
     "common.completed": "ਪੂਰਾ ਹੋਇਆ",
     "error.generic": "ਕੁਝ ਗਲਤ ਹੋ ਗਿਆ",
-    "error.tryAgain": "ਕਿਰਪਾ ਕਰਕੇ ਦੁਬਾਰਾ ਕੋਸ਼ਿਸ਼ ਕਰੋ"
+    "error.tryAgain": "ਕਿਰਪਾ ਕਰਕੇ ਦੁਬਾਰਾ ਕੋਸ਼ਿਸ਼ ਕਰੋ",
+    "nav.howItWorks": "ਇਹ ਕਿਵੇਂ ਕੰਮ ਕਰਦਾ ਹੈ",
+    "nav.developers": "ਵਿਕਾਸਕਾਰ",
+    "nav.docs": "ਦਸਤਾਵੇਜ਼",
+    "nav.support": "ਸਪੋਰਟ",
+    "nav.about": "ਬਾਰੇ",
+    "nav.faq": "FAQ",
+    "nav.terms": "ਸ਼ਰਤਾਂ",
+    "nav.privacy": "ਗੋਪਨੀਯਤਾ",
+    "nav.builtOnStellar": "ਸਟੈਲਰ 'ਤੇ ਬਣਾਇਆ ਗਿਆ"
   },
   "pi": {
     "auth.profile.welcome": "Welcome aboard",
@@ -11133,7 +12276,16 @@
     "common.active": "Active",
     "common.completed": "Completed",
     "error.generic": "Something went wrong",
-    "error.tryAgain": "Please try again"
+    "error.tryAgain": "Please try again",
+    "nav.howItWorks": "How It Works",
+    "nav.developers": "Developers",
+    "nav.docs": "Docs",
+    "nav.support": "Support",
+    "nav.about": "About",
+    "nav.faq": "FAQ",
+    "nav.terms": "Terms",
+    "nav.privacy": "Privacy",
+    "nav.builtOnStellar": "Built on Stellar"
   },
   "pl": {
     "auth.profile.welcome": "Witamy na pokładzie",
@@ -11220,7 +12372,16 @@
     "common.active": "Aktywny",
     "common.completed": "Ukończono",
     "error.generic": "Coś poszło nie tak",
-    "error.tryAgain": "Spróbuj ponownie"
+    "error.tryAgain": "Spróbuj ponownie",
+    "nav.howItWorks": "Jak to działa",
+    "nav.developers": "Deweloperzy",
+    "nav.docs": "Dokumenty",
+    "nav.support": "Wsparcie",
+    "nav.about": "O",
+    "nav.faq": "Często zadawane pytania",
+    "nav.terms": "Warunki",
+    "nav.privacy": "Prywatność",
+    "nav.builtOnStellar": "Zbudowany na Stellarze"
   },
   "ps": {
     "auth.profile.welcome": "په کښتۍ کې ښه راغلاست",
@@ -11307,7 +12468,16 @@
     "common.active": "فعاله",
     "common.completed": "بشپړ شو",
     "error.generic": "یو څه غلط شو",
-    "error.tryAgain": "مهرباني وکړئ بیا هڅه وکړئ"
+    "error.tryAgain": "مهرباني وکړئ بیا هڅه وکړئ",
+    "nav.howItWorks": "دا څنګه کار کوي",
+    "nav.developers": "پرمخ وړونکي",
+    "nav.docs": "اسناد",
+    "nav.support": "ملاتړ",
+    "nav.about": "په اړه",
+    "nav.faq": "FAQ",
+    "nav.terms": "شرایط",
+    "nav.privacy": "محرمیت",
+    "nav.builtOnStellar": "په سټیلر کې جوړ شوی"
   },
   "pt": {
     "auth.profile.welcome": "Bem-vindo a bordo",
@@ -11394,7 +12564,16 @@
     "common.active": "Ativo",
     "common.completed": "Concluído",
     "error.generic": "Algo deu errado",
-    "error.tryAgain": "Por favor, tente novamente"
+    "error.tryAgain": "Por favor, tente novamente",
+    "nav.howItWorks": "Como funciona",
+    "nav.developers": "Desenvolvedores",
+    "nav.docs": "Documentos",
+    "nav.support": "Suporte",
+    "nav.about": "Sobre",
+    "nav.faq": "Perguntas frequentes",
+    "nav.terms": "Termos",
+    "nav.privacy": "Privacidade",
+    "nav.builtOnStellar": "Construído em Estelar"
   },
   "qu": {
     "auth.profile.welcome": "Allin hamusqaykichik a bordo",
@@ -11481,7 +12660,16 @@
     "common.active": "Activo nisqa",
     "common.completed": "Tukuchisqa",
     "error.generic": "Imapas mana allintam pasarqa",
-    "error.tryAgain": "Ama hina kaspa, hukmanta kallpachakuy"
+    "error.tryAgain": "Ama hina kaspa, hukmanta kallpachakuy",
+    "nav.howItWorks": "Imaynatataq Llank’an",
+    "nav.developers": "Paqarichiqkuna",
+    "nav.docs": "Docs",
+    "nav.support": "Yanapakuy",
+    "nav.about": "Sobre",
+    "nav.faq": "FAQ",
+    "nav.terms": "Términos nisqakuna",
+    "nav.privacy": "Sapanchasqa kay",
+    "nav.builtOnStellar": "Stellar nisqapi ruwasqa"
   },
   "rm": {
     "auth.profile.welcome": "Welcome aboard",
@@ -11568,7 +12756,16 @@
     "common.active": "Active",
     "common.completed": "Completed",
     "error.generic": "Something went wrong",
-    "error.tryAgain": "Please try again"
+    "error.tryAgain": "Please try again",
+    "nav.howItWorks": "How It Works",
+    "nav.developers": "Developers",
+    "nav.docs": "Docs",
+    "nav.support": "Support",
+    "nav.about": "About",
+    "nav.faq": "FAQ",
+    "nav.terms": "Terms",
+    "nav.privacy": "Privacy",
+    "nav.builtOnStellar": "Built on Stellar"
   },
   "rn": {
     "auth.profile.welcome": "Ikaze mu bwato",
@@ -11655,7 +12852,16 @@
     "common.active": "Bikora",
     "common.completed": "Birangiye",
     "error.generic": "Hari ikintu cagenda nabi",
-    "error.tryAgain": "Ndagusavye wongere ugerageze"
+    "error.tryAgain": "Ndagusavye wongere ugerageze",
+    "nav.howItWorks": "Uko bikora",
+    "nav.developers": "Abategura",
+    "nav.docs": "Inyandiko",
+    "nav.support": "Gushigikira",
+    "nav.about": "Ivyerekeye",
+    "nav.faq": "IBIBAZO bibazwa",
+    "nav.terms": "Amajambo",
+    "nav.privacy": "Ubuzima bwite",
+    "nav.builtOnStellar": "Yubatswe ku nyenyeri"
   },
   "ro": {
     "auth.profile.welcome": "Bun venit la bord",
@@ -11742,7 +12948,16 @@
     "common.active": "Activ",
     "common.completed": "Terminat",
     "error.generic": "Ceva a mers prost",
-    "error.tryAgain": "Vă rugăm să încercați din nou"
+    "error.tryAgain": "Vă rugăm să încercați din nou",
+    "nav.howItWorks": "Cum funcționează",
+    "nav.developers": "Dezvoltatori",
+    "nav.docs": "Docs",
+    "nav.support": "Sprijin",
+    "nav.about": "Despre",
+    "nav.faq": "Întrebări frecvente",
+    "nav.terms": "Termeni",
+    "nav.privacy": "Confidențialitate",
+    "nav.builtOnStellar": "Construit pe Stellar"
   },
   "ru": {
     "auth.profile.welcome": "Добро пожаловать на борт",
@@ -11829,7 +13044,16 @@
     "common.active": "Активный",
     "common.completed": "Завершено",
     "error.generic": "Что-то пошло не так",
-    "error.tryAgain": "Пожалуйста, попробуйте еще раз"
+    "error.tryAgain": "Пожалуйста, попробуйте еще раз",
+    "nav.howItWorks": "Как это работает",
+    "nav.developers": "Разработчики",
+    "nav.docs": "Документы",
+    "nav.support": "Поддержка",
+    "nav.about": "О",
+    "nav.faq": "Часто задаваемые вопросы",
+    "nav.terms": "Условия",
+    "nav.privacy": "Конфиденциальность",
+    "nav.builtOnStellar": "Построено на Stellar"
   },
   "rw": {
     "auth.profile.welcome": "Murakaza neza mu bwato",
@@ -11916,7 +13140,16 @@
     "common.active": "Bikora",
     "common.completed": "Byarangiye",
     "error.generic": "Ikintu kitagenze neza",
-    "error.tryAgain": "Nyamuneka gerageza"
+    "error.tryAgain": "Nyamuneka gerageza",
+    "nav.howItWorks": "Uburyo Bikora",
+    "nav.developers": "Abashinzwe iterambere",
+    "nav.docs": "Inyandiko",
+    "nav.support": "Inkunga",
+    "nav.about": "Ibyerekeye",
+    "nav.faq": "Ibibazo",
+    "nav.terms": "Amagambo",
+    "nav.privacy": "Amabanga",
+    "nav.builtOnStellar": "Yubatswe kuri Stellar"
   },
   "sa": {
     "auth.profile.welcome": "सवारस्य स्वागतम्",
@@ -12003,7 +13236,16 @@
     "common.active": "सक्रियः",
     "common.completed": "सम्पन्न",
     "error.generic": "किमपि भ्रष्टं जातम्",
-    "error.tryAgain": "कृपया पुनः प्रयासं कुर्वन्तु"
+    "error.tryAgain": "कृपया पुनः प्रयासं कुर्वन्तु",
+    "nav.howItWorks": "कथं कार्यं करोति",
+    "nav.developers": "विकासकाः",
+    "nav.docs": "डॉक्स",
+    "nav.support": "समर्थनम्",
+    "nav.about": "विषये",
+    "nav.faq": "FAQ",
+    "nav.terms": "पदम्",
+    "nav.privacy": "गोपनीयता",
+    "nav.builtOnStellar": "Stellar इत्यस्य उपरि निर्मितम्"
   },
   "sc": {
     "auth.profile.welcome": "Welcome aboard",
@@ -12090,7 +13332,16 @@
     "common.active": "Active",
     "common.completed": "Completed",
     "error.generic": "Something went wrong",
-    "error.tryAgain": "Please try again"
+    "error.tryAgain": "Please try again",
+    "nav.howItWorks": "How It Works",
+    "nav.developers": "Developers",
+    "nav.docs": "Docs",
+    "nav.support": "Support",
+    "nav.about": "About",
+    "nav.faq": "FAQ",
+    "nav.terms": "Terms",
+    "nav.privacy": "Privacy",
+    "nav.builtOnStellar": "Built on Stellar"
   },
   "sd": {
     "auth.profile.welcome": "جهاز ۾ ڀليڪار",
@@ -12177,7 +13428,16 @@
     "common.active": "چالو",
     "common.completed": "مڪمل ٿيو",
     "error.generic": "ڪجهه غلط ٿيو",
-    "error.tryAgain": "مهرباني ڪري ٻيهر ڪوشش ڪريو"
+    "error.tryAgain": "مهرباني ڪري ٻيهر ڪوشش ڪريو",
+    "nav.howItWorks": "اهو ڪيئن ڪم ڪري ٿو",
+    "nav.developers": "ڊولپرز",
+    "nav.docs": "دستاويز",
+    "nav.support": "حمايت",
+    "nav.about": "بابت",
+    "nav.faq": "FAQ",
+    "nav.terms": "شرط",
+    "nav.privacy": "رازداري",
+    "nav.builtOnStellar": "اسٽيلر تي ٺهيل"
   },
   "se": {
     "auth.profile.welcome": "Bures boahtin fatnasii",
@@ -12264,7 +13524,16 @@
     "common.active": "Aktiiva",
     "common.completed": "Gálvvuhuvvon",
     "error.generic": "Juoga manai boastut",
-    "error.tryAgain": "Geahččal fas"
+    "error.tryAgain": "Geahččal fas",
+    "nav.howItWorks": "Mo dat doaibmá",
+    "nav.developers": "Ovddideaddjit",
+    "nav.docs": "Dokumeanttat",
+    "nav.support": "Doarjja",
+    "nav.about": "Birra",
+    "nav.faq": "FAQ",
+    "nav.terms": "Eavttut",
+    "nav.privacy": "Persovdnasuodjalus",
+    "nav.builtOnStellar": "Huksejuvvon Stellar ala"
   },
   "sg": {
     "auth.profile.welcome": "A yamba e nzoni na yâ ti bateau",
@@ -12351,7 +13620,16 @@
     "common.active": "Actif",
     "common.completed": "A hunzi awe",
     "error.generic": "Mbeni ye atambela nzoni pëpe .",
-    "error.tryAgain": "Pardon, kiri mo tara ni ."
+    "error.tryAgain": "Pardon, kiri mo tara ni .",
+    "nav.howItWorks": "Lege so a yeke sala kusala na ni .",
+    "nav.developers": "Azo ti lekengo ye",
+    "nav.docs": "Ambeti",
+    "nav.support": "Mungo maboko",
+    "nav.about": "Na ndo ti .",
+    "nav.faq": "FAQ",
+    "nav.terms": "Awango",
+    "nav.privacy": "Confidentialité",
+    "nav.builtOnStellar": "A leke ni na ndo ti Stellar ."
   },
   "si": {
     "auth.profile.welcome": "නැවට සාදරයෙන් පිළිගනිමු",
@@ -12438,7 +13716,16 @@
     "common.active": "ක්රියාකාරී",
     "common.completed": "සම්පූර්ණ කළා",
     "error.generic": "යමක් වැරදී ඇත",
-    "error.tryAgain": "කරුණාකර නැවත උත්සාහ කරන්න"
+    "error.tryAgain": "කරුණාකර නැවත උත්සාහ කරන්න",
+    "nav.howItWorks": "එය ක්රියා කරන ආකාරය",
+    "nav.developers": "සංවර්ධකයින්",
+    "nav.docs": "ලේඛන",
+    "nav.support": "සහාය",
+    "nav.about": "ගැන",
+    "nav.faq": "නිතර අසන පැන",
+    "nav.terms": "කොන්දේසි",
+    "nav.privacy": "පෞද්ගලිකත්වය",
+    "nav.builtOnStellar": "ස්ටෙලර් මත ගොඩනගා ඇත"
   },
   "sk": {
     "auth.profile.welcome": "Vitajte na palube",
@@ -12525,7 +13812,16 @@
     "common.active": "Aktívne",
     "common.completed": "Dokončené",
     "error.generic": "Niečo sa pokazilo",
-    "error.tryAgain": "Skúste to znova"
+    "error.tryAgain": "Skúste to znova",
+    "nav.howItWorks": "Ako to funguje",
+    "nav.developers": "Vývojári",
+    "nav.docs": "Docs",
+    "nav.support": "Podpora",
+    "nav.about": "O",
+    "nav.faq": "FAQ",
+    "nav.terms": "Podmienky",
+    "nav.privacy": "Ochrana osobných údajov",
+    "nav.builtOnStellar": "Postavené na Stellar"
   },
   "sl": {
     "auth.profile.welcome": "Dobrodošli na krovu",
@@ -12612,7 +13908,16 @@
     "common.active": "Aktiven",
     "common.completed": "Dokončano",
     "error.generic": "Nekaj je šlo narobe",
-    "error.tryAgain": "prosim poskusite ponovno"
+    "error.tryAgain": "prosim poskusite ponovno",
+    "nav.howItWorks": "Kako deluje",
+    "nav.developers": "Razvijalci",
+    "nav.docs": "dokumenti",
+    "nav.support": "Podpora",
+    "nav.about": "O tem",
+    "nav.faq": "pogosta vprašanja",
+    "nav.terms": "Pogoji",
+    "nav.privacy": "Zasebnost",
+    "nav.builtOnStellar": "Zgrajeno na Stellarju"
   },
   "sm": {
     "auth.profile.welcome": "Afio mai i luga o le va'a",
@@ -12699,7 +14004,16 @@
     "common.active": "Malosi",
     "common.completed": "Maea",
     "error.generic": "Sa i ai se mea na faaletonu",
-    "error.tryAgain": "Fa'amolemole toe taumafai"
+    "error.tryAgain": "Fa'amolemole toe taumafai",
+    "nav.howItWorks": "Auala e Galulue ai",
+    "nav.developers": "Atina'e",
+    "nav.docs": "Docs",
+    "nav.support": "Lagolago",
+    "nav.about": "E uiga i",
+    "nav.faq": "FAQ",
+    "nav.terms": "Tulaga",
+    "nav.privacy": "Fa'alilolilo",
+    "nav.builtOnStellar": "Fausia i luga ole Stellar"
   },
   "sn": {
     "auth.profile.welcome": "Welcome aboard",
@@ -12786,7 +14100,16 @@
     "common.active": "Active",
     "common.completed": "Yakapedzwa",
     "error.generic": "Pane chakaipa",
-    "error.tryAgain": "Ndapota edza zvakare"
+    "error.tryAgain": "Ndapota edza zvakare",
+    "nav.howItWorks": "Mashandiro Arinoita",
+    "nav.developers": "Developers",
+    "nav.docs": "Docs",
+    "nav.support": "Support",
+    "nav.about": "About",
+    "nav.faq": "FAQ",
+    "nav.terms": "Terms",
+    "nav.privacy": "Privacy",
+    "nav.builtOnStellar": "Yakavakwa paStellar"
   },
   "so": {
     "auth.profile.welcome": "Ku soo dhawoow dusha sare",
@@ -12873,7 +14196,16 @@
     "common.active": "Firfircoon",
     "common.completed": "Dhammaystiran",
     "error.generic": "Wax baa khaldamay",
-    "error.tryAgain": "Fadlan isku day mar kale"
+    "error.tryAgain": "Fadlan isku day mar kale",
+    "nav.howItWorks": "Sida ay u shaqeyso",
+    "nav.developers": "Horumarinta",
+    "nav.docs": "Docs",
+    "nav.support": "Taageero",
+    "nav.about": "Ku saabsan",
+    "nav.faq": "FAQ",
+    "nav.terms": "Shuruudaha",
+    "nav.privacy": "Qarsoodi",
+    "nav.builtOnStellar": "Lagu dhisay Stellar"
   },
   "sq": {
     "auth.profile.welcome": "Mirë se vini në bord",
@@ -12960,7 +14292,16 @@
     "common.active": "Aktiv",
     "common.completed": "E përfunduar",
     "error.generic": "Diçka shkoi keq",
-    "error.tryAgain": "Ju lutemi provoni përsëri"
+    "error.tryAgain": "Ju lutemi provoni përsëri",
+    "nav.howItWorks": "Si funksionon",
+    "nav.developers": "Zhvilluesit",
+    "nav.docs": "Dokumentet",
+    "nav.support": "Mbështetje",
+    "nav.about": "Rreth",
+    "nav.faq": "FAQ",
+    "nav.terms": "Kushtet",
+    "nav.privacy": "Privatësia",
+    "nav.builtOnStellar": "E ndërtuar në Stellar"
   },
   "sr": {
     "auth.profile.welcome": "Добродошли на брод",
@@ -13047,7 +14388,16 @@
     "common.active": "Ацтиве",
     "common.completed": "Завршено",
     "error.generic": "Нешто је пошло по злу",
-    "error.tryAgain": "Покушајте поново"
+    "error.tryAgain": "Покушајте поново",
+    "nav.howItWorks": "Како то ради",
+    "nav.developers": "Девелоперс",
+    "nav.docs": "Доцс",
+    "nav.support": "Подршка",
+    "nav.about": "Абоут",
+    "nav.faq": "ФАК",
+    "nav.terms": "Услови",
+    "nav.privacy": "Приватност",
+    "nav.builtOnStellar": "Изграђен на Стеллар-у"
   },
   "ss": {
     "auth.profile.welcome": "Siyakwemukela emkhunjini",
@@ -13134,7 +14484,16 @@
     "common.active": "Kuyasebenta",
     "common.completed": "Kucedziwe",
     "error.generic": "Kukhona lokungahambanga kahle",
-    "error.tryAgain": "Ngicela uphindze uzame"
+    "error.tryAgain": "Ngicela uphindze uzame",
+    "nav.howItWorks": "Indlela Lesebenta Ngayo",
+    "nav.developers": "Batfutfukisi",
+    "nav.docs": "Emadokhumenti",
+    "nav.support": "Kusekela",
+    "nav.about": "Mayelana",
+    "nav.faq": "I-FAQ",
+    "nav.terms": "Imigomo",
+    "nav.privacy": "Imfihlo",
+    "nav.builtOnStellar": "Yakhiwe ku Stellar"
   },
   "st": {
     "auth.profile.welcome": "Rea u amohela ka sekepeng",
@@ -13221,7 +14580,16 @@
     "common.active": "E sebetsa",
     "common.completed": "E phethiloe",
     "error.generic": "Ho bile le phoso",
-    "error.tryAgain": "Ka kopo, leka hape"
+    "error.tryAgain": "Ka kopo, leka hape",
+    "nav.howItWorks": "Kamoo E Sebetsang Kateng",
+    "nav.developers": "Bahlahisi",
+    "nav.docs": "Litokomane",
+    "nav.support": "Tšehetso",
+    "nav.about": "About",
+    "nav.faq": "FAQ",
+    "nav.terms": "Melao",
+    "nav.privacy": "Lekunutu",
+    "nav.builtOnStellar": "E hahiloe holim'a Stellar"
   },
   "su": {
     "auth.profile.welcome": "Wilujeng angkat",
@@ -13308,7 +14676,16 @@
     "common.active": "Aktif",
     "common.completed": "Réngsé",
     "error.generic": "Aya nu lepat",
-    "error.tryAgain": "Mangga cobian deui"
+    "error.tryAgain": "Mangga cobian deui",
+    "nav.howItWorks": "Kumaha Gawéna",
+    "nav.developers": "Pamekar",
+    "nav.docs": "Dokumén",
+    "nav.support": "Ngarojong",
+    "nav.about": "Ngeunaan",
+    "nav.faq": "FAQ",
+    "nav.terms": "Sarat",
+    "nav.privacy": "Privasi",
+    "nav.builtOnStellar": "Diwangun dina Stellar"
   },
   "sv": {
     "auth.profile.welcome": "Välkommen ombord",
@@ -13395,7 +14772,16 @@
     "common.active": "Aktiv",
     "common.completed": "Avslutad",
     "error.generic": "Något gick fel",
-    "error.tryAgain": "Försök igen"
+    "error.tryAgain": "Försök igen",
+    "nav.howItWorks": "Hur det fungerar",
+    "nav.developers": "Utvecklare",
+    "nav.docs": "Dokument",
+    "nav.support": "Support",
+    "nav.about": "Om",
+    "nav.faq": "FAQ",
+    "nav.terms": "Villkor",
+    "nav.privacy": "Sekretess",
+    "nav.builtOnStellar": "Byggd på Stellar"
   },
   "sw": {
     "auth.profile.welcome": "Karibu ndani",
@@ -13482,7 +14868,16 @@
     "common.active": "Inayotumika",
     "common.completed": "Imekamilika",
     "error.generic": "Hitilafu fulani imetokea",
-    "error.tryAgain": "Tafadhali jaribu tena"
+    "error.tryAgain": "Tafadhali jaribu tena",
+    "nav.howItWorks": "Jinsi Inavyofanya Kazi",
+    "nav.developers": "Watengenezaji",
+    "nav.docs": "Hati",
+    "nav.support": "Msaada",
+    "nav.about": "Kuhusu",
+    "nav.faq": "Maswali Yanayoulizwa Mara kwa Mara",
+    "nav.terms": "Masharti",
+    "nav.privacy": "Faragha",
+    "nav.builtOnStellar": "Imejengwa juu ya Stellar"
   },
   "ta": {
     "auth.profile.welcome": "கப்பலில் வரவேற்கிறோம்",
@@ -13569,7 +14964,16 @@
     "common.active": "செயலில்",
     "common.completed": "முடிக்கப்பட்டது",
     "error.generic": "ஏதோ தவறாகிவிட்டது",
-    "error.tryAgain": "மீண்டும் முயற்சிக்கவும்"
+    "error.tryAgain": "மீண்டும் முயற்சிக்கவும்",
+    "nav.howItWorks": "இது எப்படி வேலை செய்கிறது",
+    "nav.developers": "டெவலப்பர்கள்",
+    "nav.docs": "ஆவணங்கள்",
+    "nav.support": "ஆதரவு",
+    "nav.about": "பற்றி",
+    "nav.faq": "அடிக்கடி கேட்கப்படும் கேள்விகள்",
+    "nav.terms": "விதிமுறைகள்",
+    "nav.privacy": "தனியுரிமை",
+    "nav.builtOnStellar": "விண்மீன் மீது கட்டப்பட்டது"
   },
   "te": {
     "auth.profile.welcome": "పైకి స్వాగతం",
@@ -13656,7 +15060,16 @@
     "common.active": "చురుకుగా",
     "common.completed": "పూర్తయింది",
     "error.generic": "ఏదో తప్పు జరిగింది",
-    "error.tryAgain": "దయచేసి మళ్లీ ప్రయత్నించండి"
+    "error.tryAgain": "దయచేసి మళ్లీ ప్రయత్నించండి",
+    "nav.howItWorks": "ఇది ఎలా పనిచేస్తుంది",
+    "nav.developers": "డెవలపర్లు",
+    "nav.docs": "డాక్స్",
+    "nav.support": "మద్దతు",
+    "nav.about": "గురించి",
+    "nav.faq": "తరచుగా అడిగే ప్రశ్నలు",
+    "nav.terms": "నిబంధనలు",
+    "nav.privacy": "గోప్యత",
+    "nav.builtOnStellar": "స్టెల్లార్‌పై నిర్మించబడింది"
   },
   "tg": {
     "auth.profile.welcome": "Хуш омадед ба киштӣ",
@@ -13743,7 +15156,16 @@
     "common.active": "Фаъол",
     "common.completed": "Ба итмом расид",
     "error.generic": "Чизе хато рафт",
-    "error.tryAgain": "Лутфан бори дигар кӯшиш кунед"
+    "error.tryAgain": "Лутфан бори дигар кӯшиш кунед",
+    "nav.howItWorks": "Чӣ тавр он кор мекунад",
+    "nav.developers": "Таҳиягарон",
+    "nav.docs": "Ҳуҷҷатҳо",
+    "nav.support": "Дастгирӣ",
+    "nav.about": "Дар бораи",
+    "nav.faq": "FAQ",
+    "nav.terms": "Шартҳо",
+    "nav.privacy": "Махфият",
+    "nav.builtOnStellar": "Дар Stellar сохта шудааст"
   },
   "th": {
     "auth.profile.welcome": "ยินดีต้อนรับบนเรือ",
@@ -13830,7 +15252,16 @@
     "common.active": "ใช้งานอยู่",
     "common.completed": "เสร็จสิ้น",
     "error.generic": "มีบางอย่างผิดพลาด",
-    "error.tryAgain": "โปรดลองอีกครั้ง"
+    "error.tryAgain": "โปรดลองอีกครั้ง",
+    "nav.howItWorks": "มันทำงานอย่างไร",
+    "nav.developers": "นักพัฒนา",
+    "nav.docs": "เอกสาร",
+    "nav.support": "สนับสนุน",
+    "nav.about": "เกี่ยวกับ",
+    "nav.faq": "คำถามที่พบบ่อย",
+    "nav.terms": "เงื่อนไข",
+    "nav.privacy": "ความเป็นส่วนตัว",
+    "nav.builtOnStellar": "สร้างขึ้นบนดาวฤกษ์"
   },
   "ti": {
     "auth.profile.welcome": "እንቋዕ ደሓን መጻእኩም ኣብ መርከብ",
@@ -13917,7 +15348,16 @@
     "common.active": "ንጡፍ",
     "common.completed": "ተዛዚሙ",
     "error.generic": "ገለ ነገር ተጋግዩ።",
-    "error.tryAgain": "በጃኹም ደጊምኩም ፈትኑ"
+    "error.tryAgain": "በጃኹም ደጊምኩም ፈትኑ",
+    "nav.howItWorks": "ከመይ ይሰርሕ",
+    "nav.developers": "ኣዳለውቲ",
+    "nav.docs": "ዶክስ",
+    "nav.support": "ደገፍ",
+    "nav.about": "ብዛዕባ...",
+    "nav.faq": "FAQ",
+    "nav.terms": "ውዕላት",
+    "nav.privacy": "ብሕታዊነት",
+    "nav.builtOnStellar": "ኣብ ስቴላር ዝተሃንጸ"
   },
   "tk": {
     "auth.profile.welcome": "Gämide hoş geldiňiz",
@@ -14004,7 +15444,16 @@
     "common.active": "Işjeň",
     "common.completed": "Tamamlandy",
     "error.generic": "Bir zat nädogry boldy",
-    "error.tryAgain": "Gaýtadan synanyşmagyňyzy haýyş edýäris"
+    "error.tryAgain": "Gaýtadan synanyşmagyňyzy haýyş edýäris",
+    "nav.howItWorks": "Bu nähili işleýär",
+    "nav.developers": "Döredijiler",
+    "nav.docs": "Resminamalar",
+    "nav.support": "Goldaw",
+    "nav.about": "Takmynan",
+    "nav.faq": "Sorag-jogap",
+    "nav.terms": "Şertler",
+    "nav.privacy": "Gizlinlik",
+    "nav.builtOnStellar": "“Stellar” -da gurlan"
   },
   "tl": {
     "auth.profile.welcome": "Maligayang pagdating sakay",
@@ -14091,7 +15540,16 @@
     "common.active": "Aktibo",
     "common.completed": "Nakumpleto",
     "error.generic": "Nagkaproblema",
-    "error.tryAgain": "Pakisubukang muli"
+    "error.tryAgain": "Pakisubukang muli",
+    "nav.howItWorks": "Paano Ito Gumagana",
+    "nav.developers": "Mga developer",
+    "nav.docs": "Docs",
+    "nav.support": "Suporta",
+    "nav.about": "Tungkol sa",
+    "nav.faq": "FAQ",
+    "nav.terms": "Mga tuntunin",
+    "nav.privacy": "Pagkapribado",
+    "nav.builtOnStellar": "Itinayo sa Stellar"
   },
   "tn": {
     "auth.profile.welcome": "O amogetswe mo sekepeng",
@@ -14178,7 +15636,16 @@
     "common.active": "E matlhagatlhaga",
     "common.completed": "E weditswe",
     "error.generic": "Sengwe se senyegile",
-    "error.tryAgain": "Tsweetswee leka gape"
+    "error.tryAgain": "Tsweetswee leka gape",
+    "nav.howItWorks": "Kafa e Dirang ka Gone",
+    "nav.developers": "Batlhabolodi",
+    "nav.docs": "Ditokomane",
+    "nav.support": "Tshegetso",
+    "nav.about": "Ka ga",
+    "nav.faq": "FAQ",
+    "nav.terms": "Dipeelano",
+    "nav.privacy": "Bosephiri",
+    "nav.builtOnStellar": "E agilwe mo Stellar"
   },
   "to": {
     "auth.profile.welcome": "Talitali lelei ki vaka",
@@ -14265,7 +15732,16 @@
     "common.active": "Ngaue",
     "common.completed": "Fakakakato",
     "error.generic": "Naʻe ʻi ai ha meʻa naʻe fehālaaki .",
-    "error.tryAgain": "Kataki 'o toe feinga ."
+    "error.tryAgain": "Kataki 'o toe feinga .",
+    "nav.howItWorks": "Founga ʻo ʻEne Ngāué",
+    "nav.developers": "Kau fakalakalaka",
+    "nav.docs": "Tohi",
+    "nav.support": "Poupou",
+    "nav.about": "Fekauʻaki mo e",
+    "nav.faq": "FAQ",
+    "nav.terms": "Ngaahi tu'utu'uni",
+    "nav.privacy": "Fakapulipuli",
+    "nav.builtOnStellar": "Langa 'i he Stellar ."
   },
   "tr": {
     "auth.profile.welcome": "Aramıza hoş geldiniz",
@@ -14352,7 +15828,16 @@
     "common.active": "Aktif",
     "common.completed": "Tamamlandı",
     "error.generic": "Bir şeyler ters gitti",
-    "error.tryAgain": "Lütfen tekrar deneyin"
+    "error.tryAgain": "Lütfen tekrar deneyin",
+    "nav.howItWorks": "Nasıl Çalışır?",
+    "nav.developers": "Geliştiriciler",
+    "nav.docs": "Dokümanlar",
+    "nav.support": "Destek",
+    "nav.about": "Hakkında",
+    "nav.faq": "SSS",
+    "nav.terms": "Şartlar",
+    "nav.privacy": "Gizlilik",
+    "nav.builtOnStellar": "Stellar üzerine inşa edildi"
   },
   "ts": {
     "auth.profile.welcome": "Mi amukeriwile eka xikepe",
@@ -14439,7 +15924,16 @@
     "common.active": "Ku tirha",
     "common.completed": "Ku hetisiwile",
     "error.generic": "Ku ni leswi nga famba kahle",
-    "error.tryAgain": "Hi kombela u ringeta nakambe"
+    "error.tryAgain": "Hi kombela u ringeta nakambe",
+    "nav.howItWorks": "Ndlela Leyi Swi Tirhaka Ha Yona",
+    "nav.developers": "Vatumbuluxi va swilo",
+    "nav.docs": "Docs",
+    "nav.support": "Nseketelo",
+    "nav.about": "Malunghana na",
+    "nav.faq": "FAQ",
+    "nav.terms": "Mimpimanyeto",
+    "nav.privacy": "Vuhlayiseki bya xihundla",
+    "nav.builtOnStellar": "Yi akiwile eka Stellar"
   },
   "tt": {
     "auth.profile.welcome": "Бортта рәхим итегез",
@@ -14526,7 +16020,16 @@
     "common.active": "Актив",
     "common.completed": "Тәмамланды",
     "error.generic": "Нәрсәдер дөрес булмаган",
-    "error.tryAgain": "Зинһар, кабатлап карагыз"
+    "error.tryAgain": "Зинһар, кабатлап карагыз",
+    "nav.howItWorks": "Бу ничек эшли",
+    "nav.developers": "Төзүчеләр",
+    "nav.docs": "Док",
+    "nav.support": "Ярдәм",
+    "nav.about": "Турында",
+    "nav.faq": "Сораулар",
+    "nav.terms": "Шартлар",
+    "nav.privacy": "Хосусыйлык",
+    "nav.builtOnStellar": "Йолдызлы"
   },
   "tw": {
     "auth.profile.welcome": "Yɛma wo akwaaba ba hyɛn no mu",
@@ -14613,7 +16116,16 @@
     "common.active": "Ɛyɛ nnam",
     "common.completed": "Wɔawie",
     "error.generic": "Biribi ankɔ yiye",
-    "error.tryAgain": "Yɛsrɛ sɛ sɔ hwɛ bio"
+    "error.tryAgain": "Yɛsrɛ sɛ sɔ hwɛ bio",
+    "nav.howItWorks": "Sɛnea Ɛyɛ Adwuma",
+    "nav.developers": "Wɔn a wɔyɛ nneɛma",
+    "nav.docs": "Docs",
+    "nav.support": "Mmoa",
+    "nav.about": "Ɛfa",
+    "nav.faq": "FAQ",
+    "nav.terms": "Nsɛmfua a Wɔde Di Dwuma",
+    "nav.privacy": "Kokoam nsɛm a wɔde sie",
+    "nav.builtOnStellar": "Wɔkyekyee wɔ Stellar so"
   },
   "ty": {
     "auth.profile.welcome": "Aroha mai",
@@ -14700,7 +16212,16 @@
     "common.active": "Hoê",
     "common.completed": "Ua oti",
     "error.generic": "Ua hape te tahi mea",
-    "error.tryAgain": "A tamata faahou"
+    "error.tryAgain": "A tamata faahou",
+    "nav.howItWorks": "Nahea te reira e ohipa ai",
+    "nav.developers": "Te mau taata hamani",
+    "nav.docs": "Te mau parau",
+    "nav.support": "Patururaa",
+    "nav.about": "No ni'a i te",
+    "nav.faq": "FAQ",
+    "nav.terms": "Te mau parau",
+    "nav.privacy": "Te oraraa taa ê",
+    "nav.builtOnStellar": "Ua patuhia i ni'a i te Stellar"
   },
   "ug": {
     "auth.profile.welcome": "پاراخوتقا كەلگىنىڭىزنى قارشى ئالىمىز",
@@ -14787,7 +16308,16 @@
     "common.active": "ئاكتىپ",
     "common.completed": "تاماملاندى",
     "error.generic": "چاتاق چىقتى",
-    "error.tryAgain": "قايتا سىناڭ"
+    "error.tryAgain": "قايتا سىناڭ",
+    "nav.howItWorks": "قانداق ئىشلەيدۇ",
+    "nav.developers": "Developers",
+    "nav.docs": "Docs",
+    "nav.support": "قوللاش",
+    "nav.about": "ھەققىدە",
+    "nav.faq": "سوئال",
+    "nav.terms": "شەرتلەر",
+    "nav.privacy": "مەخپىيەتلىك",
+    "nav.builtOnStellar": "Stellar ئۈستىگە قۇرۇلدى"
   },
   "uk": {
     "auth.profile.welcome": "Ласкаво просимо на борт",
@@ -14874,7 +16404,16 @@
     "common.active": "Активний",
     "common.completed": "Виконано",
     "error.generic": "Щось пішло не так",
-    "error.tryAgain": "Спробуйте ще раз"
+    "error.tryAgain": "Спробуйте ще раз",
+    "nav.howItWorks": "Як це працює",
+    "nav.developers": "Розробники",
+    "nav.docs": "документи",
+    "nav.support": "Підтримка",
+    "nav.about": "про",
+    "nav.faq": "FAQ",
+    "nav.terms": "Терміни",
+    "nav.privacy": "Конфіденційність",
+    "nav.builtOnStellar": "Створено на Stellar"
   },
   "ur": {
     "auth.profile.welcome": "جہاز میں خوش آمدید",
@@ -14961,7 +16500,16 @@
     "common.active": "فعال",
     "common.completed": "مکمل",
     "error.generic": "کچھ غلط ہو گیا۔",
-    "error.tryAgain": "براہ کرم دوبارہ کوشش کریں۔"
+    "error.tryAgain": "براہ کرم دوبارہ کوشش کریں۔",
+    "nav.howItWorks": "یہ کیسے کام کرتا ہے۔",
+    "nav.developers": "ڈویلپرز",
+    "nav.docs": "دستاویزات",
+    "nav.support": "حمایت",
+    "nav.about": "کے بارے میں",
+    "nav.faq": "اکثر پوچھے گئے سوالات",
+    "nav.terms": "شرائط",
+    "nav.privacy": "رازداری",
+    "nav.builtOnStellar": "اسٹیلر پر بنایا گیا ہے۔"
   },
   "uz": {
     "auth.profile.welcome": "Samolyotga xush kelibsiz",
@@ -15048,7 +16596,16 @@
     "common.active": "Faol",
     "common.completed": "Bajarildi",
     "error.generic": "Nimadir xato ketdi",
-    "error.tryAgain": "Iltimos, qayta urinib koʻring"
+    "error.tryAgain": "Iltimos, qayta urinib koʻring",
+    "nav.howItWorks": "U qanday ishlaydi",
+    "nav.developers": "Dasturchilar",
+    "nav.docs": "Hujjatlar",
+    "nav.support": "Qo'llab-quvvatlash",
+    "nav.about": "Haqida",
+    "nav.faq": "Tez-tez so'raladigan savollar",
+    "nav.terms": "Shartlar",
+    "nav.privacy": "Maxfiylik",
+    "nav.builtOnStellar": "Stellar asosida qurilgan"
   },
   "ve": {
     "auth.profile.welcome": "Vho ṱanganedzwa kha tshikepe",
@@ -15135,7 +16692,16 @@
     "common.active": "A khou shuma",
     "common.completed": "Zwo fhela",
     "error.generic": "Huna zwo khakheaho .",
-    "error.tryAgain": "Ndi khou humbela uri ni lingedze hafhu ."
+    "error.tryAgain": "Ndi khou humbela uri ni lingedze hafhu .",
+    "nav.howItWorks": "Nḓila ine ya shuma ngayo .",
+    "nav.developers": "Vhabveledzi",
+    "nav.docs": "Maṅwalo",
+    "nav.support": "Thikhedzo",
+    "nav.about": "Nga ha",
+    "nav.faq": "FAQ",
+    "nav.terms": "Maitele",
+    "nav.privacy": "Vhuṋe",
+    "nav.builtOnStellar": "Yo fhaṱiwa kha Stellar ."
   },
   "vi": {
     "auth.profile.welcome": "Chào mừng lên tàu",
@@ -15222,7 +16788,16 @@
     "common.active": "Đang hoạt động",
     "common.completed": "Đã hoàn thành",
     "error.generic": "Đã xảy ra lỗi",
-    "error.tryAgain": "Vui lòng thử lại"
+    "error.tryAgain": "Vui lòng thử lại",
+    "nav.howItWorks": "Nó hoạt động như thế nào",
+    "nav.developers": "Nhà phát triển",
+    "nav.docs": "Tài liệu",
+    "nav.support": "Hỗ trợ",
+    "nav.about": "Giới thiệu",
+    "nav.faq": "Câu hỏi thường gặp",
+    "nav.terms": "Điều khoản",
+    "nav.privacy": "Quyền riêng tư",
+    "nav.builtOnStellar": "Được xây dựng trên Stellar"
   },
   "vo": {
     "auth.profile.welcome": "Welcome aboard",
@@ -15309,7 +16884,16 @@
     "common.active": "Active",
     "common.completed": "Completed",
     "error.generic": "Something went wrong",
-    "error.tryAgain": "Please try again"
+    "error.tryAgain": "Please try again",
+    "nav.howItWorks": "How It Works",
+    "nav.developers": "Developers",
+    "nav.docs": "Docs",
+    "nav.support": "Support",
+    "nav.about": "About",
+    "nav.faq": "FAQ",
+    "nav.terms": "Terms",
+    "nav.privacy": "Privacy",
+    "nav.builtOnStellar": "Built on Stellar"
   },
   "wa": {
     "auth.profile.welcome": "Welcome aboard",
@@ -15396,7 +16980,16 @@
     "common.active": "Active",
     "common.completed": "Completed",
     "error.generic": "Something went wrong",
-    "error.tryAgain": "Please try again"
+    "error.tryAgain": "Please try again",
+    "nav.howItWorks": "How It Works",
+    "nav.developers": "Developers",
+    "nav.docs": "Docs",
+    "nav.support": "Support",
+    "nav.about": "About",
+    "nav.faq": "FAQ",
+    "nav.terms": "Terms",
+    "nav.privacy": "Privacy",
+    "nav.builtOnStellar": "Built on Stellar"
   },
   "wo": {
     "auth.profile.welcome": "Dalal jàmm",
@@ -15483,7 +17076,16 @@
     "common.active": "Aktif",
     "common.completed": "Jeexal",
     "error.generic": "Amna lu jaarul yoon",
-    "error.tryAgain": "Jéemaat"
+    "error.tryAgain": "Jéemaat",
+    "nav.howItWorks": "Ni muy doxee",
+    "nav.developers": "Developpeur yi",
+    "nav.docs": "Këyitu",
+    "nav.support": "Jàppale",
+    "nav.about": "Lu jëm ci",
+    "nav.faq": "laaj ak tontu",
+    "nav.terms": "Anam yi",
+    "nav.privacy": "Njaboot",
+    "nav.builtOnStellar": "Tabax ci kaw Stellar"
   },
   "xh": {
     "auth.profile.welcome": "Wamkelekile ngaphakathi",
@@ -15570,7 +17172,16 @@
     "common.active": "Iyasebenza",
     "common.completed": "Igqityiwe",
     "error.generic": "Kukho into engalunganga",
-    "error.tryAgain": "Nceda uzame kwakhona"
+    "error.tryAgain": "Nceda uzame kwakhona",
+    "nav.howItWorks": "Indlela Esebenza Ngayo",
+    "nav.developers": "Abaphuhlisi",
+    "nav.docs": "Amaxwebhu",
+    "nav.support": "Inkxaso",
+    "nav.about": "Malunga",
+    "nav.faq": "FAQ",
+    "nav.terms": "Imigaqo",
+    "nav.privacy": "Ubumfihlo",
+    "nav.builtOnStellar": "Yakhelwe kwiStellar"
   },
   "yi": {
     "auth.profile.welcome": "ברוכים הבאים אַבאָרד",
@@ -15657,7 +17268,16 @@
     "common.active": "אַקטיוו",
     "common.completed": "געענדיקט",
     "error.generic": "עפּעס איז פאַלש",
-    "error.tryAgain": "ביטע פּרוּווט ווידער"
+    "error.tryAgain": "ביטע פּרוּווט ווידער",
+    "nav.howItWorks": "ווי עס אַרבעט",
+    "nav.developers": "דעוועלאָפּערס",
+    "nav.docs": "דאָקס",
+    "nav.support": "שטיצן",
+    "nav.about": "וועגן",
+    "nav.faq": "FAQ",
+    "nav.terms": "תּנאָים",
+    "nav.privacy": "פּריוואַטקייט",
+    "nav.builtOnStellar": "געבויט אויף סטעלער"
   },
   "yo": {
     "auth.profile.welcome": "Kaabo ọkọ",
@@ -15744,7 +17364,16 @@
     "common.active": "Ti nṣiṣe lọwọ",
     "common.completed": "Ti pari",
     "error.generic": "Nkankan ti ko tọ",
-    "error.tryAgain": "Jọwọ gbiyanju lẹẹkansi"
+    "error.tryAgain": "Jọwọ gbiyanju lẹẹkansi",
+    "nav.howItWorks": "Bawo ni O Nṣiṣẹ",
+    "nav.developers": "Awọn olupilẹṣẹ",
+    "nav.docs": "Awọn iwe aṣẹ",
+    "nav.support": "Atilẹyin",
+    "nav.about": "Nipa",
+    "nav.faq": "FAQ",
+    "nav.terms": "Awọn ofin",
+    "nav.privacy": "Asiri",
+    "nav.builtOnStellar": "Itumọ ti lori Stellar"
   },
   "za": {
     "auth.profile.welcome": "Welcome aboard",
@@ -15831,7 +17460,16 @@
     "common.active": "Active",
     "common.completed": "Completed",
     "error.generic": "Something went wrong",
-    "error.tryAgain": "Please try again"
+    "error.tryAgain": "Please try again",
+    "nav.howItWorks": "How It Works",
+    "nav.developers": "Developers",
+    "nav.docs": "Docs",
+    "nav.support": "Support",
+    "nav.about": "About",
+    "nav.faq": "FAQ",
+    "nav.terms": "Terms",
+    "nav.privacy": "Privacy",
+    "nav.builtOnStellar": "Built on Stellar"
   },
   "zh": {
     "auth.profile.welcome": "欢迎登机",
@@ -15918,7 +17556,16 @@
     "common.active": "活跃",
     "common.completed": "已完成",
     "error.generic": "出了点问题",
-    "error.tryAgain": "请重试"
+    "error.tryAgain": "请重试",
+    "nav.howItWorks": "它是如何运作的",
+    "nav.developers": "开发商",
+    "nav.docs": "文档",
+    "nav.support": "支持",
+    "nav.about": "关于",
+    "nav.faq": "常见问题解答",
+    "nav.terms": "条款",
+    "nav.privacy": "隐私",
+    "nav.builtOnStellar": "建立在恒星之上"
   },
   "zu": {
     "auth.profile.welcome": "Siyakwamukela ngaphakathi",
@@ -16005,6 +17652,15 @@
     "common.active": "Iyasebenza",
     "common.completed": "Kuqediwe",
     "error.generic": "Kukhona okungahambanga kahle",
-    "error.tryAgain": "Sicela uzame futhi"
+    "error.tryAgain": "Sicela uzame futhi",
+    "nav.howItWorks": "Indlela Esebenza Ngayo",
+    "nav.developers": "Onjiniyela",
+    "nav.docs": "Amadokhumenti",
+    "nav.support": "Ukusekela",
+    "nav.about": "Mayelana",
+    "nav.faq": "FAQ",
+    "nav.terms": "Imigomo",
+    "nav.privacy": "Ubumfihlo",
+    "nav.builtOnStellar": "Yakhelwe phezu kwe-Stellar"
   }
 }

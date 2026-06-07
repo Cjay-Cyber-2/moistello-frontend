@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { useUIStore } from "@/stores/ui-store";
+import { useTranslate } from "@/lib/locale/context";
 
 interface PublicLayoutProps {
   children: React.ReactNode;
@@ -25,16 +26,17 @@ interface PublicLayoutProps {
 export function PublicLayout({ children }: PublicLayoutProps) {
   const [menuOpen, setMenuOpen] = useState(false);
   const { theme, toggleTheme } = useUIStore();
+  const { t } = useTranslate();
   const isDark = theme === "dark";
 
   const closeMenu = useCallback(() => setMenuOpen(false), []);
   const toggleMenu = useCallback(() => setMenuOpen((prev) => !prev), []);
 
   const navItems = [
-    { label: "How It Works", href: "/how-it-works" },
-    { label: "Developers", href: "/developers" },
-    { label: "Docs", href: "/docs" },
-    { label: "Support", href: "/support" },
+    { label: t("nav.howItWorks"), href: "/how-it-works" },
+    { label: t("nav.developers"), href: "/developers" },
+    { label: t("nav.docs"), href: "/docs" },
+    { label: t("nav.support"), href: "/support" },
   ];
 
   return (
@@ -155,10 +157,10 @@ export function PublicLayout({ children }: PublicLayoutProps) {
                     Navigate
                   </p>
                   {[
-                    { label: "How It Works", href: "/how-it-works", icon: <ShieldQuestion className="h-[18px] w-[18px]" /> },
-                    { label: "Developers", href: "/developers", icon: <Code className="h-[18px] w-[18px]" /> },
-                    { label: "Docs", href: "/docs", icon: <BookOpen className="h-[18px] w-[18px]" /> },
-                    { label: "Support", href: "/support", icon: <HelpCircle className="h-[18px] w-[18px]" /> },
+                    { label: t("nav.howItWorks"), href: "/how-it-works", icon: <ShieldQuestion className="h-[18px] w-[18px]" /> },
+                    { label: t("nav.developers"), href: "/developers", icon: <Code className="h-[18px] w-[18px]" /> },
+                    { label: t("nav.docs"), href: "/docs", icon: <BookOpen className="h-[18px] w-[18px]" /> },
+                    { label: t("nav.support"), href: "/support", icon: <HelpCircle className="h-[18px] w-[18px]" /> },
                   ].map((item) => (
                     <Link
                       key={item.href}
@@ -174,8 +176,8 @@ export function PublicLayout({ children }: PublicLayoutProps) {
                     Legal
                   </p>
                   {[
-                    { label: "Terms", href: "/terms", icon: <Scale className="h-[18px] w-[18px]" /> },
-                    { label: "Privacy", href: "/privacy", icon: <Lock className="h-[18px] w-[18px]" /> },
+                    { label: t("nav.terms"), href: "/terms", icon: <Scale className="h-[18px] w-[18px]" /> },
+                    { label: t("nav.privacy"), href: "/privacy", icon: <Lock className="h-[18px] w-[18px]" /> },
                   ].map((item) => (
                     <Link
                       key={item.href}
@@ -231,17 +233,17 @@ export function PublicLayout({ children }: PublicLayoutProps) {
         <div className="container-premium flex flex-col md:flex-row justify-between items-center gap-6 text-sm text-muted-foreground">
           <span>&copy; {new Date().getFullYear()} Moistello</span>
           <nav className="flex flex-wrap justify-center gap-6">
-            <Link href="/about" className="hover:text-foreground transition-colors">About</Link>
-            <Link href="/how-it-works" className="hover:text-foreground transition-colors">How It Works</Link>
-            <Link href="/developers" className="hover:text-foreground transition-colors">Developers</Link>
-            <Link href="/docs" className="hover:text-foreground transition-colors">Docs</Link>
-            <Link href="/faq" className="hover:text-foreground transition-colors">FAQ</Link>
-            <Link href="/become-a-contributor" className="hover:text-foreground transition-colors">Contribute</Link>
-            <Link href="/support" className="hover:text-foreground transition-colors">Support</Link>
-            <Link href="/terms" className="hover:text-foreground transition-colors">Terms</Link>
-            <Link href="/privacy" className="hover:text-foreground transition-colors">Privacy</Link>
+            <Link href="/about" className="hover:text-foreground transition-colors">{t("nav.about")}</Link>
+            <Link href="/how-it-works" className="hover:text-foreground transition-colors">{t("nav.howItWorks")}</Link>
+            <Link href="/developers" className="hover:text-foreground transition-colors">{t("nav.developers")}</Link>
+            <Link href="/docs" className="hover:text-foreground transition-colors">{t("nav.docs")}</Link>
+            <Link href="/faq" className="hover:text-foreground transition-colors">{t("nav.faq")}</Link>
+            <Link href="/become-a-contributor" className="hover:text-foreground transition-colors">{t("common.create")}</Link>
+            <Link href="/support" className="hover:text-foreground transition-colors">{t("nav.support")}</Link>
+            <Link href="/terms" className="hover:text-foreground transition-colors">{t("nav.terms")}</Link>
+            <Link href="/privacy" className="hover:text-foreground transition-colors">{t("nav.privacy")}</Link>
           </nav>
-          <span className="flex items-center gap-1.5"><span className="h-1.5 w-1.5 rounded-full bg-aurora-cyan animate-pulse-glow" />Built on Stellar</span>
+          <span className="flex items-center gap-1.5"><span className="h-1.5 w-1.5 rounded-full bg-aurora-cyan animate-pulse-glow" />{t("nav.builtOnStellar")}</span>
         </div>
       </footer>
     </div>
