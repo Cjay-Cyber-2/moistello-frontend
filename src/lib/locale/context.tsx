@@ -25,17 +25,14 @@ export function useTranslate() {
   return useContext(LocaleContext)
 }
 
-export function LocaleProvider({
-  children,
-}: {
-  children: ReactNode
-}) {
+export function LocaleProvider({ children }: { children: ReactNode }) {
   const authUser = useAuthStore((s) => s.user)
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated)
 
   const [locale, setLocaleState] = useState("en")
+  const [tick, setTick] = useState(0)
 
-  // Initialize from: 1) auth user profile, 2) localStorage, 3) English
+  // Force re-render when auth changes
   useEffect(() => {
     if (isAuthenticated && authUser?.preferredLanguage) {
       setLocaleState(authUser.preferredLanguage)
@@ -43,34 +40,21 @@ export function LocaleProvider({
       return
     }
     const stored = typeof window !== "undefined" ? localStorage.getItem("moistello_locale") : null
-    if (stored) {
-      setLocaleState(stored)
-    }
-  }, [isAuthenticated, authUser?.preferredLanguage])
-
-  const persistLocale = useCallback(async (lang: string) => {
-    const { patch } = await import("@/lib/api-client")
-    for (let i = 0; i < 3; i++) {
-      try {
-        await patch("/users/me", { preferredLanguage: lang })
-        return
-      } catch {
-        if (i === 2) {
-          console.warn(`[locale] failed to persist language "${lang}" after 3 attempts`)
-          return
-        }
-        await new Promise((r) => setTimeout(r, 1000 * (i + 1)))
-      }
-    }
-  }, [])
+    if (stored) setLocaleState(stored)
+  }, [isAuthenticated, authUser?.preferredLanguage, tick])
 
   const setLocale = useCallback((lang: string) => {
     setLocaleState(lang)
-    if (typeof window !== "undefined") {
-      localStorage.setItem("moistello_locale", lang)
+    if (typeof window !== "undefined") localStorage.setItem("moistello_locale", lang)
+    // Only persist to backend if authenticated
+    const state = useAuthStore.getState()
+    if (state.isAuthenticated && state.user) {
+      import("@/lib/api-client").then(({ patch }) => {
+        patch("/users/me", { preferredLanguage: lang }).catch(() => {})
+      })
     }
-    persistLocale(lang)
-  }, [persistLocale])
+    setTick((t) => t + 1)
+  }, [])
 
   const t = useCallback(
     (key: string): string => {

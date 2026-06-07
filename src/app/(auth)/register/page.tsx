@@ -122,26 +122,22 @@ function RegisterPageContent() {
     }
   }, [connectStart, connectSuccess, setPasskeyPublicKey, addToast])
 
-  const handleProfileSubmit = useCallback(async () => {
+  const handleProfileSubmit = useCallback(() => {
     if (!claimedName) return
-    try {
-      await patch("/users/me", {
-        displayName: claimedName,
-        preferredLanguage: language,
-      })
-    } catch {
-      // Name collision — shouldn't happen with counter-based generator
-      addToast({ type: "error", title: "Name taken", description: "A new name will be generated." })
-      setClaimedName("")
-      return
-    }
     setLocalStep("sign")
-  }, [claimedName, language, addToast])
+  }, [claimedName])
 
   const handleSignSubmit = useCallback(async () => {
     await sign()
     const authStatus = useAuthFlowStore.getState().status.status
     if (authStatus === "authenticated") {
+      // Save name + language after auth succeeds
+      try {
+        await patch("/users/me", {
+          displayName: claimedName,
+          preferredLanguage: language,
+        })
+      } catch { /* best-effort */ }
       // Create Stellar wallet via backend
       try {
         const stored = JSON.parse(localStorage.getItem("moistello_passkey_credential") || "{}")
@@ -157,7 +153,7 @@ function RegisterPageContent() {
       }
       router.replace("/")
     }
-  }, [sign, router, addToast])
+  }, [sign, router, addToast, claimedName, language])
 
   if (status.status === "authenticated") {
     return (
