@@ -19,20 +19,7 @@ import { Routes } from "@/lib/constants";
 import { useUIStore } from "@/stores/ui-store";
 import { useAuthStore } from "@/stores/auth-store";
 import { useNotificationStore } from "@/stores/notification-store";
-
-const navLinks = [
-  { label: "Dashboard", href: Routes.DASHBOARD, icon: <Home className="h-4 w-4" /> },
-  { label: "Circles", href: Routes.CIRCLES, icon: <CircleDot className="h-4 w-4" /> },
-  { label: "Contributions", href: "/contributions", icon: <ArrowUpCircle className="h-4 w-4" /> },
-  { label: "Payouts", href: "/payouts", icon: <ArrowDownCircle className="h-4 w-4" /> },
-  { label: "Communities", href: Routes.COMMUNITIES, icon: <Award className="h-4 w-4" /> },
-];
-
-const accountLinks = [
-  { label: "Notifications", href: Routes.NOTIFICATIONS, icon: <Bell className="h-4 w-4" /> },
-  { label: "Settings", href: Routes.PROFILE_SETTINGS, icon: <Settings className="h-4 w-4" /> },
-  { label: "Wallet", href: Routes.WALLET, icon: <Wallet className="h-4 w-4" /> },
-];
+import { useTranslate } from "@/lib/locale/context";
 
 interface MobileMenuProps {
   isOpen: boolean;
@@ -45,6 +32,21 @@ export function MobileMenu({ isOpen, onClose }: MobileMenuProps) {
   const { user, isAuthenticated, logout } = useAuthStore();
   const { unreadCount } = useNotificationStore();
   const isDark = theme === "dark";
+  const { t } = useTranslate();
+
+  const navLinks = [
+    { label: t("nav.dashboard"), href: Routes.DASHBOARD, icon: <Home className="h-4 w-4" /> },
+    { label: t("nav.circles"), href: Routes.CIRCLES, icon: <CircleDot className="h-4 w-4" /> },
+    { label: t("nav.contributions"), href: "/contributions", icon: <ArrowUpCircle className="h-4 w-4" /> },
+    { label: t("nav.payouts"), href: "/payouts", icon: <ArrowDownCircle className="h-4 w-4" /> },
+    { label: t("nav.communities"), href: Routes.COMMUNITIES, icon: <Award className="h-4 w-4" /> },
+  ];
+
+  const accountLinks = [
+    { label: t("nav.notifications"), href: Routes.NOTIFICATIONS, icon: <Bell className="h-4 w-4" /> },
+    { label: t("nav.settings"), href: Routes.PROFILE_SETTINGS, icon: <Settings className="h-4 w-4" /> },
+    { label: t("nav.wallet"), href: Routes.WALLET, icon: <Wallet className="h-4 w-4" /> },
+  ];
 
   const isActive = (href: string) => {
     if (href === Routes.DASHBOARD) return pathname === Routes.DASHBOARD;

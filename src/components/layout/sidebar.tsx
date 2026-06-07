@@ -19,6 +19,7 @@ import { Routes } from "@/lib/constants";
 import { useUIStore } from "@/stores/ui-store";
 import { useAuthStore } from "@/stores/auth-store";
 import { useNotificationStore } from "@/stores/notification-store";
+import { useTranslate } from "@/lib/locale/context";
 
 interface NavItem {
   label: string;
@@ -37,6 +38,7 @@ export function Sidebar() {
   const { theme, toggleTheme } = useUIStore();
   const { user, isAuthenticated } = useAuthStore();
   const { unreadCount } = useNotificationStore();
+  const { t } = useTranslate();
 
   const isDark = theme === "dark";
 
@@ -47,26 +49,26 @@ export function Sidebar() {
 
   const navGroups: NavGroup[] = [
     {
-      title: "Platform",
+      title: t("nav.platform"),
       items: [
-        { label: "Dashboard", href: Routes.DASHBOARD, icon: <LayoutDashboard className="h-[18px] w-[18px]" /> },
-        { label: "Circles", href: Routes.CIRCLES, icon: <CircleDot className="h-[18px] w-[18px]" /> },
+        { label: t("nav.dashboard"), href: Routes.DASHBOARD, icon: <LayoutDashboard className="h-[18px] w-[18px]" /> },
+        { label: t("nav.circles"), href: Routes.CIRCLES, icon: <CircleDot className="h-[18px] w-[18px]" /> },
       ],
     },
     {
-      title: "Community",
+      title: t("nav.community"),
       items: [
-        { label: "Communities", href: Routes.COMMUNITIES, icon: <Users className="h-[18px] w-[18px]" /> },
-        { label: "Contributions", href: "/contributions", icon: <ArrowUpCircle className="h-[18px] w-[18px]" /> },
-        { label: "Payouts", href: "/payouts", icon: <ArrowDownCircle className="h-[18px] w-[18px]" /> },
+        { label: t("nav.communities"), href: Routes.COMMUNITIES, icon: <Users className="h-[18px] w-[18px]" /> },
+        { label: t("nav.contributions"), href: "/contributions", icon: <ArrowUpCircle className="h-[18px] w-[18px]" /> },
+        { label: t("nav.payouts"), href: "/payouts", icon: <ArrowDownCircle className="h-[18px] w-[18px]" /> },
       ],
     },
     {
-      title: "Account",
+      title: t("nav.account"),
       items: [
-        { label: "Notifications", href: Routes.NOTIFICATIONS, icon: <Bell className="h-[18px] w-[18px]" />, badge: unreadCount },
-        { label: "Settings", href: Routes.PROFILE_SETTINGS, icon: <Settings className="h-[18px] w-[18px]" /> },
-        { label: "Wallet", href: Routes.WALLET, icon: <Wallet className="h-[18px] w-[18px]" /> },
+        { label: t("nav.notifications"), href: Routes.NOTIFICATIONS, icon: <Bell className="h-[18px] w-[18px]" />, badge: unreadCount },
+        { label: t("nav.settings"), href: Routes.PROFILE_SETTINGS, icon: <Settings className="h-[18px] w-[18px]" /> },
+        { label: t("nav.wallet"), href: Routes.WALLET, icon: <Wallet className="h-[18px] w-[18px]" /> },
       ],
     },
   ];

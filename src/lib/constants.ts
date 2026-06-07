@@ -76,7 +76,7 @@ export const Routes = {
   PROFILE: "/profile",
   COMMUNITIES: "/communities",
   COMMUNITY_DETAIL: (id: string) => `/communities/${id}`,
-  PROFILE_SETTINGS: "/profile",
+  PROFILE_SETTINGS: "/settings",
   WALLET: "/wallet",
   NOTIFICATIONS: "/notifications",
   INVITE: (code: string) => `/invite/${code}`,

@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { LayoutDashboard, CircleDot, Users, User } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { Routes } from "@/lib/constants";
+import { useTranslate } from "@/lib/locale/context";
 
 interface MobileNavItem {
   label: string;
@@ -12,31 +13,16 @@ interface MobileNavItem {
   icon: React.ReactNode;
 }
 
-const navItems: MobileNavItem[] = [
-  {
-    label: "Home",
-    href: Routes.DASHBOARD,
-    icon: <LayoutDashboard className="h-5 w-5" />,
-  },
-  {
-    label: "Circles",
-    href: Routes.CIRCLES,
-    icon: <CircleDot className="h-5 w-5" />,
-  },
-  {
-    label: "Communities",
-    href: Routes.COMMUNITIES,
-    icon: <Users className="h-5 w-5" />,
-  },
-  {
-    label: "Profile",
-    href: Routes.PROFILE,
-    icon: <User className="h-5 w-5" />,
-  },
-];
-
 export function MobileNav() {
   const pathname = usePathname();
+  const { t } = useTranslate();
+
+  const navItems: MobileNavItem[] = [
+    { label: t("nav.dashboard"), href: Routes.DASHBOARD, icon: <LayoutDashboard className="h-5 w-5" /> },
+    { label: t("nav.circles"), href: Routes.CIRCLES, icon: <CircleDot className="h-5 w-5" /> },
+    { label: t("nav.communities"), href: Routes.COMMUNITIES, icon: <Users className="h-5 w-5" /> },
+    { label: t("nav.profile"), href: Routes.PROFILE, icon: <User className="h-5 w-5" /> },
+  ];
 
   const isActive = (href: string) => {
     if (href === Routes.DASHBOARD) return pathname === Routes.DASHBOARD;

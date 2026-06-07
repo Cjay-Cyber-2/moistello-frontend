@@ -18,12 +18,7 @@ import { Routes } from "@/lib/constants";
 import { Button } from "@/components/ui/button";
 import { useMultiWallet } from "@/hooks/use-multi-wallet";
 import { useNotificationStore } from "@/stores/notification-store";
-
-const navLinks: { label: string; href: string; icon: React.ReactNode }[] = [
-  { label: "Dashboard", href: Routes.DASHBOARD, icon: <Home className="h-4 w-4" /> },
-  { label: "Circles", href: Routes.CIRCLES, icon: <CircleDot className="h-4 w-4" /> },
-  { label: "Communities", href: Routes.COMMUNITIES, icon: <Users className="h-4 w-4" /> },
-];
+import { useTranslate } from "@/lib/locale/context";
 
 interface HeaderProps {
   onToggleMobileMenu: () => void;
@@ -34,7 +29,14 @@ export function Header({ onToggleMobileMenu, isMobileMenuOpen }: HeaderProps) {
   const pathname = usePathname();
   const { isConnected, address } = useMultiWallet();
   const { unreadCount } = useNotificationStore();
+  const { t } = useTranslate();
   const [showConnectModal, setShowConnectModal] = useState(false);
+
+  const navLinks: { label: string; href: string; icon: React.ReactNode }[] = [
+    { label: t("nav.dashboard"), href: Routes.DASHBOARD, icon: <Home className="h-4 w-4" /> },
+    { label: t("nav.circles"), href: Routes.CIRCLES, icon: <CircleDot className="h-4 w-4" /> },
+    { label: t("nav.communities"), href: Routes.COMMUNITIES, icon: <Users className="h-4 w-4" /> },
+  ];
 
   const isActive = (href: string) => {
     if (href === Routes.DASHBOARD) return pathname === Routes.DASHBOARD;
