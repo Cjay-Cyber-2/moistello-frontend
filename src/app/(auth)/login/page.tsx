@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { Shield } from "lucide-react"
+import { useTranslate } from "@/lib/locale/context"
 import { useAuthFlow, AuthFlowProvider } from "@/hooks/auth-flow-context"
 import { useAuthFlowStore } from "@/stores/auth-flow-store"
 import { useMultiWalletStore } from "@/stores/multi-wallet-store"
@@ -23,6 +24,7 @@ import { PasskeyRevokedBanner } from "@/components/auth/passkey-revoked-banner"
 getWalletRegistry().register(createPasskeyAdapter())
 
 function LoginPageContent() {
+  const { t } = useTranslate()
   const router = useRouter()
   useRedirectIfAuthenticated()
   const abortConditionalMediation = useConditionalMediation()
@@ -71,7 +73,7 @@ function LoginPageContent() {
       if (!storedCredential) {
         authenticatingRef.current = false
         recordMetric("auth.login.no_credential", 1)
-        addToast({ type: "info", title: "No account found", description: "Create one to get started." })
+        addToast({ type: "info", title: t("auth.login.noAccountFound"), description: t("auth.login.createOneToStart") })
         router.replace("/register")
         return
       }
@@ -97,7 +99,7 @@ function LoginPageContent() {
       }
       if (useAuthFlowStore.getState().status.status === "authenticated") {
         authenticatingRef.current = false
-        addToast({ type: "success", title: "Welcome back!", description: "You are now signed in." })
+        addToast({ type: "success", title: t("auth.login.welcomeBack"), description: t("auth.login.welcomeDescription") })
         router.replace("/dashboard")
       }
     } catch (err: unknown) {
@@ -106,7 +108,7 @@ function LoginPageContent() {
         ? (err as { message: string }).message
         : "Passkey authentication failed"
       store.setError("connection_rejected", msg)
-      addToast({ type: "error", title: "Passkey Login Failed", description: msg })
+      addToast({ type: "error", title: t("auth.login.passkeyLoginFailed"), description: msg })
     }
   }, [router, addToast])
 
@@ -136,8 +138,8 @@ function LoginPageContent() {
       }
       addToast({
         type: "success",
-        title: "Welcome back!",
-        description: "You are now signed in.",
+        title: t("auth.login.welcomeBack"),
+        description: t("auth.login.welcomeDescription"),
       })
       router.replace("/dashboard")
     }
@@ -147,7 +149,7 @@ function LoginPageContent() {
     return (
       <AuthLayout>
         <div className="flex flex-col items-center gap-4 py-8" role="status" aria-live="polite">
-          <p className="text-sm text-muted-foreground">Redirecting to dashboard...</p>
+          <p className="text-sm text-muted-foreground">{t("auth.sign.redirecting")}</p>
         </div>
       </AuthLayout>
     )
@@ -157,8 +159,8 @@ function LoginPageContent() {
     <>
       <AuthLayout
         footerLinks={[
-          { label: "Don't have an account? ", href: "/register", text: "Create one" },
-          { label: "", href: "/", text: "\u2190 Back to home" },
+          { label: t("auth.login.dontHaveAccount"), href: "/register", text: t("auth.login.createAccount") },
+          { label: "", href: "/", text: "\u2190 " + t("auth.register.backHome") },
         ]}
       >
         <SessionTimeoutBanner />
@@ -169,8 +171,8 @@ function LoginPageContent() {
             isVisible
             text={
               status.status === "signing"
-                ? "Signing you in..."
-                : "Connecting your wallet..."
+                ? t("auth.login.signingYouIn")
+                : t("auth.login.connecting")
             }
           />
         )}
@@ -183,9 +185,9 @@ function LoginPageContent() {
                   <Shield className="h-7 w-7 text-white" />
                 </div>
               </div>
-              <p className="font-heading text-lg font-medium text-foreground">Sign In to Moistello</p>
+              <p className="font-heading text-lg font-medium text-foreground">{t("auth.login.signInTitle")}</p>
               <p className="text-sm text-muted-foreground">
-                Use your passkey to securely access your account.
+                {t("auth.login.signInDescription")}
               </p>
             </div>
 
@@ -197,8 +199,8 @@ function LoginPageContent() {
 
             {hasCredential === false && (
               <div className="rounded-xl border border-aurora-violet/30 bg-aurora-violet/10 px-4 py-3 text-sm text-aurora-violet" role="status">
-                No passkey found on this device.{" "}
-                <Link href="/register" className="underline font-medium">Create an account</Link> to get started.
+                {t("auth.login.noPasskey")}{" "}
+                <Link href="/register" className="underline font-medium">{t("auth.login.createAccount")}</Link> {t("auth.login.toGetStarted")}
               </div>
             )}
 
@@ -208,13 +210,13 @@ function LoginPageContent() {
               className="w-full h-12 rounded-xl gradient-bg-extended text-white text-sm font-heading font-bold transition-all hover:opacity-90 disabled:opacity-50 disabled:pointer-events-none flex items-center justify-center gap-2 shadow-[0_0_24px_rgb(var(--aurora-violet)/0.25)]"
             >
               <Shield className="h-4 w-4" />
-              Sign in with Passkey
+              {t("auth.login.signInButton")}
             </button>
 
             <p className="text-center text-2xs text-muted-foreground">
-              Authenticate with your device biometrics.
+              {t("auth.login.biometricText")}
               <br />
-              Your device is your key.
+              {t("auth.login.deviceIsKey")}
             </p>
           </div>
         ) : step === "sign" ? (

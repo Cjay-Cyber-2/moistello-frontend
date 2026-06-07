@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react"
 import { useRouter } from "next/navigation"
+import { useTranslate } from "@/lib/locale/context"
 import { Fingerprint, Loader2, Shield } from "lucide-react"
 import { useAuthFlow, AuthFlowProvider } from "@/hooks/auth-flow-context"
 import { useAuthFlowStore } from "@/stores/auth-flow-store"
@@ -33,6 +34,8 @@ getWalletRegistry().register(createPasskeyAdapter())
 function RegisterPageContent() {
   const router = useRouter()
   useRedirectIfAuthenticated()
+
+  const { t } = useTranslate()
 
   const status = useAuthFlow((s) => s.status)
   const error = useAuthFlow((s) => s.error)
@@ -170,8 +173,8 @@ function RegisterPageContent() {
     <>
       <AuthLayout
         footerLinks={[
-          { label: "Already have an account? ", href: "/login", text: "Sign in" },
-          { label: "", href: "/", text: "\u2190 Back to home" },
+          { label: t("auth.register.alreadyHaveAccount"), href: "/login", text: t("auth.register.signIn") },
+          { label: "", href: "/", text: `\u2190 ${t("auth.register.backHome")}` },
         ]}
       >
         <AuthStepIndicator
@@ -191,11 +194,9 @@ function RegisterPageContent() {
                   <Fingerprint className="h-7 w-7 text-white" />
                 </div>
               </div>
-              <p className="font-heading text-lg font-medium text-foreground">Create Your Wallet</p>
+              <p className="font-heading text-lg font-medium text-foreground">{t("auth.register.createWallet")}</p>
               <p className="text-sm text-muted-foreground">
-                Generate a secure passkey wallet with your device.
-                <br />
-                No crypto knowledge needed.
+                {t("auth.register.description")}
               </p>
             </div>
 
@@ -223,7 +224,7 @@ function RegisterPageContent() {
               ) : (
                 <>
                   <Shield className="h-4 w-4" />
-                  Create Wallet
+                  {t("auth.register.createWalletBtn")}
                 </>
               )}
             </button>
@@ -231,14 +232,12 @@ function RegisterPageContent() {
             {isCreatingPasskey && (
               <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground">
                 <Loader2 className="h-3 w-3 animate-spin" />
-                Your browser will ask for biometric verification
+                {t("auth.register.biometricPrompt")}
               </div>
             )}
 
             <p className="text-center text-2xs text-muted-foreground">
-              Your wallet is secured by your device biometrics.
-              <br />
-              No private keys leave your device.
+              {t("auth.register.securityNote")}
             </p>
           </div>
         )}

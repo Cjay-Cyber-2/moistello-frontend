@@ -5,6 +5,7 @@ import { ArrowLeft, CheckCircle, Clock, FileSignature, Loader2 } from "lucide-re
 import { ConnectedBadge } from "./connected-badge"
 import { ErrorDisplay } from "./error-display"
 import type { AuthErrorCode, AuthFlowStatus } from "@/stores/auth-flow-store"
+import { useTranslate } from "@/lib/locale/context"
 
 interface ConnectionInfo {
   walletId: string | null
@@ -48,6 +49,7 @@ export function SignStep({
   onSign,
   onBack,
 }: SignStepProps) {
+  const { t } = useTranslate()
   const [isSigning, setIsSigning] = useState(false)
   const [cooldownLeft, setCooldownLeft] = useState(0)
   const cooldownTimerRef = useRef<ReturnType<typeof setInterval> | null>(null)
@@ -122,9 +124,9 @@ export function SignStep({
           <CheckCircle className="h-7 w-7 text-emerald-400" />
         </div>
         <p className="text-sm font-medium text-foreground">
-          {mode === "login" ? "Welcome back!" : "Welcome to Moistello!"}
+          {mode === "login" ? t("auth.sign.welcomeBack") : t("auth.sign.welcomeToMoistello")}
         </p>
-        <p className="text-xs text-muted-foreground">Redirecting to dashboard...</p>
+        <p className="text-xs text-muted-foreground">{t("auth.sign.redirecting")}</p>
         <Loader2 className="h-5 w-5 animate-spin text-aurora-violet" />
       </div>
     )
@@ -139,7 +141,7 @@ export function SignStep({
         aria-label="Go back"
       >
         <ArrowLeft className="h-3.5 w-3.5" />
-        Back
+        {t("auth.sign.back")}
       </button>
 
       <div className="text-center space-y-2">
@@ -149,12 +151,10 @@ export function SignStep({
           </div>
         </div>
         <p className="font-heading text-lg font-medium text-foreground">
-          {mode === "login" ? "Sign in to continue" : "Create your account"}
+          {mode === "login" ? t("auth.login.signInTitle") : t("auth.sign.title")}
         </p>
         <p className="text-sm text-muted-foreground">
-          {mode === "login"
-            ? "Review and confirm to sign in"
-            : "Review your details and confirm"}
+          {mode === "login" ? t("auth.login.signInDescription") : t("auth.sign.description")}
         </p>
       </div>
 
@@ -168,7 +168,7 @@ export function SignStep({
 
         {mode === "register" && profile.displayName && (
           <div className="rounded-xl glass border border-white/10 px-4 py-3 space-y-1.5">
-            <p className="text-xs text-muted-foreground">Profile</p>
+            <p className="text-xs text-muted-foreground">{t("auth.sign.profile")}</p>
             <p className="text-sm font-medium text-foreground">{profile.displayName}</p>
             {countryLabel && (
               <p className="text-xs text-muted-foreground">{countryLabel}</p>
@@ -201,13 +201,13 @@ export function SignStep({
         {isOnCooldown && (
           <div className="flex items-center justify-center gap-2 rounded-xl border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-400" role="status">
             <Clock className="h-4 w-4 shrink-0" />
-            <span>Too many attempts. Try again in {Math.floor(cooldownLeft / 60)}:{String(cooldownLeft % 60).padStart(2, "0")}</span>
+            <span>{t("auth.sign.cooldown")}{Math.floor(cooldownLeft / 60)}:{String(cooldownLeft % 60).padStart(2, "0")}</span>
           </div>
         )}
 
         {rateLimit && rateLimit.remainingAttempts < 5 && rateLimit.remainingAttempts > 0 && !isOnCooldown && (
           <p className="text-center text-xs text-muted-foreground">
-            {rateLimit.remainingAttempts} attempt{rateLimit.remainingAttempts !== 1 ? "s" : ""} remaining
+            {rateLimit.remainingAttempts} {t("auth.sign.attemptsRemaining")}
           </p>
         )}
 
@@ -221,29 +221,29 @@ export function SignStep({
             {isSigning ? (
               <>
                 <Loader2 className="h-4 w-4 animate-spin" />
-                {status.status === "signing" ? "Signing..." : "Preparing..."}
+                {status.status === "signing" ? t("auth.sign.signing") : t("auth.sign.preparing")}
               </>
             ) : isOnCooldown ? (
               `Wait ${cooldownLeft}s`
             ) : (
-              mode === "login" ? "Sign In" : "Create Account"
+              mode === "login" ? "Sign In" : t("auth.sign.createAccount")
             )}
           </button>
         ) : (
           <div className="flex items-center justify-center gap-2 text-sm text-emerald-400">
             <CheckCircle className="h-4 w-4" />
-            Message signed
+            {t("auth.sign.messageSigned")}
           </div>
         )}
 
         <p className="text-center text-2xs text-muted-foreground">
-          By continuing, you agree to our{" "}
+          {t("auth.sign.terms")}
           <a href="/terms" target="_blank" className="text-aurora-cyan hover:underline">
-            Terms of Service
+            {t("auth.sign.termsLink")}
           </a>{" "}
           and{" "}
           <a href="/privacy" target="_blank" className="text-aurora-cyan hover:underline">
-            Privacy Policy
+            {t("auth.sign.privacyLink")}
           </a>
         </p>
       </div>
