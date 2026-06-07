@@ -11,7 +11,7 @@ export function AuthRedirect() {
 
   useEffect(() => {
     if (isAuthenticated && !isLoading) {
-      router.replace("/")
+      router.replace("/dashboard")
     }
   }, [isAuthenticated, isLoading, router])
 
