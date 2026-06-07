@@ -54,7 +54,8 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ error: "invalid_mode" }, { status: 400 })
   } catch (err) {
-    console.error("generate-options error:", err)
-    return NextResponse.json({ error: "internal" }, { status: 500 })
+    const msg = err instanceof Error ? err.message : String(err)
+    console.error("generate-options error:", msg)
+    return NextResponse.json({ error: msg }, { status: 500 })
   }
 }
