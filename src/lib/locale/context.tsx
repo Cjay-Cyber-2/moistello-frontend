@@ -1,8 +1,9 @@
 "use client"
 
-import { createContext, useContext, useState, useCallback, ReactNode } from "react"
+import { createContext, useContext, useState, useCallback, useEffect, ReactNode } from "react"
 import en from "./en.json"
 import fr from "./fr.json"
+import { useAuthStore } from "@/stores/auth-store"
 
 type TranslationDict = Record<string, string>
 
@@ -26,21 +27,33 @@ export function useTranslate() {
 
 export function LocaleProvider({
   children,
-  initialLocale = "en",
 }: {
   children: ReactNode
-  initialLocale?: string
 }) {
-  const [locale, setLocaleState] = useState(() => {
-    if (typeof window === "undefined") return initialLocale
-    return localStorage.getItem("moistello_locale") || initialLocale
-  })
+  const authUser = useAuthStore((s) => s.user)
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated)
+
+  const [locale, setLocaleState] = useState("en")
+
+  // Initialize from: 1) auth user profile, 2) localStorage, 3) English
+  useEffect(() => {
+    if (isAuthenticated && authUser?.preferredLanguage) {
+      setLocaleState(authUser.preferredLanguage)
+      localStorage.setItem("moistello_locale", authUser.preferredLanguage)
+      return
+    }
+    const stored = typeof window !== "undefined" ? localStorage.getItem("moistello_locale") : null
+    if (stored) {
+      setLocaleState(stored)
+    }
+  }, [isAuthenticated, authUser?.preferredLanguage])
 
   const setLocale = useCallback((lang: string) => {
     setLocaleState(lang)
     if (typeof window !== "undefined") {
       localStorage.setItem("moistello_locale", lang)
     }
+    // Persist to backend — fire and forget (user object will update on next checkAuth)
     import("@/lib/api-client").then(({ patch }) => {
       patch("/users/me", { preferredLanguage: lang }).catch(() => {})
     })
