@@ -1,11 +1,10 @@
 "use client"
 
 import { createContext, useContext, useState, useCallback, useEffect, ReactNode } from "react"
-import ALL from "./translations.json"
+import en from "./en.json"
 import { useAuthStore } from "@/stores/auth-store"
 
 type TranslationDict = Record<string, string>
-const ALL_LOCALES = ALL as unknown as Record<string, TranslationDict>
 
 interface LocaleContextType {
   locale: string
@@ -19,6 +18,8 @@ const LocaleContext = createContext<LocaleContextType>({
   t: (key: string) => key,
 })
 
+const cache: Record<string, TranslationDict> = { en }
+
 export function useTranslate() {
   return useContext(LocaleContext)
 }
@@ -26,22 +27,52 @@ export function useTranslate() {
 export function LocaleProvider({ children }: { children: ReactNode }) {
   const authUser = useAuthStore((s) => s.user)
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated)
-
   const [locale, setLocaleState] = useState("en")
+  const [dict, setDict] = useState<TranslationDict>(en)
 
+  // Load locale data
   useEffect(() => {
-    if (isAuthenticated && authUser?.preferredLanguage) {
-      setLocaleState(authUser.preferredLanguage)
-      localStorage.setItem("moistello_locale", authUser.preferredLanguage)
+    const code = (() => {
+      if (isAuthenticated && authUser?.preferredLanguage) return authUser.preferredLanguage
+      if (typeof window !== "undefined") {
+        const stored = localStorage.getItem("moistello_locale")
+        if (stored) return stored
+      }
+      return "en"
+    })()
+
+    setLocaleState(code)
+    if (cache[code]) {
+      setDict(cache[code])
       return
     }
-    const stored = typeof window !== "undefined" ? localStorage.getItem("moistello_locale") : null
-    if (stored) setLocaleState(stored)
+
+    fetch(`/locale/${code}.json`)
+      .then((r) => r.json())
+      .then((data) => {
+        cache[code] = data as TranslationDict
+        setDict(data as TranslationDict)
+      })
+      .catch(() => {
+        cache[code] = en
+        setDict(en)
+      })
   }, [isAuthenticated, authUser?.preferredLanguage])
 
   const setLocale = useCallback((lang: string) => {
     setLocaleState(lang)
     if (typeof window !== "undefined") localStorage.setItem("moistello_locale", lang)
+    if (cache[lang]) {
+      setDict(cache[lang])
+    } else {
+      fetch(`/locale/${lang}.json`)
+        .then((r) => r.json())
+        .then((data) => {
+          cache[lang] = data as TranslationDict
+          setDict(data as TranslationDict)
+        })
+        .catch(() => { cache[lang] = en; setDict(en) })
+    }
     const state = useAuthStore.getState()
     if (state.isAuthenticated && state.user) {
       import("@/lib/api-client").then(({ patch }) => {
@@ -52,13 +83,11 @@ export function LocaleProvider({ children }: { children: ReactNode }) {
 
   const t = useCallback(
     (key: string): string => {
-      const dict = ALL_LOCALES[locale]
       if (dict && key in dict) return dict[key]
-      const enDict = ALL_LOCALES.en
-      if (enDict && key in enDict) return enDict[key]
+      if (key in en) return en[key as keyof typeof en]
       return key
     },
-    [locale],
+    [dict],
   )
 
   return (
