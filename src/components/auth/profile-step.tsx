@@ -33,12 +33,12 @@ interface ProfileStepProps {
   isSubmitting?: boolean
 }
 
-function langLabel(code: string, displayLang: string): string {
+function langLabel(code: string): string {
   try {
-    return new Intl.DisplayNames([displayLang], { type: "language", languageDisplay: "standard" }).of(code) ?? code
-  } catch {
-    return code
-  }
+    const name = new Intl.DisplayNames(["en"], { type: "language" }).of(code)
+    if (name && name !== code) return name
+  } catch {}
+  return code
 }
 
 export function ProfileStep({
@@ -48,7 +48,7 @@ export function ProfileStep({
   onSubmit,
   isSubmitting = false,
 }: ProfileStepProps) {
-  const { t, locale, setLocale } = useTranslate()
+  const { t, setLocale } = useTranslate()
   const [open, setOpen] = useState(false)
   const ref = useRef<HTMLDivElement>(null)
 
@@ -88,7 +88,7 @@ export function ProfileStep({
             className="w-full flex items-center justify-between bg-white/10 hover:bg-white/[0.14] border border-white/25 text-sm text-foreground py-3 px-4 rounded-xl focus:outline-none focus:border-white/40 transition-all"
           >
             <span className={selected ? "text-foreground" : "text-muted-foreground/50"}>
-              {selected ? langLabel(selected, locale) : t("auth.profile.selectLanguage")}
+              {selected ? langLabel(selected) : t("auth.profile.selectLanguage")}
             </span>
             <svg className={`w-4 h-4 text-muted-foreground/60 transition-transform duration-200 ${open ? "rotate-180" : ""}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path d="M6 9l6 6 6-6" />
@@ -106,7 +106,7 @@ export function ProfileStep({
                     code === language ? "text-foreground font-medium" : "text-muted-foreground"
                   }`}
                 >
-                  {langLabel(code, locale)}
+                  {langLabel(code)}
                 </button>
               ))}
             </div>
