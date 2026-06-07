@@ -17,7 +17,6 @@ import { getWalletRegistry } from "@/lib/wallet/registry"
 import { createPasskeyAdapter } from "@/lib/wallet/adapters/passkey"
 import { AuthLayout } from "@/components/auth/auth-layout"
 import { SignStep } from "@/components/auth/sign-step"
-import { LoadingOverlay } from "@/components/auth/loading-overlay"
 import { SessionTimeoutBanner } from "@/components/auth/session-timeout-banner"
 import { PasskeyRevokedBanner } from "@/components/auth/passkey-revoked-banner"
 
@@ -165,17 +164,6 @@ function LoginPageContent() {
       >
         <SessionTimeoutBanner />
         {passkeyRevoked && <PasskeyRevokedBanner />}
-
-        {(status.status === "connecting" || status.status === "signing") && (
-          <LoadingOverlay
-            isVisible
-            text={
-              status.status === "signing"
-                ? t("auth.login.signingYouIn")
-                : t("auth.login.connecting")
-            }
-          />
-        )}
 
         {step === "choose" || status.status === "connected" ? (
           <div className="space-y-6">
