@@ -23,6 +23,7 @@ import { Progress } from "@/components/ui/progress"
 import { Badge } from "@/components/ui/badge"
 import { formatCurrency } from "@/lib/formatters"
 import { cn } from "@/lib/cn"
+import { useTranslate } from "@/lib/locale/context"
 import type { Circle } from "@/types"
 
 const staggerContainer = {
@@ -81,6 +82,7 @@ function StatCard({
 }
 
 function CircleCard({ circle }: { circle: Circle }) {
+  const { t } = useTranslate()
   const freqLabel =
     circle.frequency.charAt(0).toUpperCase() + circle.frequency.slice(1)
   const memberCount = circle.memberCount ?? 0
@@ -143,6 +145,7 @@ function CircleCard({ circle }: { circle: Circle }) {
 }
 
 function CreateCircleCard() {
+  const { t } = useTranslate()
   return (
     <Link href="/circles/create">
       <motion.div
