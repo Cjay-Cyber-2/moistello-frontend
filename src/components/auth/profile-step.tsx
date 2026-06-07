@@ -5,10 +5,10 @@ const LANGUAGES = [
   { value: "es", label: "Español" },
   { value: "fr", label: "Français" },
   { value: "pt", label: "Português" },
+  { value: "de", label: "Deutsch" },
+  { value: "ja", label: "日本語" },
+  { value: "ko", label: "한국어" },
   { value: "sw", label: "Kiswahili" },
-  { value: "ha", label: "Hausa" },
-  { value: "yo", label: "Yoruba" },
-  { value: "ig", label: "Igbo" },
 ]
 
 interface ProfileStepProps {
@@ -36,25 +36,25 @@ export function ProfileStep({
         {displayName}
       </p>
 
-      {/* Language — minimal inline row */}
-      <div className="flex items-center gap-3">
-        <label className="text-xs text-muted-foreground uppercase tracking-[0.15em] font-medium">
+      {/* Language — polished select */}
+      <div className="flex flex-col items-center gap-3">
+        <label className="text-2xs text-muted-foreground uppercase tracking-[0.2em] font-medium">
           Language
         </label>
-        <div className="relative">
+        <div className="relative w-48">
           <select
             value={language}
             onChange={(e) => onUpdateLanguage(e.target.value)}
             disabled={isSubmitting}
-            className="appearance-none bg-transparent border-b border-white/20 text-sm text-foreground py-1 pr-8 pl-1 focus:outline-none focus:border-aurora-violet transition-colors cursor-pointer"
+            className="w-full appearance-none bg-white/5 border border-white/15 text-sm text-foreground py-2.5 pl-4 pr-10 rounded-lg focus:outline-none focus:border-aurora-violet/60 focus:bg-white/[0.07] hover:border-white/30 transition-all duration-200 cursor-pointer"
           >
             {LANGUAGES.map((l) => (
-              <option key={l.value} value={l.value} className="bg-background">
+              <option key={l.value} value={l.value} className="bg-[rgb(var(--background))] text-foreground">
                 {l.label}
               </option>
             ))}
           </select>
-          <span className="absolute right-0 top-1/2 -translate-y-1/2 text-muted-foreground text-xs pointer-events-none">
+          <span className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground/60 text-[10px] pointer-events-none">
             ▼
           </span>
         </div>
