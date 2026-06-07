@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useRef, useEffect } from "react"
 
 const LANGUAGES = [
   { value: "en", label: "English" },
@@ -204,58 +204,55 @@ export function ProfileStep({
   onSubmit,
   isSubmitting = false,
 }: ProfileStepProps) {
-  const [showModal, setShowModal] = useState(false)
+  const [open, setOpen] = useState(false)
+  const ref = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    function handleClick(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false)
+    }
+    document.addEventListener("mousedown", handleClick)
+    return () => document.removeEventListener("mousedown", handleClick)
+  }, [])
 
   const selected = LANGUAGES.find((l) => l.value === language)
 
   return (
     <div className="flex flex-col items-center justify-center min-h-[400px]">
+
       {/* Name — giant, alone, centered */}
       <p className="font-heading text-4xl sm:text-5xl font-black tracking-tight text-center leading-none select-none pointer-events-none mb-14">
         {displayName}
       </p>
 
-      {/* Language selector */}
+      {/* Language — custom dropdown */}
       <div className="flex flex-col items-center gap-3">
         <label className="text-2xs text-muted-foreground uppercase tracking-[0.2em] font-medium">
           Language
         </label>
-        <button
-          type="button"
-          onClick={() => setShowModal(true)}
-          disabled={isSubmitting}
-          className="w-56 flex items-center justify-between bg-white/10 border border-white/25 text-sm text-foreground py-3 px-4 rounded-xl focus:outline-none focus:border-white/40 transition-all"
-        >
-          <span>{selected?.label ?? "Select language"}</span>
-          <svg className="w-4 h-4 text-muted-foreground/60" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-            <path d="M6 9l6 6 6-6" />
-          </svg>
-        </button>
-      </div>
+        <div ref={ref} className="relative w-56">
+          <button
+            type="button"
+            onClick={() => !isSubmitting && setOpen(!open)}
+            disabled={isSubmitting}
+            className="w-full flex items-center justify-between bg-white/10 hover:bg-white/[0.14] border border-white/25 text-sm text-foreground py-3 px-4 rounded-xl focus:outline-none focus:border-white/40 transition-all"
+          >
+            <span className={selected ? "text-foreground" : "text-muted-foreground/50"}>
+              {selected?.label ?? "Select language"}
+            </span>
+            <svg className={`w-4 h-4 text-muted-foreground/60 transition-transform duration-200 ${open ? "rotate-180" : ""}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path d="M6 9l6 6 6-6" />
+            </svg>
+          </button>
 
-      {/* Language modal */}
-      {showModal && (
-        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/60 p-4">
-          <div className="w-full max-w-sm rounded-2xl bg-[rgb(var(--background))] border border-white/15 overflow-hidden">
-            <div className="flex items-center justify-between px-5 py-4 border-b border-white/10">
-              <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                Select language
-              </span>
-              <button
-                type="button"
-                onClick={() => setShowModal(false)}
-                className="h-7 w-7 flex items-center justify-center rounded-lg bg-white/10 text-muted-foreground hover:text-foreground text-sm"
-              >
-                ✕
-              </button>
-            </div>
-            <div className="max-h-64 overflow-y-auto divide-y divide-white/[0.04]">
+          {open && (
+            <div className="absolute z-50 top-full mt-1.5 left-0 right-0 max-h-48 overflow-y-auto rounded-xl border border-white/20 bg-[rgb(var(--background))]">
               {LANGUAGES.map((l) => (
                 <button
                   key={l.value}
                   type="button"
-                  onClick={() => { onUpdateLanguage(l.value); setShowModal(false) }}
-                  className={`w-full text-left px-5 py-3 text-sm transition-colors hover:bg-white/5 ${
+                  onClick={() => { onUpdateLanguage(l.value); setOpen(false) }}
+                  className={`w-full text-left px-4 py-2.5 text-sm transition-colors hover:bg-white/10 ${
                     l.value === language ? "text-foreground font-medium" : "text-muted-foreground"
                   }`}
                 >
@@ -263,21 +260,24 @@ export function ProfileStep({
                 </button>
               ))}
             </div>
-          </div>
+          )}
         </div>
-      )}
+      </div>
 
       {/* Spacer */}
       <div className="flex-1" />
 
-      {/* Continue */}
+      {/* Continue — minimal ghost button */}
       <button
         type="button"
         onClick={onSubmit}
         disabled={isSubmitting}
-        className="text-sm font-heading font-medium tracking-wider uppercase text-muted-foreground hover:text-foreground transition-colors disabled:opacity-30"
+        className="group relative text-sm font-heading font-medium tracking-wider uppercase text-muted-foreground hover:text-foreground transition-colors duration-300 disabled:opacity-30"
       >
-        {isSubmitting ? "Setting up.." : "Continue"}
+        <span className="relative">
+          {isSubmitting ? "Setting up.." : "Continue"}
+          <span className="absolute -bottom-1 left-0 right-0 h-px bg-current scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left" />
+        </span>
       </button>
     </div>
   )
