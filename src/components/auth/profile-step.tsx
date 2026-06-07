@@ -218,9 +218,14 @@ export function ProfileStep({
   const selected = LANGUAGES.find((l) => l.value === language)
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-[400px]">
+    <div className={`flex flex-col items-center min-h-[400px] pt-24 transition-all duration-300 ${open ? "-translate-y-32" : ""}`}>
 
-      {/* Name — giant, alone, centered */}
+      {/* Welcome aboard */}
+      <p className="text-sm text-muted-foreground font-heading tracking-wider mb-3">
+        Welcome aboard
+      </p>
+
+      {/* Name */}
       <p className="font-heading text-4xl sm:text-5xl font-black tracking-tight text-center leading-none select-none pointer-events-none mb-14">
         {displayName}
       </p>
@@ -267,17 +272,14 @@ export function ProfileStep({
       {/* Spacer */}
       <div className="flex-1" />
 
-      {/* Continue — minimal ghost button */}
+      {/* Continue */}
       <button
         type="button"
         onClick={onSubmit}
         disabled={isSubmitting}
-        className="group relative text-sm font-heading font-medium tracking-wider uppercase text-muted-foreground hover:text-foreground transition-colors duration-300 disabled:opacity-30"
+        className="text-sm font-heading font-medium tracking-wider uppercase text-muted-foreground hover:text-foreground transition-colors disabled:opacity-30"
       >
-        <span className="relative">
-          {isSubmitting ? "Setting up.." : "Continue"}
-          <span className="absolute -bottom-1 left-0 right-0 h-px bg-current scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left" />
-        </span>
+        {isSubmitting ? "Setting up.." : "Continue"}
       </button>
     </div>
   )
