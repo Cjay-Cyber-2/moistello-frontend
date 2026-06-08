@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import Link from "next/link"
-import { ArrowUpRight, ArrowDownRight, Copy, Wallet as WalletIcon, ExternalLink, Settings, Clock } from "lucide-react"
+import { ArrowUpRight, ArrowDownRight, Wallet as WalletIcon, Settings, Clock } from "lucide-react"
 import { PageHeader } from "@/components/shared/page-header"
 import { CopyButton } from "@/components/shared/copy-button"
 import { Button } from "@/components/ui/button"
@@ -37,8 +37,6 @@ export default function WalletPage() {
   const [balance, setBalance] = useState<BalanceInfo | null>(null)
   const [transactions, setTransactions] = useState<TransactionItem[]>([])
   const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-
   useEffect(() => {
     async function load() {
       setLoading(true)
@@ -83,7 +81,6 @@ export default function WalletPage() {
         all.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
         setTransactions(all.slice(0, 10))
       } catch {
-        setError("Failed to load wallet data")
       } finally {
         setLoading(false)
       }
@@ -184,8 +181,8 @@ export default function WalletPage() {
 
         {loading ? (
           <div className="space-y-3">
-            {Array.from({ length: 4 }).map((_, i) => (
-              <div key={i} className="flex items-center gap-4">
+            {[1, 2, 3, 4].map((n) => (
+              <div key={n} className="flex items-center gap-4">
                 <div className="h-2 w-2 rounded-full bg-white/10 animate-pulse" />
                 <div className="flex-1 h-10 bg-white/5 rounded animate-pulse" />
               </div>
