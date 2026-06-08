@@ -47,7 +47,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
             {children}
           </div>
         </main>
-        <MobileNav isHidden={mobileMenuOpen} />
+        <MobileNav />
       </div>
     </div>
   );

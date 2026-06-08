@@ -61,7 +61,7 @@ export function MobileMenu({ isOpen, onClose }: MobileMenuProps) {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-40">
+    <div className="fixed inset-0 z-[70]">
       <div className="absolute inset-0 bg-black/60 backdrop-blur-md" onClick={onClose} />
       <div
         className={cn(
@@ -71,20 +71,17 @@ export function MobileMenu({ isOpen, onClose }: MobileMenuProps) {
           "flex flex-col",
         )}
       >
-        <div className="flex h-16 items-center justify-between px-5 border-b border-white/[0.05]">
+        <div className="flex h-16 items-center px-5 border-b border-white/[0.05]">
           <span className="gradient-text-extended font-heading font-bold text-lg">Moistello</span>
-          <button onClick={onClose} className="text-muted-foreground hover:text-foreground">
-            Close
-          </button>
         </div>
 
         <nav className="flex-1 overflow-y-auto px-4 py-4">
           {isAuthenticated && user && (
-            <div className="flex items-center gap-3 p-3 rounded-2xl glass-whisper mb-6">
-              <div className="flex h-10 w-10 items-center justify-center rounded-full gradient-bg text-white font-mono text-sm font-bold">
+            <div className="flex items-center gap-3 px-3 py-2 mb-4">
+              <div className="flex h-9 w-9 items-center justify-center rounded-full gradient-bg text-white font-mono text-xs font-bold shrink-0">
                 {user.displayName?.charAt(0)?.toUpperCase() ?? "U"}
               </div>
-              <div className="min-w-0 flex-1">
+              <div className="min-w-0">
                 <p className="text-sm font-medium text-foreground truncate">
                   {user.displayName ?? "User"}
                 </p>

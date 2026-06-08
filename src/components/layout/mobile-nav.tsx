@@ -13,11 +13,9 @@ interface MobileNavItem {
   icon: React.ReactNode;
 }
 
-export function MobileNav({ isHidden }: { isHidden?: boolean }) {
+export function MobileNav() {
   const pathname = usePathname();
   const { t } = useTranslate();
-
-  if (isHidden) return null;
 
   const navItems: MobileNavItem[] = [
     { label: t("nav.dashboard"), href: Routes.DASHBOARD, icon: <LayoutDashboard className="h-5 w-5" /> },
