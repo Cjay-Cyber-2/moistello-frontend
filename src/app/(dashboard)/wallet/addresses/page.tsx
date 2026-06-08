@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import Link from "next/link"
-import { ArrowLeft, Copy, Check, Plus, Trash2, Wallet as WalletIcon, Star, ExternalLink } from "lucide-react"
+import { ArrowLeft, Copy, Check, Plus, Trash2, Wallet as WalletIcon, Star, ExternalLink, Send } from "lucide-react"
 import { PageHeader } from "@/components/shared/page-header"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -129,6 +129,11 @@ export default function AddressesPage() {
                       <code className="text-xs font-mono text-muted-foreground">{formatAddress(addr.publicKey, 10, 8)}</code>
                     </div>
                     <div className="flex items-center gap-2 shrink-0">
+                      <Link href={`/wallet/withdraw?address=${encodeURIComponent(addr.publicKey)}&label=${encodeURIComponent(addr.label)}`}>
+                        <button className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium text-emerald-400 hover:bg-emerald-500/10 transition-colors">
+                          <Send className="h-3 w-3" /> Send
+                        </button>
+                      </Link>
                       <button onClick={() => copyAddr(addr.publicKey)} className="text-muted-foreground hover:text-foreground transition-colors">
                         {copiedKey === addr.publicKey ? <Check className="h-3.5 w-3.5 text-emerald-400" /> : <Copy className="h-3.5 w-3.5" />}
                       </button>
