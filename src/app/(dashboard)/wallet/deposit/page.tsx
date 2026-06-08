@@ -1,190 +1,147 @@
 "use client"
 
-import { useState, useCallback } from "react"
+import { useState, useEffect } from "react"
 import Link from "next/link"
-import { motion } from "framer-motion"
-import { Check, Copy, Banknote } from "lucide-react"
+import { ArrowLeft, Copy, Check, QrCode, ArrowDownCircle, Loader2 } from "lucide-react"
+import { cn } from "@/lib/cn"
 import { PageHeader } from "@/components/shared/page-header"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { post, get } from "@/lib/api-client"
+import { get } from "@/lib/api-client"
+import { useUIStore } from "@/stores/ui-store"
 
-const container = {
-  hidden: { opacity: 0 },
-  show: { opacity: 1, transition: { staggerChildren: 0.05 } },
-}
-
-const item = {
-  hidden: { opacity: 0, y: 12 },
-  show: { opacity: 1, y: 0 },
+interface WalletInfo {
+  id: string
+  publicKey: string
+  walletType: string
+  createdAt: string
 }
 
 export default function DepositPage() {
-  const [amount, setAmount] = useState("")
-  const [step, setStep] = useState<"form" | "confirm" | "done">("form")
-  const [loading, setLoading] = useState(false)
-  const [quote, setQuote] = useState<{ estimatedUsdc: number; spread: number } | null>(null)
-  const [deposit, setDeposit] = useState<{
-    paymentRef: string
-    bankDetails: { bankName: string; accountNumber: string; accountName: string }
-    estimatedUsdc: number
-  } | null>(null)
+  const addToast = useUIStore((s) => s.addToast)
+  const [wallet, setWallet] = useState<WalletInfo | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [selectedAsset, setSelectedAsset] = useState<string | null>(null)
   const [copied, setCopied] = useState(false)
+  const [showSheet, setShowSheet] = useState(true)
 
-  const handleGetQuote = useCallback(async () => {
-    const amt = parseFloat(amount)
-    if (!amt || amt <= 0) return
-    setLoading(true)
-    try {
-      const res = await get<{ quote: { toAmount: number; feePercentage: number } }>(
-        `/wallet/deposit/quote?amount=${amt}`
-      )
-      setQuote({ estimatedUsdc: res.quote.toAmount, spread: res.quote.feePercentage })
-      setStep("confirm")
-    } catch (e) {
-      console.error(e)
-    } finally {
-      setLoading(false)
-    }
-  }, [amount])
-
-  const handleConfirm = useCallback(async () => {
-    setLoading(true)
-    try {
-      const res = await post<{
-        deposit: {
-          paymentRef: string
-          bankDetails: { bankName: string; accountNumber: string; accountName: string }
-          estimatedUsdc: number
-        }
-      }>("/wallet/deposit", { amountNgn: parseFloat(amount) })
-      setDeposit(res.deposit)
-      setStep("done")
-    } catch (e) {
-      console.error(e)
-    } finally {
-      setLoading(false)
-    }
-  }, [amount])
-
-  const handleCopy = useCallback(async (text: string) => {
-    await navigator.clipboard.writeText(text)
-    setCopied(true)
-    setTimeout(() => setCopied(false), 2000)
+  useEffect(() => {
+    get("/wallets").then((res) => {
+      const d = (res as Record<string, unknown>)?.data as Record<string, unknown> ?? res as Record<string, unknown>
+      const list = (d?.wallets ?? []) as WalletInfo[]
+      if (list.length > 0) setWallet(list[0])
+    }).catch(() => {}).finally(() => setLoading(false))
   }, [])
 
-  const ngnAmount = parseFloat(amount) || 0
+  const copyKey = () => {
+    if (!wallet) return
+    navigator.clipboard.writeText(wallet.publicKey)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
+    addToast({ type: "info", title: "Copied" })
+  }
+
+  const selectAsset = (asset: string) => {
+    setSelectedAsset(asset)
+    setShowSheet(false)
+  }
+
+  if (loading) {
+    return (
+      <div className="space-y-6">
+        <PageHeader title="Deposit" />
+        <div className="h-64 bg-white/5 rounded-xl animate-pulse" />
+      </div>
+    )
+  }
+
+  if (!wallet) {
+    return (
+      <div className="space-y-6">
+        <PageHeader title="Deposit" />
+        <p className="text-sm text-muted-foreground">No wallet found.</p>
+      </div>
+    )
+  }
 
   return (
-    <div className="space-y-6">
-      <PageHeader title="Deposit" description="Add USDC to your wallet via bank transfer." />
+    <div className="space-y-6 max-w-lg mx-auto">
+      <div className="flex items-center gap-3">
+        <Link href="/wallet" className="text-muted-foreground hover:text-foreground transition-colors">
+          <ArrowLeft className="h-5 w-5" />
+        </Link>
+        <div>
+          <h1 className="font-heading text-xl font-bold text-foreground">Deposit</h1>
+          <p className="text-sm text-muted-foreground">Receive crypto to your wallet</p>
+        </div>
+      </div>
 
-      <motion.div variants={container} initial="hidden" animate="show" className="mx-auto max-w-lg">
-        {step === "form" && (
-          <motion.div variants={item} className="glass-premium rounded-2xl p-6 space-y-5">
-            <div className="flex items-center gap-3 mb-2">
-              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-emerald-500/20">
-                <Banknote className="h-5 w-5 text-emerald-400" />
-              </div>
-              <div>
-                <h3 className="font-heading text-lg font-semibold">Deposit Naira</h3>
-                <p className="text-sm text-muted-foreground">Enter amount in NGN to convert to USDC</p>
-              </div>
+      {/* Bottom sheet — asset selector */}
+      {showSheet && (
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/60 p-4" onClick={() => setShowSheet(false)}>
+          <div className="w-full max-w-sm rounded-2xl bg-[rgb(var(--background))] border border-white/15 overflow-hidden" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between px-5 py-4 border-b border-white/10">
+              <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Select Asset</span>
+              <button onClick={() => setShowSheet(false)} className="h-7 w-7 flex items-center justify-center rounded-lg bg-white/10 text-muted-foreground hover:text-foreground text-sm">✕</button>
             </div>
-            <Input
-              label="Amount (NGN)"
-              type="number"
-              placeholder="50000"
-              value={amount}
-              onChange={(e) => setAmount(e.target.value)}
-            />
-            <Button
-              variant="premium"
-              size="lg"
-              className="w-full"
-              onClick={handleGetQuote}
-              isLoading={loading}
-              disabled={!amount || parseFloat(amount) <= 0}
-            >
-              Get Quote
-            </Button>
-          </motion.div>
-        )}
+            <div className="divide-y divide-white/[0.04]">
+              {[
+                { value: "USDC", label: "USD Coin", desc: "Stablecoin pegged to USD", color: "text-emerald-400" },
+                { value: "XLM", label: "Stellar Lumens", desc: "Native Stellar asset", color: "text-aurora-violet" },
+              ].map((a) => (
+                <button key={a.value} onClick={() => selectAsset(a.value)} className="w-full text-left px-5 py-4 hover:bg-white/5 transition-colors">
+                  <p className={cn("text-sm font-medium", a.color)}>{a.label}</p>
+                  <p className="text-xs text-muted-foreground mt-0.5">{a.desc}</p>
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
 
-        {step === "confirm" && quote && (
-          <motion.div variants={item} className="glass-premium rounded-2xl p-6 space-y-5">
-            <h3 className="font-heading text-lg font-semibold">Confirm Deposit</h3>
-            <div className="space-y-3">
-              <div className="flex justify-between py-2 border-b border-white/5">
-                <span className="text-sm text-muted-foreground">You send</span>
-                <span className="font-medium">₦{ngnAmount.toLocaleString()}</span>
-              </div>
-              <div className="flex justify-between py-2 border-b border-white/5">
-                <span className="text-sm text-muted-foreground">You receive</span>
-                <span className="font-medium">{quote.estimatedUsdc.toFixed(2)} USDC</span>
-              </div>
-              <div className="flex justify-between py-2">
-                <span className="text-sm text-muted-foreground">Fee</span>
-                <span className="font-medium text-amber-400">{quote.spread.toFixed(2)}%</span>
-              </div>
-            </div>
-            <div className="flex gap-3">
-              <Button variant="outline" size="md" className="flex-1" onClick={() => setStep("form")}>
-                Cancel
-              </Button>
-              <Button variant="premium" size="md" className="flex-1" onClick={handleConfirm} isLoading={loading}>
-                Confirm
-              </Button>
-            </div>
-          </motion.div>
-        )}
+      {/* Deposit address display */}
+      <div className="border border-aurora-violet/20 rounded-xl p-6 text-center space-y-5">
+        <div className="inline-flex h-14 w-14 items-center justify-center rounded-full bg-aurora-violet/15 text-aurora-violet">
+          <ArrowDownCircle className="h-7 w-7" />
+        </div>
 
-        {step === "done" && deposit && (
-          <motion.div variants={item} className="glass-premium rounded-2xl p-6 space-y-5">
-            <div className="flex flex-col items-center text-center py-4">
-              <div className="flex h-14 w-14 items-center justify-center rounded-full bg-emerald-500/20 mb-4">
-                <Check className="h-7 w-7 text-emerald-400" />
-              </div>
-              <h3 className="font-heading text-lg font-semibold">Deposit Initiated</h3>
-              <p className="text-sm text-muted-foreground mt-1">
-                Transfer exactly <span className="text-emerald-400 font-semibold">₦{ngnAmount.toLocaleString()}</span> to the account below
-              </p>
-            </div>
+        <div>
+          <p className="text-sm font-medium text-foreground">
+            Deposit {selectedAsset || "crypto"}
+          </p>
+          <p className="text-xs text-muted-foreground mt-1">
+            Send only {selectedAsset || "crypto"} to this address
+          </p>
+        </div>
 
-            <div className="glass-whisper rounded-xl p-4 space-y-3">
-              <div className="flex justify-between">
-                <span className="text-sm text-muted-foreground">Bank</span>
-                <span className="text-sm font-medium">{deposit.bankDetails.bankName}</span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-sm text-muted-foreground">Account</span>
-                <div className="flex items-center gap-2">
-                  <span className="text-sm font-mono font-bold">{deposit.bankDetails.accountNumber}</span>
-                  <button onClick={() => handleCopy(deposit.bankDetails.accountNumber)} className="text-muted-foreground hover:text-foreground">
-                    {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
-                  </button>
-                </div>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-sm text-muted-foreground">Account Name</span>
-                <span className="text-sm font-medium">{deposit.bankDetails.accountName}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-sm text-muted-foreground">Reference</span>
-                <span className="text-sm font-mono text-amber-400">{deposit.paymentRef}</span>
-              </div>
-            </div>
+        {/* QR Code placeholder */}
+        <div className="inline-flex items-center justify-center w-40 h-40 bg-white rounded-xl mx-auto">
+          <QrCode className="h-16 w-16 text-black/80" />
+        </div>
 
-            <div className="rounded-xl bg-emerald-500/10 border border-emerald-500/20 p-3 text-sm text-emerald-400">
-              USDC will be credited to your wallet automatically once the transfer is detected.
-            </div>
+        {/* Public key with copy */}
+        <div className="bg-white/5 rounded-xl px-4 py-3">
+          <code className="text-sm font-mono text-foreground break-all">{wallet.publicKey}</code>
+        </div>
+        <Button variant="primary" size="md" onClick={copyKey} leftIcon={copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />} className="w-full">
+          {copied ? "Copied!" : "Copy Address"}
+        </Button>
+      </div>
 
-            <Link href="/wallet" className="w-full inline-flex items-center justify-center h-12 rounded-xl gradient-bg-extended text-white text-sm font-heading font-bold">
-              View Wallet
-            </Link>
-          </motion.div>
-        )}
-      </motion.div>
+      {/* Status monitor placeholder */}
+      <div className="border border-white/10 rounded-xl p-5 space-y-3">
+        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+          <Loader2 className="h-4 w-4 animate-spin text-aurora-violet" />
+          Waiting for incoming transaction...
+        </div>
+        <p className="text-xs text-muted-foreground">
+          Transactions will appear here automatically. You can also check your{" "}
+          <Link href="/wallet/transactions" className="text-aurora-violet hover:underline">transaction history</Link>.
+        </p>
+      </div>
+
+      <Link href="/wallet" className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors">
+        <ArrowLeft className="h-3.5 w-3.5" /> Back to Wallet
+      </Link>
     </div>
   )
 }

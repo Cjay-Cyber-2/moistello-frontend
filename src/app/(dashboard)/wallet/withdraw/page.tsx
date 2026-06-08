@@ -1,215 +1,182 @@
 "use client"
 
-import { useState, useCallback } from "react"
+import { useState, useEffect } from "react"
 import Link from "next/link"
-import { motion } from "framer-motion"
-import { ArrowUp, Loader2 } from "lucide-react"
-import { PageHeader } from "@/components/shared/page-header"
+import { ArrowLeft, ArrowUpRight, CheckCircle, Loader2, ExternalLink, AlertCircle } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Select } from "@/components/ui/select"
 import { post } from "@/lib/api-client"
-
-const BANKS = [
-  { value: "044", label: "Access Bank" },
-  { value: "063", label: "Access Bank (Diamond)" },
-  { value: "035", label: "ALAT by WEMA" },
-  { value: "023", label: "Citibank Nigeria" },
-  { value: "063", label: "Diamond Bank" },
-  { value: "050", label: "Ecobank Nigeria" },
-  { value: "084", label: "Enterprise Bank" },
-  { value: "001", label: "First Bank of Nigeria" },
-  { value: "214", label: "First City Monument Bank" },
-  { value: "070", label: "Fidelity Bank Nigeria" },
-  { value: "011", label: "Globus Bank" },
-  { value: "058", label: "Guaranty Trust Bank (GTBank)" },
-  { value: "030", label: "Heritage Bank" },
-  { value: "082", label: "Keystone Bank" },
-  { value: "076", label: "Polaris Bank" },
-  { value: "002", label: "Providus Bank" },
-  { value: "101", label: "Stanbic IBTC Bank" },
-  { value: "068", label: "Standard Chartered Bank" },
-  { value: "232", label: "Sterling Bank" },
-  { value: "071", label: "Suntrust Bank" },
-  { value: "069", label: "Titan Trust Bank" },
-  { value: "032", label: "Union Bank of Nigeria" },
-  { value: "033", label: "United Bank for Africa (UBA)" },
-  { value: "215", label: "Unity Bank" },
-  { value: "035", label: "Wema Bank" },
-  { value: "057", label: "Zenith Bank" },
-]
-
-const container = {
-  hidden: { opacity: 0 },
-  show: { opacity: 1, transition: { staggerChildren: 0.05 } },
-}
-
-const item = {
-  hidden: { opacity: 0, y: 12 },
-  show: { opacity: 1, y: 0 },
-}
+import { useUIStore } from "@/stores/ui-store"
+import { formatAddress } from "@/lib/formatters"
 
 export default function WithdrawPage() {
-  const [step, setStep] = useState<"form" | "confirm" | "done">("form")
+  const addToast = useUIStore((s) => s.addToast)
+  const [step, setStep] = useState<"form" | "preview" | "signing" | "done" | "error">("form")
+  const [destination, setDestination] = useState("")
+  const [asset, setAsset] = useState("USDC")
   const [amount, setAmount] = useState("")
-  const [bankCode, setBankCode] = useState("")
-  const [accountNumber, setAccountNumber] = useState("")
-  const [accountName, setAccountName] = useState("")
-  const [loading, setLoading] = useState(false)
-  const [withdrawResult, setWithdrawResult] = useState<{
-    sendId: string
-    estimatedNgn: number
-    yellowCardAddress: string
-    usdcAmount: number
-    paymentRef: string
-  } | null>(null)
+  const [memo, setMemo] = useState("")
+  const [txHash, setTxHash] = useState("")
+  const [errMsg, setErrMsg] = useState("")
 
-  const handleQuote = useCallback(async () => {
-    setStep("confirm")
+  const [passkeySeed, setPasskeySeed] = useState("")
+
+  // Derive passkey seed from stored credential
+  useEffect(() => {
+    try {
+      const stored = JSON.parse(localStorage.getItem("moistello_passkey_credential") || "{}")
+      if (stored.credentialId) {
+        crypto.subtle.digest("SHA-256", new TextEncoder().encode(stored.credentialId)).then((seedBuf) => {
+          const hex = Array.from(new Uint8Array(seedBuf)).map(b => b.toString(16).padStart(2, "0")).join("")
+          setPasskeySeed(hex)
+        })
+      }
+    } catch {}
   }, [])
 
-  const handleConfirm = useCallback(async () => {
-    setLoading(true)
-    try {
-      const res = await post<{
-        withdraw: {
-          sendId: string
-          estimatedNgn: number
-          yellowCardAddress: string
-          usdcAmount: number
-          paymentRef: string
-        }
-      }>("/wallet/withdraw", {
-        amountUsdc: parseFloat(amount),
-        bankCode,
-        accountNumber,
-        accountName,
-      })
-      setWithdrawResult(res.withdraw)
-      setStep("done")
-    } catch (e) {
-      console.error(e)
-    } finally {
-      setLoading(false)
+  const maxAmount = 999999
+
+  const handlePreview = () => {
+    if (!destination.trim() || !amount || Number(amount) <= 0) {
+      addToast({ type: "error", title: "Invalid", description: "Enter a valid destination and amount." })
+      return
     }
-  }, [amount, bankCode, accountNumber, accountName])
+    if (!destination.startsWith("G") || destination.length < 40) {
+      addToast({ type: "error", title: "Invalid address", description: "Enter a valid Stellar public key starting with G." })
+      return
+    }
+    setStep("preview")
+  }
+
+  const handleConfirm = async () => {
+    setStep("signing")
+    setErrMsg("")
+    try {
+      const res = await post<{ txHash: string }>("/wallets/withdraw", {
+        destination: destination.trim(),
+        asset,
+        amount: Number(amount),
+        passkeySeed,
+        memo: memo.trim() || undefined,
+      })
+      const raw = res as unknown as Record<string, unknown>
+      const hash = (raw?.data as Record<string, unknown>)?.txHash as string ?? raw?.txHash as string ?? ""
+      setTxHash(hash)
+      setStep("done")
+      addToast({ type: "success", title: "Sent!", description: "Transaction submitted to Stellar." })
+    } catch (err) {
+      const msg = (err && typeof err === "object" && "message" in err) ? (err as { message: string }).message : "Transaction failed"
+      setErrMsg(msg)
+      setStep("error")
+      addToast({ type: "error", title: "Failed", description: msg })
+    }
+  }
 
   return (
-    <div className="space-y-6">
-      <PageHeader title="Withdraw" description="Convert USDC to Naira and send to your bank account." />
+    <div className="space-y-6 max-w-lg mx-auto">
+      <div className="flex items-center gap-3">
+        <Link href="/wallet" className="text-muted-foreground hover:text-foreground transition-colors">
+          <ArrowLeft className="h-5 w-5" />
+        </Link>
+        <div>
+          <h1 className="font-heading text-xl font-bold text-foreground">Withdraw</h1>
+          <p className="text-sm text-muted-foreground">Send crypto to another Stellar wallet</p>
+        </div>
+      </div>
 
-      <motion.div variants={container} initial="hidden" animate="show" className="mx-auto max-w-lg">
-        {step === "form" && (
-          <motion.div variants={item} className="glass-premium rounded-2xl p-6 space-y-5">
-            <div className="flex items-center gap-3 mb-2">
-              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-violet-500/20">
-                <ArrowUp className="h-5 w-5 text-violet-400" />
-              </div>
-              <div>
-                <h3 className="font-heading text-lg font-semibold">Withdraw to Bank</h3>
-                <p className="text-sm text-muted-foreground">Send USDC to your Nigerian bank account</p>
-              </div>
+      {/* ────────────── FORM STEP ────────────── */}
+      {step === "form" && (
+        <div className="border border-white/10 rounded-xl p-6 space-y-5">
+          <Input label="Destination Address" value={destination} onChange={(e) => setDestination(e.target.value)} placeholder="G..." />
+          <Select label="Asset" options={[{ value: "USDC", label: "USDC" }, { value: "XLM", label: "XLM" }]} value={asset} onChange={setAsset} />
+          <div>
+            <Input label="Amount" type="number" min={0} step="any" value={amount} onChange={(e) => setAmount(e.target.value)} placeholder="0.00" />
+            <button onClick={() => setAmount(String(maxAmount))} className="text-xs text-aurora-violet hover:underline mt-1">Max</button>
+          </div>
+          <Input label="Memo (optional)" value={memo} onChange={(e) => setMemo(e.target.value)} placeholder="Invoice # or note" />
+          <Button variant="primary" size="lg" className="w-full" onClick={handlePreview}>
+            Preview
+          </Button>
+        </div>
+      )}
+
+      {/* ────────────── PREVIEW STEP ────────────── */}
+      {step === "preview" && (
+        <div className="space-y-5">
+          <div className="border border-white/10 rounded-xl divide-y divide-white/[0.06]">
+            <div className="flex items-center justify-between px-5 py-4">
+              <span className="text-sm text-muted-foreground">Destination</span>
+              <code className="text-sm font-mono text-foreground">{formatAddress(destination, 8, 8)}</code>
             </div>
-
-            <Input
-              label="Amount (USDC)"
-              type="number"
-              placeholder="50"
-              value={amount}
-              onChange={(e) => setAmount(e.target.value)}
-            />
-            <Select
-              label="Bank"
-              value={bankCode}
-              onChange={(value: string) => setBankCode(value)}
-              options={BANKS}
-            />
-            <Input
-              label="Account Number"
-              type="text"
-              placeholder="0123456789"
-              maxLength={10}
-              value={accountNumber}
-              onChange={(e) => setAccountNumber(e.target.value.replace(/\D/g, ""))}
-            />
-            <Input
-              label="Account Name"
-              type="text"
-              placeholder="John Doe"
-              value={accountName}
-              onChange={(e) => setAccountName(e.target.value)}
-            />
-
-            <Button
-              variant="premium"
-              size="lg"
-              className="w-full"
-              onClick={handleQuote}
-              disabled={!amount || !bankCode || accountNumber.length < 10 || !accountName}
-            >
-              Continue
-            </Button>
-          </motion.div>
-        )}
-
-        {step === "confirm" && (
-          <motion.div variants={item} className="glass-premium rounded-2xl p-6 space-y-5">
-            <h3 className="font-heading text-lg font-semibold">Confirm Withdrawal</h3>
-            <div className="space-y-3">
-              <div className="flex justify-between py-2 border-b border-white/5">
-                <span className="text-sm text-muted-foreground">You send</span>
-                <span className="font-medium">{parseFloat(amount).toFixed(2)} USDC</span>
+            <div className="flex items-center justify-between px-5 py-4">
+              <span className="text-sm text-muted-foreground">Asset</span>
+              <span className="text-sm text-foreground">{asset}</span>
+            </div>
+            <div className="flex items-center justify-between px-5 py-4">
+              <span className="text-sm text-muted-foreground">Amount</span>
+              <span className="text-sm font-semibold text-foreground">{Number(amount).toFixed(2)} {asset}</span>
+            </div>
+            {memo && (
+              <div className="flex items-center justify-between px-5 py-4">
+                <span className="text-sm text-muted-foreground">Memo</span>
+                <span className="text-sm text-foreground">{memo}</span>
               </div>
-              <div className="flex justify-between py-2 border-b border-white/5">
-                <span className="text-sm text-muted-foreground">Bank</span>
-                <span className="font-medium">{BANKS.find(b => b.value === bankCode)?.label}</span>
-              </div>
-              <div className="flex justify-between py-2">
-                <span className="text-sm text-muted-foreground">Account</span>
-                <span className="font-medium">{accountName} / {accountNumber}</span>
-              </div>
+            )}
+            <div className="flex items-center justify-between px-5 py-4">
+              <span className="text-sm text-muted-foreground">Network Fee</span>
+              <span className="text-sm text-foreground">&lt; $0.001</span>
             </div>
-            <p className="text-sm text-muted-foreground">
-              You will be prompted to sign a USDC transaction to continue.
-            </p>
-            <div className="flex gap-3">
-              <Button variant="outline" size="md" className="flex-1" onClick={() => setStep("form")}>
-                Back
-              </Button>
-              <Button variant="premium" size="md" className="flex-1" onClick={handleConfirm} isLoading={loading}>
-                Confirm
-              </Button>
-            </div>
-          </motion.div>
-        )}
+          </div>
+          <div className="flex gap-3">
+            <Button variant="outline" size="lg" className="flex-1" onClick={() => setStep("form")}>Cancel</Button>
+            <Button variant="primary" size="lg" className="flex-1" onClick={handleConfirm} leftIcon={<ArrowUpRight className="h-4 w-4" />}>Confirm Send</Button>
+          </div>
+        </div>
+      )}
 
-        {step === "done" && withdrawResult && (
-          <motion.div variants={item} className="glass-premium rounded-2xl p-6 space-y-5">
-            <div className="flex flex-col items-center text-center py-4">
-              <div className="flex h-14 w-14 items-center justify-center rounded-full bg-amber-500/20 mb-4">
-                <Loader2 className="h-7 w-7 text-amber-400 animate-spin" />
-              </div>
-              <h3 className="font-heading text-lg font-semibold">Processing Withdrawal</h3>
-              <p className="text-sm text-muted-foreground mt-1">
-                Send <span className="font-semibold">{withdrawResult.usdcAmount} USDC</span> to the address below
-              </p>
-            </div>
+      {/* ────────────── SIGNING STEP ────────────── */}
+      {step === "signing" && (
+        <div className="border border-white/10 rounded-xl p-10 text-center space-y-4">
+          <Loader2 className="h-10 w-10 animate-spin text-aurora-violet mx-auto" />
+          <p className="text-sm text-foreground">Signing and submitting transaction...</p>
+          <p className="text-xs text-muted-foreground">This may take a few seconds.</p>
+        </div>
+      )}
 
-            <div className="glass-whisper rounded-xl p-4 break-all">
-              <p className="text-xs text-muted-foreground mb-1">Yellow Card USDC Address</p>
-              <p className="font-mono text-sm">{withdrawResult.yellowCardAddress}</p>
-            </div>
+      {/* ────────────── ERROR STEP ────────────── */}
+      {step === "error" && (
+        <div className="border border-red-500/20 rounded-xl p-6 text-center space-y-4">
+          <AlertCircle className="h-10 w-10 text-red-400 mx-auto" />
+          <p className="text-sm text-red-400">{errMsg}</p>
+          <Button variant="outline" size="md" onClick={() => setStep("form")}>Try Again</Button>
+        </div>
+      )}
 
-            <div className="rounded-xl bg-amber-500/10 border border-amber-500/20 p-3 text-sm text-amber-400">
-              NGN will be sent to your bank account once Yellow Card receives the USDC. This typically takes a few minutes.
-            </div>
+      {/* ────────────── SUCCESS STEP ────────────── */}
+      {step === "done" && (
+        <div className="border border-emerald-500/20 rounded-xl p-8 text-center space-y-4">
+          <CheckCircle className="h-12 w-12 text-emerald-400 mx-auto" />
+          <p className="font-heading text-lg font-semibold text-foreground">Transaction Submitted</p>
+          <div className="bg-white/5 rounded-xl px-4 py-3">
+            <code className="text-xs font-mono text-aurora-cyan break-all">{txHash}</code>
+          </div>
+          <div className="flex gap-3 justify-center">
+            <a href={`https://stellar.expert/explorer/testnet/tx/${txHash}`} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-xs text-aurora-cyan hover:underline">
+              <ExternalLink className="h-3 w-3" /> View on Stellar.Expert
+            </a>
+          </div>
+          <Link href="/wallet">
+            <Button variant="primary" size="md">Back to Wallet</Button>
+          </Link>
+        </div>
+      )}
 
-            <Link href="/wallet" className="w-full inline-flex items-center justify-center h-12 rounded-xl glass-whisper text-sm font-heading font-bold">
-              View Wallet
-            </Link>
-          </motion.div>
-        )}
-      </motion.div>
+      {step !== "signing" && step !== "done" && (
+        <Link href="/wallet" className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors">
+          <ArrowLeft className="h-3.5 w-3.5" /> Back to Wallet
+        </Link>
+      )}
     </div>
   )
 }

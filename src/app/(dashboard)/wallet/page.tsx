@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import Link from "next/link"
-import { ArrowUpRight, ArrowDownRight, Wallet as WalletIcon, Settings, Clock } from "lucide-react"
+import { ArrowUpRight, ArrowDownRight, Wallet as WalletIcon, Settings, Clock, ArrowRight, ListOrdered, BookCopy } from "lucide-react"
 import { PageHeader } from "@/components/shared/page-header"
 import { CopyButton } from "@/components/shared/copy-button"
 import { Button } from "@/components/ui/button"
@@ -226,6 +226,31 @@ export default function WalletPage() {
             </div>
           </div>
         )}
+      </div>
+
+      {/* Navigation links to sub-pages */}
+      <div className="border-t border-white/[0.06] pt-6 space-y-2">
+        <Link href="/wallet/transactions" className="flex items-center justify-between px-1 py-3 text-sm text-muted-foreground hover:text-foreground transition-colors group">
+          <span className="flex items-center gap-3">
+            <ListOrdered className="h-4 w-4" />
+            Transactions
+          </span>
+          <ArrowRight className="h-4 w-4 group-hover:translate-x-0.5 transition-transform" />
+        </Link>
+        <Link href="/wallet/addresses" className="flex items-center justify-between px-1 py-3 text-sm text-muted-foreground hover:text-foreground transition-colors group border-t border-white/[0.04]">
+          <span className="flex items-center gap-3">
+            <BookCopy className="h-4 w-4" />
+            Addresses
+          </span>
+          <ArrowRight className="h-4 w-4 group-hover:translate-x-0.5 transition-transform" />
+        </Link>
+        <Link href="/wallet/settings" className="flex items-center justify-between px-1 py-3 text-sm text-muted-foreground hover:text-foreground transition-colors group border-t border-white/[0.04]">
+          <span className="flex items-center gap-3">
+            <Settings className="h-4 w-4" />
+            Settings
+          </span>
+          <ArrowRight className="h-4 w-4 group-hover:translate-x-0.5 transition-transform" />
+        </Link>
       </div>
     </div>
   )
