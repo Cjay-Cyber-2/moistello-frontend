@@ -197,7 +197,7 @@ export default function WalletPage() {
             {/* Vertical timeline line */}
             <div className="absolute left-[7px] top-2 bottom-2 w-px bg-white/10" />
             <div className="space-y-0">
-              {transactions.map((tx, i) => (
+              {transactions.map((tx) => (
                 <div key={tx.id} className="relative flex items-start gap-4 pb-5 pl-1">
                   {/* Timeline dot */}
                   <div className={cn(
