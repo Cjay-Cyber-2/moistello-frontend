@@ -131,9 +131,8 @@ function LoginPageContent() {
           const { post } = await import("@/lib/api-client")
           await post("/wallets", { passkeySeed })
         }
-      } catch (e) {
-        // Wallet likely already exists — fine
-        console.debug("Wallet creation skipped:", e)
+      } catch {
+        addToast({ type: "error", title: "Wallet sync failed", description: "Could not sync your wallet. Try again in Settings." })
       }
       addToast({
         type: "success",

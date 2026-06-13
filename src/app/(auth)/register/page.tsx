@@ -150,6 +150,7 @@ function RegisterPageContent() {
         }
       } catch (e) {
         console.error("Failed to create Stellar wallet:", e)
+        addToast({ type: "error", title: "Wallet setup failed", description: "Your Stellar wallet could not be created. You can retry in Settings." })
       }
       router.replace("/")
     }
