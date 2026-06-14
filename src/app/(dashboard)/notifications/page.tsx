@@ -16,6 +16,7 @@ import {
   Shield,
   Info,
 } from "lucide-react"
+import Link from "next/link"
 import { useNotifications } from "@/hooks/use-notifications"
 import { PageHeader } from "@/components/shared/page-header"
 import { EmptyState } from "@/components/shared/empty-state"
@@ -223,24 +224,31 @@ export default function NotificationsPage() {
       />
 
       <Tabs defaultValue="all" onValueChange={setFilter}>
-        <TabsList className="inline-flex gap-1 glass rounded-xl p-1">
-          <TabsTrigger value="all" className="rounded-lg text-sm font-body">
-            All
-            {notifications.length > 0 && (
-              <span className="ml-1.5 inline-flex h-5 min-w-[20px] items-center justify-center rounded-full bg-white/10 px-1.5 text-xs text-muted-foreground">
-                {notifications.length}
-              </span>
-            )}
-          </TabsTrigger>
-          <TabsTrigger value="unread" className="rounded-lg text-sm font-body">
-            Unread
-            {unreadCount > 0 && (
-              <span className="ml-1.5 inline-flex h-5 min-w-[20px] items-center justify-center rounded-full bg-aurora-cyan/20 px-1.5 text-xs text-aurora-cyan animate-pulse-glow">
-                {unreadCount}
-              </span>
-            )}
-          </TabsTrigger>
-        </TabsList>
+        <div className="flex items-center justify-between">
+          <TabsList className="inline-flex gap-1 glass rounded-xl p-1">
+            <TabsTrigger value="all" className="rounded-lg text-sm font-body">
+              All
+              {notifications.length > 0 && (
+                <span className="ml-1.5 inline-flex h-5 min-w-[20px] items-center justify-center rounded-full bg-white/10 px-1.5 text-xs text-muted-foreground">
+                  {notifications.length}
+                </span>
+              )}
+            </TabsTrigger>
+            <TabsTrigger value="unread" className="rounded-lg text-sm font-body">
+              Unread
+              {unreadCount > 0 && (
+                <span className="ml-1.5 inline-flex h-5 min-w-[20px] items-center justify-center rounded-full bg-aurora-cyan/20 px-1.5 text-xs text-aurora-cyan animate-pulse-glow">
+                  {unreadCount}
+                </span>
+              )}
+            </TabsTrigger>
+          </TabsList>
+          <Link href="/notifications/archive">
+            <Button variant="outline" size="sm" className="glass-whisper text-xs">
+              Archive
+            </Button>
+          </Link>
+        </div>
       </Tabs>
 
       {isLoading ? (

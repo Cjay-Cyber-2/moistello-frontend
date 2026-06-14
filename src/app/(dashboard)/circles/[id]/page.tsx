@@ -19,9 +19,11 @@ import {
   Wallet,
   Copy,
   Check,
+  Play,
 } from "lucide-react"
-import { useCircle, useCircleMembers, useContribute, useJoinCircle } from "@/hooks/use-circles"
+import { useCircle, useCircleMembers, useContribute, useJoinCircle, useStartCircle } from "@/hooks/use-circles"
 import { useAuth } from "@/hooks/use-auth"
+import { useUIStore } from "@/stores/ui-store"
 import { PageHeader } from "@/components/shared/page-header"
 import { Button } from "@/components/ui/button"
 import { Modal } from "@/components/ui/modal"
@@ -81,12 +83,15 @@ export default function CircleDetailPage() {
   const { data: members = [] } = useCircleMembers(circleId)
   const contribute = useContribute(circleId)
   const joinCircle = useJoinCircle()
+  const startCircle = useStartCircle()
+  const addToast = useUIStore((s) => s.addToast)
 
   const [showContributeModal, setShowContributeModal] = useState(false)
   const [showInviteModal, setShowInviteModal] = useState(false)
   const [inviteCode, setInviteCode] = useState("")
   const [inviteCopied, setInviteCopied] = useState(false)
   const [inviteLoading, setInviteLoading] = useState(false)
+  const [inviteError, setInviteError] = useState("")
   const [joinLoading, setJoinLoading] = useState(false)
   const [joinError, setJoinError] = useState<string | null>(null)
 
@@ -112,15 +117,19 @@ export default function CircleDetailPage() {
 
   const handleGenerateInvite = async () => {
     setInviteLoading(true)
+    setShowInviteModal(true)
     try {
       const { post } = await import("@/lib/api-client")
-      const res = await post<{ data?: { code: string } }>(`/circles/${circleId}/invites`, { maxUses: 10 })
-      const code = (res as unknown as { data?: { code?: string } })?.data?.code ?? ""
+      const res = await post<Record<string, unknown>>(`/circles/${circleId}/invites`, { maxUses: 10, ttlHours: 24 })
+      const body = res?.data as Record<string, unknown> ?? res
+      const inv = body?.invite as Record<string, unknown> ?? body
+      const code = String(inv?.code ?? "")
       setInviteCode(code)
-      setShowInviteModal(true)
-    } catch {
+    } catch (err) {
+      const msg = (err as { response?: { data?: { error?: string } } })?.response?.data?.error
+        ?? (err instanceof Error ? err.message : "Failed to generate invite code")
+      setInviteError(msg)
       setInviteCode("error-generating-code")
-      setShowInviteModal(true)
     } finally {
       setInviteLoading(false)
     }
@@ -254,6 +263,25 @@ export default function CircleDetailPage() {
         }
       />
 
+      <div className="flex flex-wrap gap-1.5 pb-2">
+        {[
+          { href: `/circles/${circleId}/activity`, label: "Activity", icon: "Activity" },
+          { href: `/circles/${circleId}/analytics`, label: "Analytics", icon: "BarChart3" },
+          { href: `/circles/${circleId}/schedule`, label: "Schedule", icon: "Calendar" },
+          { href: `/circles/${circleId}/comments`, label: "Comments", icon: "MessageSquare" },
+          { href: `/circles/${circleId}/members`, label: "Members", icon: "Users" },
+          { href: `/circles/${circleId}/rounds`, label: "Rounds", icon: "RotateCw" },
+          { href: `/circles/${circleId}/export`, label: "Export", icon: "Download" },
+          ...(isOrganizer ? [{ href: `/circles/${circleId}/settings`, label: "Settings", icon: "Settings" }] : []),
+        ].map((link) => (
+          <Link key={link.href} href={link.href}
+            className="inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs font-body font-medium glass-whisper text-muted-foreground hover:text-foreground hover:glass-premium transition-all"
+          >
+            {link.label}
+          </Link>
+        ))}
+      </div>
+
       <motion.div
         variants={container}
         initial="hidden"
@@ -349,6 +377,20 @@ export default function CircleDetailPage() {
               Join Circle
             </Button>
           </motion.div>
+        )}
+        {isOrganizer && circle.status === "pending" && members.length >= 2 && (
+          <Button
+            variant="premium"
+            size="lg"
+            leftIcon={<Play className="h-5 w-5" />}
+            onClick={() => startCircle.mutate(circleId, {
+            onSuccess: () => addToast({ type: "success", title: "Rounds started!", description: "Your circle is now active." }),
+            onError: (err) => { const m = (err as { response?: { data?: { error?: string } } })?.response?.data?.error ?? (err instanceof Error ? err.message : "Failed to start"); addToast({ type: "error", title: "Failed to start", description: m }) },
+          })}
+            isLoading={startCircle.isPending}
+          >
+            Start Rounds
+          </Button>
         )}
         {isOrganizer && (
           <Button
@@ -521,7 +563,14 @@ export default function CircleDetailPage() {
         <div className="space-y-4">
           <div className="glass-whisper rounded-xl p-4 text-center">
             <p className="font-mono text-2xl font-bold tracking-widest gradient-text">
-              {inviteCode || "Generating..."}
+              {inviteCode || (
+                <span className="inline-flex gap-1">
+                  Generating
+                  <span className="animate-bounce [animation-delay:0ms]">.</span>
+                  <span className="animate-bounce [animation-delay:200ms]">.</span>
+                  <span className="animate-bounce [animation-delay:400ms]">.</span>
+                </span>
+              )}
             </p>
           </div>
           {inviteCode && inviteCode !== "error-generating-code" && (
@@ -536,7 +585,7 @@ export default function CircleDetailPage() {
             </Button>
           )}
           {inviteCode === "error-generating-code" && (
-            <p className="text-sm text-red-400 text-center">Failed to generate invite code. Try again.</p>
+            <p className="text-sm text-red-400 text-center">{inviteError || "Failed to generate invite code. Try again."}</p>
           )}
           {inviteCode && (
             <Button

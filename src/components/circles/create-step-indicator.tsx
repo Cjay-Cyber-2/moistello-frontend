@@ -1,7 +1,7 @@
 "use client"
 
 import React from "react"
-import { motion } from "framer-motion"
+
 import { Check } from "lucide-react"
 import { cn } from "@/lib/cn"
 
@@ -23,20 +23,15 @@ export function CreateStepIndicator({ currentStep, steps }: CreateStepIndicatorP
           return (
             <React.Fragment key={step}>
               <div className="flex flex-col items-center">
-                <motion.div
-                  initial={false}
-                  animate={{
-                    scale: isCurrent ? 1.1 : 1,
-                  }}
-                  className={cn(
-                    "flex h-10 w-10 items-center justify-center rounded-full text-sm font-heading font-semibold transition-all duration-500",
+                <div className={cn(
+                    "flex h-10 w-10 items-center justify-center rounded-full text-sm font-heading font-semibold",
                     isCompleted && "gradient-bg-extended text-white shadow-lg",
-                    isCurrent && "gradient-bg text-white animate-pulse-glow shadow-xl",
+                    isCurrent && "gradient-bg text-white shadow-xl",
                     !isCompleted && !isCurrent && "glass text-muted-foreground",
                   )}
                 >
                   {isCompleted ? <Check className="h-4 w-4" /> : step}
-                </motion.div>
+                </div>
                 <span
                   className={cn(
                     "mt-2 text-xs font-body font-medium",
@@ -49,7 +44,7 @@ export function CreateStepIndicator({ currentStep, steps }: CreateStepIndicatorP
               {!isLast && (
                 <div
                   className={cn(
-                    "h-[2px] flex-1 mx-3 transition-colors duration-500",
+                    "h-[2px] flex-1 mx-3",
                     step < currentStep
                       ? "bg-gradient-to-r from-aurora-violet to-aurora-cyan"
                       : "bg-white/5 dark:bg-white/[0.06]",

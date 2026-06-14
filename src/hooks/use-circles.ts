@@ -15,11 +15,13 @@ interface CircleFilters {
   type?: string;
   page?: number;
   limit?: number;
+  organizerId?: string;
 }
 
 interface CreateCirclePayload {
   name: string;
   description?: string;
+  communityId?: string;
   circleType: string;
   payoutType: string;
   contributionAmount: number;
@@ -69,6 +71,7 @@ export function useCircles(filters?: CircleFilters) {
       if (filters?.type) params.set("type", filters.type);
       if (filters?.page) params.set("page", String(filters.page));
       if (filters?.limit) params.set("limit", String(filters.limit));
+      if (filters?.organizerId) params.set("organizerId", filters.organizerId);
 
       const query = params.toString();
       const url = `/circles${query ? `?${query}` : ""}`;
@@ -99,6 +102,19 @@ export function useCircle(id: string) {
   });
 }
 
+export function useStartCircle() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (circleId: string) =>
+      post<ApiResponse<{ success: boolean }>>(`/circles/${circleId}/start`),
+    onSuccess: (_data, circleId) => {
+      queryClient.invalidateQueries({ queryKey: ["circle", circleId] });
+      queryClient.invalidateQueries({ queryKey: ["circles"] });
+    },
+  });
+}
+
 export function useCreateCircle() {
   const queryClient = useQueryClient();
 
@@ -121,7 +137,7 @@ export function useJoinCircle() {
     }: {
       circleId: string;
       payload?: JoinCirclePayload;
-    }) => post<ApiResponse<CircleMember>>(`/circles/${circleId}/join`, payload),
+    }) => post<ApiResponse<CircleMember>>(`/circles/${circleId}/join`, payload ?? {}),
     onSuccess: (_data, variables) => {
       queryClient.invalidateQueries({ queryKey: ["circle", variables.circleId] });
       queryClient.invalidateQueries({ queryKey: ["circle-members", variables.circleId] });

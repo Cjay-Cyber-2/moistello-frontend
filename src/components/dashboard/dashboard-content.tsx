@@ -2,7 +2,7 @@
 
 import React, { useMemo } from "react"
 import Link from "next/link"
-import { motion } from "framer-motion"
+import { useQuery } from "@tanstack/react-query"
 import {
   CircleDot,
   ArrowUpCircle,
@@ -14,6 +14,7 @@ import {
   Shield,
   Inbox,
 } from "lucide-react"
+import { get } from "@/lib/api-client"
 import { useCircles } from "@/hooks/use-circles"
 import { useAuth } from "@/hooks/use-auth"
 import { PageHeader } from "@/components/shared/page-header"
@@ -24,21 +25,11 @@ import { Badge } from "@/components/ui/badge"
 import { formatCurrency } from "@/lib/formatters"
 import { cn } from "@/lib/cn"
 import { useTranslate } from "@/lib/locale/context"
-import type { Circle } from "@/types"
-
-const staggerContainer = {
-  hidden: { opacity: 0 },
-  show: { opacity: 1, transition: { staggerChildren: 0.06 } },
-}
-
-const fadeInItem = {
-  hidden: { opacity: 0, y: 14 },
-  show: { opacity: 1, y: 0 },
-}
+import type { ApiResponse, Circle, Contribution, Payout } from "@/types"
 
 function StatCard({ label, value, icon, gradient, pulseGlow }: { label: string; value: string; icon: React.ReactNode; gradient: string; pulseGlow?: boolean }) {
   return (
-    <motion.div variants={fadeInItem} whileHover={{ y: -3 }} className="glass rounded-2xl p-5 tilt-hover depth-2">
+    <div className="glass rounded-2xl p-5">
       <div className="flex items-start justify-between">
         <div className="space-y-1.5">
           <p className="text-2xs tracking-wider uppercase text-muted-foreground font-body">{label}</p>
@@ -48,7 +39,7 @@ function StatCard({ label, value, icon, gradient, pulseGlow }: { label: string; 
           <span className="text-white">{icon}</span>
         </div>
       </div>
-    </motion.div>
+    </div>
   )
 }
 
@@ -59,7 +50,7 @@ function CircleCard({ circle }: { circle: Circle }) {
   const progressPct = Math.min(100, Math.round((circle.currentRound / (circle.maxMembers || 1)) * 100))
   return (
     <Link href={`/circles/${circle.id}`}>
-      <motion.div variants={fadeInItem} whileHover={{ y: -4 }} className="glass rounded-2xl p-5 tilt-hover cursor-pointer holo-border">
+      <div className="glass rounded-2xl p-5 holo-border">
         <div className="flex items-start justify-between mb-3">
           <h4 className="font-heading text-lg font-semibold text-foreground truncate">{circle.name}</h4>
           <Badge variant={circle.status === "active" ? "success" : circle.status === "pending" ? "warning" : "default"} size="sm">
@@ -81,7 +72,7 @@ function CircleCard({ circle }: { circle: Circle }) {
           </div>
           <Progress value={progressPct} size="sm" variant={progressPct >= 80 ? "success" : "primary"} />
         </div>
-      </motion.div>
+      </div>
     </Link>
   )
 }
@@ -90,23 +81,26 @@ function CreateCircleCard() {
   const { t } = useTranslate()
   return (
     <Link href="/circles/create">
-      <motion.div variants={fadeInItem} whileHover={{ y: -4 }} className="glass-whisper rounded-2xl p-5 flex flex-col items-center justify-center text-center min-h-[160px] cursor-pointer holo-border border-dashed">
-        <div className="flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br from-aurora-violet/20 to-aurora-cyan/20 text-aurora-violet mb-3 animate-pulse-glow">
+      <div className="glass-whisper rounded-2xl p-5 flex flex-col items-center justify-center text-center min-h-[160px] holo-border border-dashed">
+        <div className="flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br from-aurora-violet/20 to-aurora-cyan/20 text-aurora-violet mb-3">
           <Plus className="h-6 w-6" />
         </div>
         <p className="font-heading text-sm font-semibold text-foreground">{t("dash.startCircle")}</p>
         <p className="text-xs text-muted-foreground mt-1">{t("dash.createCircleDesc")}</p>
-      </motion.div>
+      </div>
     </Link>
   )
 }
 
-function ActivityTimelineItem({ description, amount, date }: { description: string; amount: string; date: string }) {
+function ActivityTimelineItem({ description, amount, date, type }: { description: string; amount: string; date: string; type?: "contribution" | "payout" }) {
+  const iconColor = type === "payout"
+    ? "from-emerald-500/20 to-aurora-cyan/20 text-emerald-400"
+    : "from-aurora-indigo/20 to-aurora-violet/20 text-aurora-violet"
   return (
-    <motion.div variants={fadeInItem} className="glass-whisper rounded-xl p-3 flex items-center justify-between">
+    <div className="glass-whisper rounded-xl p-3 flex items-center justify-between">
       <div className="flex items-center gap-3 min-w-0">
-        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-aurora-indigo/20 to-aurora-violet/20">
-          <ArrowUpCircle className="h-4 w-4 text-aurora-violet" />
+        <div className={cn("flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-br", iconColor)}>
+          {type === "payout" ? <ArrowDownCircle className="h-4 w-4" /> : <ArrowUpCircle className="h-4 w-4" />}
         </div>
         <div className="min-w-0">
           <p className="text-sm text-foreground truncate font-body">{description}</p>
@@ -114,39 +108,62 @@ function ActivityTimelineItem({ description, amount, date }: { description: stri
         </div>
       </div>
       <span className="gradient-text text-sm font-bold font-heading shrink-0 ml-3">{amount}</span>
-    </motion.div>
+    </div>
   )
 }
 
 export default function DashboardContent() {
   const { user, isLoading: authLoading } = useAuth()
-  const { data, isLoading: circlesLoading } = useCircles()
+  const { data: circlesData, isLoading: circlesLoading } = useCircles({ limit: 50 })
   const { t } = useTranslate()
 
-  const circles = useMemo(() => data?.circles ?? [], [data])
-  const isLoading = authLoading || circlesLoading
+  const { data: contribsData, isLoading: contribsLoading } = useQuery({
+    queryKey: ["contributions", "dashboard"],
+    queryFn: async () => {
+      const res = await get<ApiResponse<{ contributions: Contribution[] }>>("/contributions?limit=20&page=1")
+      return res.data?.contributions ?? []
+    },
+  })
+
+  const { data: payoutsData, isLoading: payoutsLoading } = useQuery({
+    queryKey: ["payouts", "dashboard"],
+    queryFn: async () => {
+      const res = await get<ApiResponse<{ payouts: Payout[] }>>("/payouts?limit=20&page=1")
+      return res.data?.payouts ?? []
+    },
+  })
+
+  const circles = useMemo(() => circlesData?.circles ?? [], [circlesData])
+  const contributions = useMemo(() => contribsData ?? [], [contribsData])
+  const payouts = useMemo(() => payoutsData ?? [], [payoutsData])
+
+  const isLoading = authLoading || circlesLoading || contribsLoading || payoutsLoading
 
   const stats = useMemo(() => {
     const activeCircles = circles.filter((c) => c.status === "active").length
-    const totalContributed = circles.reduce((sum, c) => sum + (c.totalContributions ?? 0), 0)
+    const totalContributed = contributions.reduce((sum, c) => sum + c.amount, 0)
+    const totalReceived = payouts.reduce((sum, p) => sum + p.amount, 0)
     return {
       activeCircles,
       totalContributed: formatCurrency(totalContributed, "USDC"),
-      totalReceived: formatCurrency(activeCircles * 250, "USDC"),
+      totalReceived: formatCurrency(totalReceived, "USDC"),
       moiScore: String(user?.moiScore ?? 0),
     }
-  }, [circles, user])
+  }, [circles, contributions, payouts, user])
 
   const moiHighScore = (user?.moiScore ?? 0) >= 600
 
   const recentActivity = useMemo(() => {
-    return circles.filter((c) => c.status === "active").slice(0, 5).map((c) => ({
-      id: c.id,
-      description: `Contribution in ${c.name}`,
-      amount: formatCurrency(c.contributionAmount, c.currency),
-      date: c.createdAt,
-    }))
-  }, [circles])
+    const items: { id: string; description: string; amount: string; date: string; type: "contribution" | "payout" }[] = []
+    for (const c of contributions) {
+      items.push({ id: `c-${c.id}`, description: `Contribution in round ${c.roundNumber}`, amount: formatCurrency(c.amount, "USDC"), date: c.submittedAt, type: "contribution" })
+    }
+    for (const p of payouts) {
+      items.push({ id: `p-${p.id}`, description: `Payout received — round ${p.roundNumber}`, amount: formatCurrency(p.amount, "USDC"), date: p.executedAt, type: "payout" })
+    }
+    items.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+    return items.slice(0, 5)
+  }, [contributions, payouts])
 
   if (isLoading) {
     return (
@@ -174,13 +191,13 @@ export default function DashboardContent() {
   return (
     <div className="space-y-8">
       <PageHeader title={t("dash.title")} description={t("dash.welcome")} />
-      <motion.div variants={staggerContainer} initial="hidden" animate="show" className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <StatCard label={t("dash.activeCircles")} value={String(stats.activeCircles)} icon={<CircleDot className="h-5 w-5" />} gradient="from-aurora-indigo to-aurora-violet" />
         <StatCard label={t("dash.totalContributed")} value={stats.totalContributed} icon={<ArrowUpCircle className="h-5 w-5" />} gradient="from-aurora-cyan to-aurora-indigo" />
         <StatCard label={t("dash.totalReceived")} value={stats.totalReceived} icon={<ArrowDownCircle className="h-5 w-5" />} gradient="from-emerald-500 to-aurora-cyan" />
         <StatCard label={t("dash.moiScore")} value={stats.moiScore} icon={<Award className="h-5 w-5" />} gradient="from-aurora-amber to-aurora-violet" pulseGlow={moiHighScore} />
-      </motion.div>
-      <motion.div variants={staggerContainer} initial="hidden" animate="show" className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      </div>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 space-y-4">
           <div className="flex items-center justify-between">
             <h3 className="font-heading text-lg font-semibold text-foreground">{t("dash.yourCircles")}</h3>
@@ -192,22 +209,20 @@ export default function DashboardContent() {
               <CreateCircleCard />
             </div>
           ) : (
-            <motion.div variants={fadeInItem}>
-              <EmptyState icon={<Users className="h-6 w-6" />} title={t("dash.noCircles")} description={t("dash.noCirclesDesc")} action={{ label: t("dash.createCircle"), onClick: () => { window.location.href = "/circles/create" } }} />
-            </motion.div>
+            <EmptyState icon={<Users className="h-6 w-6" />} title={t("dash.noCircles")} description={t("dash.noCirclesDesc")} action={{ label: t("dash.createCircle"), onClick: () => { window.location.href = "/circles/create" } }} />
           )}
         </div>
         <div className="space-y-4">
           <h3 className="font-heading text-lg font-semibold text-foreground">{t("dash.recentActivity")}</h3>
           {recentActivity.length > 0 ? (
-            <motion.div variants={staggerContainer} initial="hidden" animate="show" className="glass rounded-2xl p-5 holo-border">
-              <div className="space-y-3">{recentActivity.map((item) => (<ActivityTimelineItem key={item.id} description={item.description} amount={item.amount} date={item.date} />))}</div>
-            </motion.div>
+            <div className="glass rounded-2xl p-5 holo-border">
+              <div className="space-y-3">{recentActivity.map((item) => (<ActivityTimelineItem key={item.id} description={item.description} amount={item.amount} date={item.date} type={item.type} />))}</div>
+            </div>
           ) : (
             <EmptyState icon={<Inbox className="h-6 w-6" />} title={t("dash.noActivity")} description={t("dash.noActivityDesc")} />
           )}
         </div>
-      </motion.div>
+      </div>
     </div>
   )
 }

@@ -1,7 +1,7 @@
 "use client"
 
 import React from "react"
-import { motion } from "framer-motion"
+
 import { Shield, Target, Shuffle, ArrowUpDown, Gavel, Vote } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { cn } from "@/lib/cn"
@@ -38,11 +38,11 @@ export function CreateStepPayout({ formData, setFormData }: CreateStepPayoutProp
         </label>
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           {PAYOUT_TYPES.map((pt) => (
-            <motion.button
+            <button
               key={pt.value}
               type="button"
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
+              
+              
               onClick={() => setFormData((prev) => ({ ...prev, payoutType: pt.value }))}
               className={cn(
                 "glass rounded-xl p-4 text-left transition-all duration-300",
@@ -69,7 +69,7 @@ export function CreateStepPayout({ formData, setFormData }: CreateStepPayoutProp
                   <span className="text-xs text-muted-foreground">{pt.description}</span>
                 </div>
               </div>
-            </motion.button>
+            </button>
           ))}
         </div>
       </div>

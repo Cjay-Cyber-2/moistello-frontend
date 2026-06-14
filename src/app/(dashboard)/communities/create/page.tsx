@@ -55,8 +55,9 @@ export default function CreateCommunityPage() {
         category,
         tags,
       })
-      const raw = res as { community?: { id: string } }
-      const communityId = raw?.community?.id ?? ""
+      const envelope = (res as Record<string, unknown>)?.data as Record<string, unknown> ?? res as Record<string, unknown>
+      const community = (envelope?.community ?? envelope) as Record<string, unknown>
+      const communityId = String(community?.id ?? "")
       addToast({ type: "success", title: "Community created!", description: "Your community is now live." })
       router.push(`${Routes.COMMUNITIES}/${communityId}`)
     } catch (err) {

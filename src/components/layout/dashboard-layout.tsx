@@ -40,10 +40,10 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
         <MobileMenu isOpen={mobileMenuOpen} onClose={closeMobileMenu} />
         <main
           className={cn(
-            "pt-24 pb-24 px-0 lg:pl-72 lg:pr-0 min-h-screen",
+            "pt-10 pb-24 px-0 lg:pl-72 lg:pr-0 min-h-screen",
           )}
         >
-          <div className="container-premium py-6">
+          <div className="container-premium py-2.5">
             {children}
           </div>
         </main>

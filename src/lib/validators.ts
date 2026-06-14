@@ -23,6 +23,7 @@ export const loginSchema = z.object({
 export const createCircleSchema = z.object({
   name: z.string().min(3, "Name must be at least 3 characters").max(100),
   description: z.string().max(500).optional().or(z.literal("")),
+  communityId: z.string().uuid().optional(),
   circleType: z.enum(["public", "private", "org", "community", "premium"]),
   payoutType: z.enum(["random", "fixed", "auction", "vote"]),
   contributionAmount: z.number().positive("Contribution must be positive"),
@@ -34,7 +35,7 @@ export const createCircleSchema = z.object({
   lateFeePercent: z.number().min(0).max(50).default(5),
   gracePeriodHours: z.number().int().min(1).max(168).default(24),
   maxStrikes: z.number().int().min(1).max(10).default(3),
-  startDate: z.string().datetime({ message: "Start date must be a valid ISO date" }),
+  startDate: z.string().datetime().optional().or(z.literal("")),
 })
 
 export const updateProfileSchema = z.object({

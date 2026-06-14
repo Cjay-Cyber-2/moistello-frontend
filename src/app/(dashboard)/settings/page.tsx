@@ -183,21 +183,6 @@ export default function SettingsHubPage() {
           ))}
         </div>
 
-        {/* Mobile-only: tab bar at bottom showing current active setting */}
-        <div className="md:hidden fixed bottom-20 left-4 right-4 z-40">
-          <div className="glass-flagship rounded-2xl px-4 py-3 flex items-center justify-between overflow-x-auto gap-2">
-            {sections.slice(0, 5).map((s) => (
-              <Link
-                key={s.id}
-                href={s.href}
-                className="flex flex-col items-center gap-1 px-2 py-1 shrink-0"
-              >
-                <span className="text-muted-foreground">{s.icon}</span>
-                <span className="text-[9px] text-muted-foreground font-medium">{s.label}</span>
-              </Link>
-            ))}
-          </div>
-        </div>
       </div>
     </div>
   )

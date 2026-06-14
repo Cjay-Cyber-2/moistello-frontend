@@ -75,13 +75,17 @@ export default function CircleSettingsPage() {
       const ttlHours = inviteExpiration
         ? Math.max(1, Math.round((new Date(inviteExpiration).getTime() - Date.now()) / 3600000))
         : 168
-      const res = await post<{ invite: Invite }>(`/circles/${circleId}/invites`, {
+      const res = await post(`/circles/${circleId}/invites`, {
         maxUses: inviteMaxUses,
         ttlHours,
       })
-      const invite = res.invite
-      setGeneratedCode(invite.code)
-      setExistingInvites((prev) => [invite, ...prev])
+      const envelope = (res as Record<string, unknown>)?.data as Record<string, unknown> ?? res as Record<string, unknown>
+      const invite = (envelope?.invite ?? envelope) as Record<string, unknown>
+      const code = String(invite?.code ?? "")
+      if (code) {
+        setGeneratedCode(code)
+        setExistingInvites((prev) => [invite as unknown as Invite, ...prev])
+      }
     } catch {
     } finally {
       setGeneratingInvite(false)

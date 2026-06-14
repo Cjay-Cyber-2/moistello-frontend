@@ -1,7 +1,7 @@
 "use client"
 
 import React from "react"
-import { motion } from "framer-motion"
+
 import { Users, Shield, Target, Award, Calendar } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { cn } from "@/lib/cn"
@@ -53,12 +53,12 @@ export function CreateStepDetails({ formData, setFormData, errors }: CreateStepD
         </label>
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           {CIRCLE_TYPES.map((ct) => (
-            <motion.button
+            <button
               key={ct.value}
               type="button"
               onClick={() => setFormData((prev) => ({ ...prev, circleType: ct.value }))}
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
+              
+              
               className={cn(
                 "glass rounded-xl p-4 text-left transition-all duration-300",
                 formData.circleType === ct.value
@@ -79,7 +79,7 @@ export function CreateStepDetails({ formData, setFormData, errors }: CreateStepD
                 </span>
               </div>
               <p className="text-xs text-muted-foreground">{ct.description}</p>
-            </motion.button>
+            </button>
           ))}
         </div>
       </div>

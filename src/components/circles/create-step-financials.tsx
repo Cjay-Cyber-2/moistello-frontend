@@ -1,7 +1,7 @@
 "use client"
 
 import React from "react"
-import { motion } from "framer-motion"
+
 import { DollarSign, Clock } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { cn } from "@/lib/cn"
@@ -48,11 +48,11 @@ export function CreateStepFinancials({ formData, setFormData, errors }: CreateSt
           </label>
           <div className="flex gap-2">
             {CURRENCIES.map((c) => (
-              <motion.button
+              <button
                 key={c.value}
                 type="button"
-                whileHover={{ scale: 1.03 }}
-                whileTap={{ scale: 0.97 }}
+                
+                
                 onClick={() => setFormData((prev) => ({ ...prev, currency: c.value }))}
                 className={cn(
                   "flex-1 rounded-xl py-2.5 text-sm font-heading font-medium transition-all duration-300",
@@ -62,7 +62,7 @@ export function CreateStepFinancials({ formData, setFormData, errors }: CreateSt
                 )}
               >
                 {c.label}
-              </motion.button>
+              </button>
             ))}
           </div>
         </div>
@@ -74,11 +74,11 @@ export function CreateStepFinancials({ formData, setFormData, errors }: CreateSt
         </label>
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
           {FREQUENCIES.map((f) => (
-            <motion.button
+            <button
               key={f.value}
               type="button"
-              whileHover={{ scale: 1.03 }}
-              whileTap={{ scale: 0.97 }}
+              
+              
               onClick={() => setFormData((prev) => ({ ...prev, frequency: f.value }))}
               className={cn(
                 "glass rounded-xl p-3 text-center transition-all duration-300",
@@ -105,7 +105,7 @@ export function CreateStepFinancials({ formData, setFormData, errors }: CreateSt
               >
                 {f.label}
               </span>
-            </motion.button>
+            </button>
           ))}
         </div>
       </div>

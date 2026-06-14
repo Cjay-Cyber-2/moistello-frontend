@@ -393,9 +393,14 @@ export default function CommunityDetailPage() {
                   <DollarSign className="h-4 w-4 text-aurora-violet" />
                   Savings Circles
                 </h3>
-                <Link href={`/circles/create?community=${community.id}`}>
-                  <Button variant="outline" size="sm">Create Circle</Button>
-                </Link>
+                <div className="flex items-center gap-2">
+                  <Link href={`/communities/${community.id}/circles`} className="text-xs text-muted-foreground hover:text-foreground transition-colors">
+                    View all
+                  </Link>
+                  <Link href={`/communities/${community.id}/circles/create`}>
+                    <Button variant="outline" size="sm">Create Circle</Button>
+                  </Link>
+                </div>
               </div>
               <p className="text-sm text-muted-foreground italic">
                 Circles within this community will appear here. Create one to get started.

@@ -17,13 +17,16 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { useUIStore } from "@/stores/ui-store";
+import { useAuthStore } from "@/stores/auth-store";
 import { useTranslate } from "@/lib/locale/context";
+import { DashboardLayout } from "@/components/layout/dashboard-layout";
 
 interface PublicLayoutProps {
   children: React.ReactNode;
 }
 
 export function PublicLayout({ children }: PublicLayoutProps) {
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const [menuOpen, setMenuOpen] = useState(false);
   const { theme, toggleTheme } = useUIStore();
   const { t } = useTranslate();
@@ -31,6 +34,11 @@ export function PublicLayout({ children }: PublicLayoutProps) {
 
   const closeMenu = useCallback(() => setMenuOpen(false), []);
   const toggleMenu = useCallback(() => setMenuOpen((prev) => !prev), []);
+
+  // Authenticated users see public pages inside the dashboard layout
+  if (isAuthenticated) {
+    return <DashboardLayout>{children}</DashboardLayout>;
+  }
 
   const navItems = [
     { label: t("nav.howItWorks"), href: "/how-it-works" },

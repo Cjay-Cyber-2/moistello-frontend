@@ -112,10 +112,7 @@ export default function WalletPage() {
                 </span>
               </div>
               <div className="flex items-center gap-2 mt-2">
-                <code className="text-sm font-mono text-foreground bg-white/5 px-2 py-1 rounded">
-                  {formatAddress(walletId, 12, 8)}
-                </code>
-                <CopyButton text={walletId} />
+                <CopyButton text={walletId} label={formatAddress(walletId, 8, 6)} />
               </div>
               <p className="text-xs text-muted-foreground mt-1.5">
                 {t("auth.register.securityNote")}

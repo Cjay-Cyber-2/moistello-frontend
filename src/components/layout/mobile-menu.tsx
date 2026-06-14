@@ -29,7 +29,7 @@ interface MobileMenuProps {
 export function MobileMenu({ isOpen, onClose }: MobileMenuProps) {
   const pathname = usePathname();
   const { theme, toggleTheme } = useUIStore();
-  const { user, isAuthenticated, logout } = useAuthStore();
+  const { isAuthenticated, logout } = useAuthStore();
   const { unreadCount } = useNotificationStore();
   const isDark = theme === "dark";
   const { t } = useTranslate();
@@ -70,26 +70,13 @@ export function MobileMenu({ isOpen, onClose }: MobileMenuProps) {
           "border-l border-white/[0.08] dark:border-white/[0.06]",
           "flex flex-col",
         )}
+        style={{ overscrollBehavior: "contain" }}
       >
         <div className="flex h-16 items-center px-5 border-b border-white/[0.05]">
           <span className="gradient-text-extended font-heading font-bold text-lg">Moistello</span>
         </div>
 
         <nav className="flex-1 overflow-y-auto px-4 py-4">
-          {isAuthenticated && user && (
-            <div className="flex items-center gap-3 px-3 py-2 mb-4">
-              <div className="flex h-9 w-9 items-center justify-center rounded-full gradient-bg text-white font-mono text-xs font-bold shrink-0">
-                {user.displayName?.charAt(0)?.toUpperCase() ?? "U"}
-              </div>
-              <div className="min-w-0">
-                <p className="text-sm font-medium text-foreground truncate">
-                  {user.displayName ?? "User"}
-                </p>
-                <p className="text-xs text-muted-foreground">Moi Score: {user.moiScore}</p>
-              </div>
-            </div>
-          )}
-
           <div className="space-y-1 mb-6">
             <p className="px-3 text-[10px] font-heading tracking-[0.2em] uppercase text-muted-foreground/70 mb-2">
               Navigation

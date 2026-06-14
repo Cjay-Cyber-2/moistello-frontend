@@ -1,7 +1,6 @@
 "use client"
 
 import React from "react"
-import { motion } from "framer-motion"
 import { Check, AlertTriangle } from "lucide-react"
 import type { CircleFormData } from "@/types"
 
@@ -31,15 +30,10 @@ export function CreateStepReview({ formData, errors = {} }: CreateStepReviewProp
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-3 mb-2">
-        <motion.div
-          initial={{ scale: 0 }}
-          animate={{ scale: 1 }}
-          transition={{ delay: 0.2, type: "spring", stiffness: 400, damping: 20 }}
-          className="flex h-8 w-8 items-center justify-center rounded-full bg-emerald-500/20"
-        >
+        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-emerald-500/20">
           <Check className="h-4 w-4 text-emerald-400" />
-        </motion.div>
-        <h3 className="font-heading text-lg font-semibold text-foreground dark:text-white">
+        </div>
+        <h3 className="font-heading text-lg font-semibold text-foreground">
           Review Your Circle
         </h3>
       </div>
@@ -48,7 +42,7 @@ export function CreateStepReview({ formData, errors = {} }: CreateStepReviewProp
         {rows.map((row, i) => (
           <div key={i} className="flex items-center justify-between px-5 py-3">
             <span className="text-sm text-muted-foreground font-body">{row.label}</span>
-            <span className="text-sm font-medium text-foreground dark:text-white font-heading">
+            <span className="text-sm font-medium text-foreground font-heading">
               {row.value}
             </span>
           </div>
@@ -56,14 +50,10 @@ export function CreateStepReview({ formData, errors = {} }: CreateStepReviewProp
       </div>
 
       {errors.submit && (
-        <motion.div
-          initial={{ opacity: 0, y: 8 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="flex items-center gap-2 rounded-xl bg-red-500/10 border border-red-500/20 p-3 text-sm text-red-400 font-body"
-        >
+        <div className="flex items-center gap-2 rounded-xl bg-red-500/10 border border-red-500/20 p-3 text-sm text-red-400 font-body">
           <AlertTriangle className="h-4 w-4 shrink-0" />
           {errors.submit}
-        </motion.div>
+        </div>
       )}
     </div>
   )
