@@ -13,6 +13,9 @@ import {
   Wallet,
   LogOut,
   Sun,
+  BookOpen,
+  HelpCircle,
+  LifeBuoy,
 } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { Routes } from "@/lib/constants";
@@ -127,6 +130,35 @@ export function MobileMenu({ isOpen, onClose }: MobileMenuProps) {
                       {unreadCount > 99 ? "99+" : unreadCount}
                     </span>
                   )}
+                </Link>
+              );
+            })}
+          </div>
+
+          <div className="space-y-1 mt-6">
+            <p className="px-3 text-[10px] font-heading tracking-[0.2em] uppercase text-muted-foreground/70 mb-2">
+              Docs
+            </p>
+            {[
+              { label: "Documentation", href: "/docs", icon: <BookOpen className="h-4 w-4" /> },
+              { label: "FAQs", href: "/faq", icon: <HelpCircle className="h-4 w-4" /> },
+              { label: "Support", href: "/support", icon: <LifeBuoy className="h-4 w-4" /> },
+            ].map((link) => {
+              const active = isActive(link.href);
+              return (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  onClick={onClose}
+                  className={cn(
+                    "flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm",
+                    active
+                      ? "glass-strong bg-gradient-to-r from-aurora-violet/10 to-transparent text-foreground"
+                      : "text-muted-foreground hover:text-foreground hover:glass-whisper",
+                  )}
+                >
+                  {link.icon}
+                  <span className="flex-1">{link.label}</span>
                 </Link>
               );
             })}

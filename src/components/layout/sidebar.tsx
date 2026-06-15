@@ -13,6 +13,9 @@ import {
   Wallet,
   Sun,
   Moon,
+  BookOpen,
+  HelpCircle,
+  LifeBuoy,
 } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { Routes } from "@/lib/constants";
@@ -69,6 +72,14 @@ export function Sidebar() {
         { label: t("nav.notifications"), href: Routes.NOTIFICATIONS, icon: <Bell className="h-[18px] w-[18px]" />, badge: unreadCount },
         { label: t("nav.settings"), href: Routes.PROFILE_SETTINGS, icon: <Settings className="h-[18px] w-[18px]" /> },
         { label: t("nav.wallet"), href: Routes.WALLET, icon: <Wallet className="h-[18px] w-[18px]" /> },
+      ],
+    },
+    {
+      title: t("nav.docs"),
+      items: [
+        { label: t("nav.documentation"), href: "/docs", icon: <BookOpen className="h-[18px] w-[18px]" /> },
+        { label: t("nav.faqs"), href: "/faq", icon: <HelpCircle className="h-[18px] w-[18px]" /> },
+        { label: t("nav.support"), href: "/support", icon: <LifeBuoy className="h-[18px] w-[18px]" /> },
       ],
     },
   ];

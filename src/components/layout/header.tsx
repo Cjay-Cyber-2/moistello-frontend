@@ -47,7 +47,7 @@ export function Header({ onToggleMobileMenu, isMobileMenuOpen }: HeaderProps) {
     <>
       <header
         className={cn(
-          "sticky top-3 mx-3 z-50 h-14",
+          "lg:hidden sticky top-3 mx-3 z-50 h-14",
           "rounded-2xl",
           "glass-strong backdrop-blur-2xl",
           "border border-white/[0.06] dark:border-white/[0.08]",
