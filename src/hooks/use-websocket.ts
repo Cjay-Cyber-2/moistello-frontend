@@ -2,15 +2,17 @@
 
 import { useEffect, useRef, useState, useCallback } from "react";
 import { WS_URL } from "@/lib/constants";
-import { useNotificationStore } from "@/stores/notification-store";
-import { Notification } from "@/types";
 
-interface WebSocketMessage {
+export interface WebSocketMessage {
   type: string;
-  payload: unknown;
+  payload?: Record<string, unknown>;
 }
 
-export function useWebSocket() {
+interface UseWebSocketOptions {
+  onEvent?: (message: WebSocketMessage) => void;
+}
+
+export function useWebSocket(options?: UseWebSocketOptions) {
   const [isConnected, setIsConnected] = useState(false);
   const [lastMessage, setLastMessage] = useState<WebSocketMessage | null>(null);
 
@@ -18,8 +20,6 @@ export function useWebSocket() {
   const reconnectAttemptRef = useRef(0);
   const reconnectTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const mountedRef = useRef(true);
-
-  const addNotification = useNotificationStore((s) => s.addNotification);
 
   const send = useCallback((message: unknown) => {
     if (wsRef.current?.readyState === WebSocket.OPEN) {
@@ -47,21 +47,7 @@ export function useWebSocket() {
       try {
         const message: WebSocketMessage = JSON.parse(event.data);
         setLastMessage(message);
-
-        switch (message.type) {
-          case "notification":
-          case "new_notification":
-            addNotification(message.payload as Notification);
-            break;
-          case "circle_update":
-          case "circle.invite":
-          case "circle.contribution":
-          case "circle.payout":
-            // Handled by React Query invalidation in circle hooks or via event bus
-            break;
-          default:
-            break;
-        }
+        options?.onEvent?.(message);
       } catch {
         // Ignore non-JSON messages
       }
@@ -79,7 +65,7 @@ export function useWebSocket() {
 
     wsRef.current = ws;
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [addNotification]);
+  }, []);
 
   const scheduleReconnect = useCallback(() => {
     if (!mountedRef.current) return;

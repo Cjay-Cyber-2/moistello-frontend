@@ -4,6 +4,7 @@ import { Inter } from "next/font/google"
 import { JetBrains_Mono } from "next/font/google"
 import "./globals.css"
 import { QueryProvider } from "@/providers/query-provider"
+import { WsProvider } from "@/providers/ws-provider"
 import { ThemeProvider } from "@/providers/theme-provider"
 import { AuthProvider } from "@/providers/auth-provider"
 import { ToastProvider } from "@/providers/toast-provider"
@@ -152,6 +153,7 @@ ym(109691925, 'init', {ssr:true, webvisor:true, clickmap:true, ecommerce:"dataLa
         className={`${spaceGrotesk.variable} ${inter.variable} ${jetbrainsMono.variable} font-body bg-[rgb(var(--background))] text-[rgb(var(--foreground))] antialiased`}
       >
         <QueryProvider>
+          <WsProvider>
           <ThemeProvider>
             <AuthProvider>
               <LocaleProvider>
@@ -164,6 +166,7 @@ ym(109691925, 'init', {ssr:true, webvisor:true, clickmap:true, ecommerce:"dataLa
               </LocaleProvider>
             </AuthProvider>
           </ThemeProvider>
+          </WsProvider>
         </QueryProvider>
       </body>
     </html>

@@ -45,6 +45,20 @@ interface Member {
   moiScore?: number
 }
 
+interface CommunityCircle {
+  id: string
+  name: string
+  status: string
+  circleType: string
+  contributionAmount: number
+  currency: string
+  frequency: string
+  maxMembers: number
+  currentRound: number
+  memberCount?: number
+  requiresInvite?: boolean
+}
+
 interface Announcement {
   id: string
   content: string
@@ -91,17 +105,19 @@ export default function CommunityDetailPage() {
   const [members, setMembers] = useState<Member[]>([])
   const [announcements, setAnnouncements] = useState<Announcement[]>([])
   const [activity, setActivity] = useState<ActivityEvent[]>([])
+  const [communityCircles, setCommunityCircles] = useState<CommunityCircle[]>([])
   const [isMember, setIsMember] = useState(false)
   const [loading, setLoading] = useState(true)
 
   const load = useCallback(async () => {
     setLoading(true)
     try {
-      const [comRes, memRes, annRes, actRes] = await Promise.allSettled([
+      const [comRes, memRes, annRes, actRes, cirRes] = await Promise.allSettled([
         get<unknown>(`/communities/${communityId}`),
         get<unknown>(`/communities/${communityId}/members`),
         get<unknown>(`/communities/${communityId}/announcements`),
         get<unknown>(`/communities/${communityId}/activity`),
+        get<unknown>(`/circles?communityId=${communityId}`),
       ])
 
       if (comRes.status === "fulfilled") {
@@ -126,6 +142,12 @@ export default function CommunityDetailPage() {
         const raw = actRes.value as Record<string, unknown>
         const data = (raw.data ?? raw) as Record<string, unknown>
         setActivity(data.events as ActivityEvent[] ?? [])
+      }
+
+      if (cirRes.status === "fulfilled") {
+        const raw = cirRes.value as Record<string, unknown>
+        const data = (raw.data ?? raw) as Record<string, unknown>
+        setCommunityCircles(data.circles as CommunityCircle[] ?? [])
       }
 
       if (user) {
@@ -395,16 +417,39 @@ export default function CommunityDetailPage() {
                 </h3>
                 <div className="flex items-center gap-2">
                   <Link href={`/communities/${community.id}/circles`} className="text-xs text-muted-foreground hover:text-foreground transition-colors">
-                    View all
+                    View all ({communityCircles.length})
                   </Link>
                   <Link href={`/communities/${community.id}/circles/create`}>
                     <Button variant="outline" size="sm">Create Circle</Button>
                   </Link>
                 </div>
               </div>
-              <p className="text-sm text-muted-foreground italic">
-                Circles within this community will appear here. Create one to get started.
-              </p>
+              {communityCircles.length === 0 ? (
+                <p className="text-sm text-muted-foreground italic">
+                  Circles within this community will appear here. Create one to get started.
+                </p>
+              ) : (
+                <div className="space-y-2">
+                  {communityCircles.slice(0, 3).map((c) => (
+                    <Link key={c.id} href={`/circles/${c.id}`}>
+                      <div className="glass-whisper rounded-xl px-4 py-3 flex items-center justify-between hover:glass-strong transition-colors">
+                        <div className="min-w-0 flex-1">
+                          <div className="flex items-center gap-2">
+                            <span className="text-sm font-heading font-medium text-foreground truncate">{c.name}</span>
+                            {c.requiresInvite && <Shield className="h-3 w-3 text-amber-400 shrink-0" />}
+                          </div>
+                          <p className="text-xs text-muted-foreground mt-0.5">
+                            {c.memberCount ?? 0}/{c.maxMembers} members
+                          </p>
+                        </div>
+                        <Badge variant={c.status === "active" ? "success" : "warning"} size="sm" className="shrink-0 ml-2">
+                          {c.status}
+                        </Badge>
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
 

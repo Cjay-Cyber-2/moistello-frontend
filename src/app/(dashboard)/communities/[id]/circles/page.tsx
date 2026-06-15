@@ -21,6 +21,7 @@ interface CommunityCircle {
   currentRound: number
   memberCount?: number
   minMoiScore?: number
+  requiresInvite?: boolean
 }
 
 export default function CommunityCirclesPage() {
@@ -99,10 +100,15 @@ export default function CommunityCirclesPage() {
           {circles.map((c) => (
             <Link key={c.id} href={`/circles/${c.id}`}>
               <div className="border border-white/10 rounded-xl p-5 hover:bg-white/[0.02] transition-colors space-y-3 h-full">
-                <div className="flex items-start justify-between gap-2">
-                  <h3 className="font-heading text-sm font-semibold text-foreground truncate">{c.name}</h3>
-                  <Badge variant={statusColor[c.status] ?? "default"} size="sm">{c.status}</Badge>
-                </div>
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-2">
+                        <h3 className="font-heading text-sm font-semibold text-foreground truncate">{c.name}</h3>
+                        {c.requiresInvite && <Shield className="h-3.5 w-3.5 text-amber-400 shrink-0" />}
+                      </div>
+                    </div>
+                    <Badge variant={statusColor[c.status] ?? "default"} size="sm">{c.status}</Badge>
+                  </div>
                 <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
                   <span className="inline-flex items-center gap-1">
                     <DollarSign className="h-3 w-3" />
