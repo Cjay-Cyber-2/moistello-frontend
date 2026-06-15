@@ -95,6 +95,11 @@ export default function CircleDetailPage() {
   const [joinLoading, setJoinLoading] = useState(false)
   const [joinError, setJoinError] = useState<string | null>(null)
 
+  const [showJoinCodeModal, setShowJoinCodeModal] = useState(false)
+  const [joinCodeValue, setJoinCodeValue] = useState("")
+  const [joinCodeLoading, setJoinCodeLoading] = useState(false)
+  const [joinCodeError, setJoinCodeError] = useState<string | null>(null)
+
   const isOrganizer = user?.id === circle?.organizerId
   const isMember = members.some((m) => m.userId === user?.id)
   const canJoin =
@@ -112,6 +117,23 @@ export default function CircleDetailPage() {
         ?? (err instanceof Error ? err.message : "Failed to join circle")
       setJoinError(msg)
       setJoinLoading(false)
+    }
+  }
+
+  const handleJoinWithCode = async () => {
+    if (!joinCodeValue.trim()) return
+    setJoinCodeLoading(true)
+    setJoinCodeError(null)
+    try {
+      await joinCircle.mutateAsync({ circleId, payload: { inviteCode: joinCodeValue.trim() } as Record<string, unknown> })
+      setShowJoinCodeModal(false)
+      setJoinCodeValue("")
+    } catch (err: unknown) {
+      const msg = (err as { response?: { data?: { error?: string } } })?.response?.data?.error
+        ?? (err instanceof Error ? err.message : "Invalid invite code")
+      setJoinCodeError(msg)
+    } finally {
+      setJoinCodeLoading(false)
     }
   }
 
@@ -365,7 +387,19 @@ export default function CircleDetailPage() {
             </Button>
           </motion.div>
         )}
-        {canJoin && (
+        {canJoin && circle?.circleType === "private" && (
+          <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+            <Button
+              variant="primary"
+              size="lg"
+              leftIcon={<UserPlus className="h-5 w-5" />}
+              onClick={() => setShowJoinCodeModal(true)}
+            >
+              Join with Invite Code
+            </Button>
+          </motion.div>
+        )}
+        {canJoin && circle && circle.circleType !== "private" && (
           <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
             <Button
               variant="primary"
@@ -597,6 +631,37 @@ export default function CircleDetailPage() {
               Close
             </Button>
           )}
+        </div>
+      </Modal>
+
+      <Modal
+        isOpen={showJoinCodeModal}
+        onClose={() => { setShowJoinCodeModal(false); setJoinCodeValue(""); setJoinCodeError(null) }}
+        title="Enter Invite Code"
+        description="This circle is private. Enter an invite code to join."
+        size="sm"
+      >
+        <div className="space-y-4">
+          <input
+            value={joinCodeValue}
+            onChange={(e) => setJoinCodeValue(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && handleJoinWithCode()}
+            placeholder="Paste invite code here..."
+            className="w-full bg-white/5 border border-border rounded-xl px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary/50 font-mono text-center text-lg tracking-widest"
+          />
+          {joinCodeError && (
+            <p className="text-sm text-red-400 text-center">{joinCodeError}</p>
+          )}
+          <Button
+            variant="primary"
+            size="md"
+            className="w-full"
+            onClick={handleJoinWithCode}
+            isLoading={joinCodeLoading}
+            disabled={!joinCodeValue.trim()}
+          >
+            Join Circle
+          </Button>
         </div>
       </Modal>
     </div>
