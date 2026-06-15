@@ -9,7 +9,13 @@ import { API_BASE_URL } from "./constants"
 function getCsrfToken(): string {
   if (typeof document === "undefined") return ""
   const meta = document.querySelector('meta[name="csrf-token"]')
-  return meta?.getAttribute("content") ?? ""
+  const metaContent = meta?.getAttribute("content")
+  if (metaContent) return metaContent
+
+  // Fallback: derive from auth token if meta tag hasn't been populated yet
+  const token = getAccessToken()
+  if (!token) return ""
+  return token.slice(-32)
 }
 
 const apiClient = axios.create({

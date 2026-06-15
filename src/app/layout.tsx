@@ -159,7 +159,6 @@ ym(109691925, 'init', {ssr:true, webvisor:true, clickmap:true, ecommerce:"dataLa
               <LocaleProvider>
                 <ToastProvider>
                   <MonitoringProvider>
-                    <meta name="csrf-token" content="" />
                     {children}
                   </MonitoringProvider>
                 </ToastProvider>
