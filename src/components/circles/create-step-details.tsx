@@ -2,7 +2,7 @@
 
 import React from "react"
 
-import { Users, Shield, Target, Award, Calendar, AlertTriangle } from "lucide-react"
+import { Users, Shield, Award, Calendar, AlertTriangle } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { cn } from "@/lib/cn"
 import { useAuth } from "@/hooks/use-auth"
@@ -22,7 +22,6 @@ const CIRCLE_TYPES: {
 }[] = [
   { value: "public", label: "Public", description: "Anyone can discover and join", icon: <Users className="h-5 w-5" /> },
   { value: "private", label: "Private", description: "Invite-only access", icon: <Shield className="h-5 w-5" /> },
-  { value: "community", label: "Community", description: "Community-governed circle", icon: <Target className="h-5 w-5" /> },
   { value: "premium", label: "Premium", description: "High-trust circles", icon: <Award className="h-5 w-5" /> },
 ]
 
