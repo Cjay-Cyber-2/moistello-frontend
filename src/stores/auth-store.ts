@@ -5,34 +5,80 @@ import { devtools } from "zustand/middleware";
 import { ApiResponse, User } from "@/types";
 import { post } from "@/lib/api-client";
 
-const ACCESS_TOKEN_KEY = "moistello_access_token";
-const REFRESH_TOKEN_KEY = "moistello_refresh_token";
+// ── Single source of truth for token storage ──
 
-function getStoredToken(key: string): string | null {
+const ACCESS_TOKEN_KEY = "moistello_token";
+const REFRESH_TOKEN_KEY = "moistello_refresh";
+
+function getStoredAccessToken(): string | null {
   if (typeof window === "undefined") return null;
-  try {
-    return localStorage.getItem(key);
-  } catch {
-    return null;
-  }
+  try { return localStorage.getItem(ACCESS_TOKEN_KEY) } catch { return null }
 }
 
-function setStoredToken(key: string, value: string): void {
+function setStoredAccessToken(value: string): void {
   if (typeof window === "undefined") return;
-  try {
-    localStorage.setItem(key, value);
-  } catch {
-    // localStorage unavailable
-  }
+  try { localStorage.setItem(ACCESS_TOKEN_KEY, value) } catch {}
 }
 
-function removeStoredToken(key: string): void {
+function removeStoredAccessToken(): void {
   if (typeof window === "undefined") return;
+  try { localStorage.removeItem(ACCESS_TOKEN_KEY) } catch {}
+}
+
+function getStoredRefreshToken(): string | null {
+  if (typeof window === "undefined") return null;
+  try { return localStorage.getItem(REFRESH_TOKEN_KEY) } catch { return null }
+}
+
+function setStoredRefreshToken(value: string): void {
+  if (typeof window === "undefined") return;
+  try { localStorage.setItem(REFRESH_TOKEN_KEY, value) } catch {}
+}
+
+function removeStoredRefreshToken(): void {
+  if (typeof window === "undefined") return;
+  try { localStorage.removeItem(REFRESH_TOKEN_KEY) } catch {}
+}
+
+// Migrate legacy keys if they exist
+function migrateLegacyTokens(): void {
+  if (typeof window === "undefined") return;
+  const oldAccess = localStorage.getItem("moistello_access_token");
+  const oldRefresh = localStorage.getItem("moistello_refresh_token");
+  const newAccess = localStorage.getItem(ACCESS_TOKEN_KEY);
+  const newRefresh = localStorage.getItem(REFRESH_TOKEN_KEY);
+
+  if (oldAccess && !newAccess) setStoredAccessToken(oldAccess);
+  if (oldRefresh && !newRefresh) setStoredRefreshToken(oldRefresh);
+
   try {
-    localStorage.removeItem(key);
-  } catch {
-    // localStorage unavailable
-  }
+    if (oldAccess) localStorage.removeItem("moistello_access_token");
+    if (oldRefresh) localStorage.removeItem("moistello_refresh_token");
+    // Also clean up the JSON-stringified variants
+    localStorage.removeItem("moistello_token"); // overwritten above if existed
+    localStorage.removeItem("moistello_refresh");
+  } catch {}
+}
+
+migrateLegacyTokens();
+
+function setCookie(name: string, value: string, maxAge: number): void {
+  if (typeof document === "undefined") return;
+  document.cookie = `${name}=${value}; path=/; max-age=${maxAge}; SameSite=Lax`;
+}
+
+function removeCookie(name: string): void {
+  if (typeof document === "undefined") return;
+  document.cookie = `${name}=; path=/; max-age=0; SameSite=Lax`;
+}
+
+function extractTokenExpiry(token: string): number | null {
+  try {
+    const parts = token.split(".");
+    if (parts.length !== 3) return null;
+    const payload = JSON.parse(atob(parts[1]));
+    return typeof payload.exp === "number" ? payload.exp * 1000 : null;
+  } catch { return null }
 }
 
 interface LoginResponse {
@@ -61,11 +107,11 @@ interface AuthActions {
 type AuthStore = AuthState & AuthActions;
 
 export const useAuthStore = create<AuthStore>()(devtools((set, get) => ({
-  isAuthenticated: !!getStoredToken(ACCESS_TOKEN_KEY),
+  isAuthenticated: !!getStoredAccessToken(),
   user: null,
-  token: getStoredToken(ACCESS_TOKEN_KEY),
-  refreshToken: getStoredToken(REFRESH_TOKEN_KEY),
-  isLoading: false,
+  token: getStoredAccessToken(),
+  refreshToken: getStoredRefreshToken(),
+  isLoading: true,
   tokenExpiresAt: null,
 
   login: async (walletAddress: string, signature: string) => {
@@ -83,16 +129,18 @@ export const useAuthStore = create<AuthStore>()(devtools((set, get) => ({
       }
 
       const { token, refreshToken, user } = data;
+      const exp = extractTokenExpiry(token);
 
-      setStoredToken(ACCESS_TOKEN_KEY, token);
-      setStoredToken(REFRESH_TOKEN_KEY, refreshToken);
+      setStoredAccessToken(token);
+      setStoredRefreshToken(refreshToken);
+      setCookie("moistello_token", token, 86400);
 
       set({
         isAuthenticated: true,
         user,
         token,
         refreshToken,
-        tokenExpiresAt: Date.now() + 15 * 60 * 1000,
+        tokenExpiresAt: exp ?? Date.now() + 15 * 60 * 1000,
         isLoading: false,
       });
     } catch (error) {
@@ -102,8 +150,7 @@ export const useAuthStore = create<AuthStore>()(devtools((set, get) => ({
   },
 
   logout: () => {
-    const { clearTokens } = get()
-    clearTokens()
+    get().clearTokens()
     set({
       isAuthenticated: false,
       user: null,
@@ -112,42 +159,42 @@ export const useAuthStore = create<AuthStore>()(devtools((set, get) => ({
       tokenExpiresAt: null,
       isLoading: false,
     })
-    // Reset passkey adapter session so next login starts fresh WebAuthn flow
     if (typeof window !== "undefined") {
       import("@/lib/wallet/registry").then(({ getWalletRegistry }) => {
-        try {
-          getWalletRegistry().getAdapter("passkey")?.reset?.()
-        } catch {
-          // adapter not registered yet
-        }
+        try { getWalletRegistry().getAdapter("passkey")?.reset?.() } catch {}
       })
     }
   },
 
   checkAuth: async () => {
-    const token = getStoredToken(ACCESS_TOKEN_KEY);
+    const token = getStoredAccessToken();
     if (!token) {
-      set({ isAuthenticated: false, user: null, token: null, refreshToken: null, tokenExpiresAt: null, isLoading: false });
+      set({ isAuthenticated: false, user: null, token: null, refreshToken: null, isLoading: false });
+      return;
+    }
+
+    // If token hasn't expired yet, skip the HTTP call
+    const exp = extractTokenExpiry(token);
+    if (exp && Date.now() < exp) {
+      set({ isLoading: false, isAuthenticated: true, token, refreshToken: getStoredRefreshToken() });
       return;
     }
 
     set({ isLoading: true });
     try {
       const response = await post<ApiResponse<{ user: User }>>("/auth/me");
-
       const data = response.data;
+      if (!data?.user) throw new Error("Invalid session");
 
-      if (!data?.user) {
-        throw new Error("Invalid session");
-      }
-
-      const refreshToken = getStoredToken(REFRESH_TOKEN_KEY);
+      const refreshToken = getStoredRefreshToken();
+      const updatedExp = extractTokenExpiry(token);
 
       set({
         isAuthenticated: true,
         user: data.user,
         token,
         refreshToken,
+        tokenExpiresAt: updatedExp ?? Date.now() + 15 * 60 * 1000,
         isLoading: false,
       });
     } catch {
@@ -156,22 +203,31 @@ export const useAuthStore = create<AuthStore>()(devtools((set, get) => ({
   },
 
   setTokens: (accessToken: string, refreshToken: string, user?: User) => {
-    setStoredToken(ACCESS_TOKEN_KEY, accessToken);
-    setStoredToken(REFRESH_TOKEN_KEY, refreshToken);
-    localStorage.setItem("moistello_token", JSON.stringify(accessToken));
-    localStorage.setItem("moistello_refresh", JSON.stringify(refreshToken));
-    document.cookie = `moistello_token=${accessToken}; path=/; max-age=86400; SameSite=Lax`;
-    document.cookie = `moistello_refresh=${refreshToken}; path=/; max-age=86400; SameSite=Lax`;
-    set({ token: accessToken, refreshToken, tokenExpiresAt: Date.now() + 15 * 60 * 1000, isAuthenticated: true, user: user ?? null });
+    setStoredAccessToken(accessToken);
+    setStoredRefreshToken(refreshToken);
+    setCookie("moistello_token", accessToken, 86400);
+    const exp = extractTokenExpiry(accessToken);
+    set({
+      token: accessToken,
+      refreshToken,
+      tokenExpiresAt: exp ?? Date.now() + 15 * 60 * 1000,
+      isAuthenticated: true,
+      user: user ?? null,
+    });
   },
 
   clearTokens: () => {
-    removeStoredToken(ACCESS_TOKEN_KEY);
-    removeStoredToken(REFRESH_TOKEN_KEY);
-    localStorage.removeItem("moistello_token");
-    localStorage.removeItem("moistello_refresh");
-    document.cookie = "moistello_token=; path=/; max-age=0; SameSite=Lax";
-    document.cookie = "moistello_refresh=; path=/; max-age=0; SameSite=Lax";
+    removeStoredAccessToken();
+    removeStoredRefreshToken();
+    // Also clean up any legacy keys
+    if (typeof window !== "undefined") {
+      try {
+        localStorage.removeItem("moistello_access_token");
+        localStorage.removeItem("moistello_refresh_token");
+      } catch {}
+    }
+    removeCookie("moistello_token");
+    removeCookie("moistello_refresh");
     set({ token: null, refreshToken: null, tokenExpiresAt: null });
   },
 })));

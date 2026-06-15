@@ -20,9 +20,6 @@ const apiClient = axios.create({
   },
 })
 
-let refreshPromise: Promise<string> | null = null
-let isRefreshing = false
-
 function getAccessToken(): string | null {
   if (typeof document === "undefined") return null
 
@@ -32,32 +29,30 @@ function getAccessToken(): string | null {
   if (cookieMatch?.[1]) return cookieMatch[1]
 
   try {
-    const stored = localStorage.getItem("moistello_token")
-    if (stored) return JSON.parse(stored)
+    return localStorage.getItem("moistello_token")
   } catch {
     return null
   }
-
-  return null
 }
 
 function setAccessToken(token: string): void {
   if (typeof document === "undefined") return
   document.cookie = `moistello_token=${token}; path=/; max-age=86400; SameSite=Lax`
   try {
-    localStorage.setItem("moistello_token", JSON.stringify(token))
+    localStorage.setItem("moistello_token", token)
   } catch {
     // localStorage not available
   }
 }
 
+let refreshInFlight: Promise<string> | null = null
+
 async function refreshAccessToken(): Promise<string> {
-  if (isRefreshing && refreshPromise) {
-    return refreshPromise
+  if (refreshInFlight) {
+    return refreshInFlight
   }
 
-  isRefreshing = true
-  refreshPromise = (async () => {
+  refreshInFlight = (async () => {
     try {
       let refreshToken: string | null = null
 
@@ -71,8 +66,7 @@ async function refreshAccessToken(): Promise<string> {
 
         if (!refreshToken) {
           try {
-            const stored = localStorage.getItem("moistello_refresh")
-            if (stored) refreshToken = JSON.parse(stored)
+            refreshToken = localStorage.getItem("moistello_refresh")
           } catch {
             // ignore
           }
@@ -95,12 +89,11 @@ async function refreshAccessToken(): Promise<string> {
       setAccessToken(newToken)
       return newToken
     } finally {
-      isRefreshing = false
-      refreshPromise = null
+      refreshInFlight = null
     }
   })()
 
-  return refreshPromise
+  return refreshInFlight
 }
 
 apiClient.interceptors.request.use(

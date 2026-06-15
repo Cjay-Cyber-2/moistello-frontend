@@ -3,11 +3,39 @@ import { pbkdf2Async } from "@noble/hashes/pbkdf2.js"
 import { sha256, sha512 } from "@noble/hashes/sha2.js"
 import { bytesToHex } from "@noble/hashes/utils.js"
 
-const PEPPER =
-  process.env.NEXT_PUBLIC_PASSKEY_PEPPER || "moistello-passkey-pepper-v1"
 const PBKDF2_ITERATIONS = 100_000
 
-const BASE32_ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567"
+/**
+ * Derives an intermediate passkey secret on the client side.
+ * This is NOT the final wallet seed — it gets combined with the server-side
+ * pepper on the backend to produce the actual Stellar keypair.
+ * 
+ * The pepper is never exposed to the client bundle.
+ */
+export async function derivePasskeySecret(credentialId: string): Promise<{
+  secretHex: string
+  salt: string
+}> {
+  const saltInput = `v1:${credentialId.slice(0, 16)}`
+  const salt = sha256(new TextEncoder().encode(saltInput))
+  const credentialBytes = new TextEncoder().encode(credentialId)
+
+  const secret = await pbkdf2Async(
+    sha512,
+    credentialBytes,
+    salt,
+    { c: PBKDF2_ITERATIONS, dkLen: 32 }
+  )
+
+  return {
+    secretHex: bytesToHex(secret),
+    salt: saltInput,
+  }
+}
+
+export function hexEncode(bytes: Uint8Array): string {
+  return bytesToHex(bytes)
+}
 
 function crc16xmodem(data: Uint8Array): number {
   let crc = 0
@@ -26,6 +54,7 @@ function crc16xmodem(data: Uint8Array): number {
 }
 
 function base32Encode(data: Uint8Array): string {
+  const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567"
   let result = ""
   let buffer = 0
   let bits = 0
@@ -34,24 +63,21 @@ function base32Encode(data: Uint8Array): string {
     bits += 8
     while (bits >= 5) {
       bits -= 5
-      result += BASE32_ALPHABET[(buffer >>> bits) & 0x1f]
+      result += alphabet[(buffer >>> bits) & 0x1f]
     }
   }
   if (bits > 0) {
-    result += BASE32_ALPHABET[(buffer << (5 - bits)) & 0x1f]
+    result += alphabet[(buffer << (5 - bits)) & 0x1f]
   }
   return result
 }
 
-export function hexEncode(bytes: Uint8Array): string {
-  return bytesToHex(bytes)
-}
-
 export async function deriveStellarKeypair(
   credentialId: string,
-  serverPepper?: string
+  serverPepper?: string,
 ): Promise<{ publicKey: Uint8Array; secretKey: Uint8Array }> {
-  const pepper = serverPepper || PEPPER
+  // Server pepper is REQUIRED for production. The fallback is for local dev only.
+  const pepper = serverPepper || "moistello-local-dev"
   const passphrase = `${credentialId}:${pepper}`
   const saltInput = `v1:${credentialId.slice(0, 16)}`
   const salt = sha256(new TextEncoder().encode(saltInput))
