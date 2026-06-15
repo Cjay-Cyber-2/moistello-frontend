@@ -36,6 +36,7 @@ export const createCircleSchema = z.object({
   gracePeriodHours: z.number().int().min(1).max(168).default(24),
   maxStrikes: z.number().int().min(1).max(10).default(3),
   startDate: z.string().datetime().optional().or(z.literal("")),
+  requiresInvite: z.boolean().optional(),
 })
 
 export const updateProfileSchema = z.object({

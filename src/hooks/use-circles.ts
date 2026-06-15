@@ -34,6 +34,7 @@ interface CreateCirclePayload {
   gracePeriodHours: number;
   maxStrikes: number;
   startDate: string;
+  requiresInvite?: boolean;
 }
 
 interface JoinCirclePayload {

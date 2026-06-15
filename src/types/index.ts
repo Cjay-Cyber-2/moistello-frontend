@@ -197,6 +197,7 @@ export interface CircleFormData {
   gracePeriodHours: number
   maxStrikes: number
   startDate: string
+  requiresInvite?: boolean
 }
 
 /* ───── State ───── */

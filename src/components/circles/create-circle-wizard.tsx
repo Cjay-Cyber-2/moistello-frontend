@@ -9,6 +9,7 @@ import { createCircleSchema, safeParse, type CreateCircleInput } from "@/lib/val
 import { Button } from "@/components/ui/button"
 import { CreateStepIndicator } from "@/components/circles/create-step-indicator"
 import { CreateStepDetails } from "@/components/circles/create-step-details"
+import { CommunityStepDetails } from "@/components/circles/community-step-details"
 import { CreateStepFinancials } from "@/components/circles/create-step-financials"
 import { CreateStepPayout } from "@/components/circles/create-step-payout"
 import { CreateStepReview } from "@/components/circles/create-step-review"
@@ -17,14 +18,20 @@ import type { CircleFormData } from "@/types"
 
 const STEP_LABELS = ["Details", "Financials", "Payout", "Review"]
 
-const INITIAL_FORM: CircleFormData = {
-  name: "", description: "", circleType: "public", payoutType: "random",
-  contributionAmount: 100, currency: "USDC", frequency: "monthly", maxMembers: 10,
-  minMoiScore: 0, collateralPercent: 10, lateFeePercent: 5, gracePeriodHours: 24,
-  maxStrikes: 3, startDate: "",
+function initialForm(communityId?: string): CircleFormData {
+  return {
+    name: "", description: "", circleType: communityId ? "community" : "public", payoutType: "random",
+    contributionAmount: 100, currency: "USDC", frequency: "monthly", maxMembers: 10,
+    minMoiScore: 0, collateralPercent: 10, lateFeePercent: 5, gracePeriodHours: 24,
+    maxStrikes: 3, startDate: "", requiresInvite: false,
+  }
 }
 
-const STEPS = [CreateStepDetails, CreateStepFinancials, CreateStepPayout, CreateStepReview] as const
+function getSteps(communityId?: string) {
+  return communityId
+    ? [CommunityStepDetails, CreateStepFinancials, CreateStepPayout, CreateStepReview] as const
+    : [CreateStepDetails, CreateStepFinancials, CreateStepPayout, CreateStepReview] as const
+}
 
 interface CreateCircleWizardProps {
   communityId?: string
@@ -36,9 +43,11 @@ export default function CreateCircleWizard({ communityId }: CreateCircleWizardPr
   const { user } = useAuth()
   const addToast = useUIStore((s) => s.addToast)
 
+  const STEPS = getSteps(communityId)
+
   const [currentStep, setCurrentStep] = useState(1)
   const [errors, setErrors] = useState<Record<string, string>>({})
-  const [formData, setFormData] = useState<CircleFormData>(INITIAL_FORM)
+  const [formData, setFormData] = useState<CircleFormData>(initialForm(communityId))
 
   const onSuccessPath = communityId
     ? `/communities/${communityId}/circles`
@@ -53,7 +62,7 @@ export default function CreateCircleWizard({ communityId }: CreateCircleWizardPr
       minMoiScore: d.minMoiScore ?? undefined, collateralPercent: d.collateralPercent ?? undefined,
       lateFeePercent: d.lateFeePercent, gracePeriodHours: d.gracePeriodHours,
       maxStrikes: d.maxStrikes, startDate: d.startDate ? new Date(d.startDate).toISOString() : undefined,
-      communityId: communityId || undefined,
+      communityId: communityId || undefined, requiresInvite: d.requiresInvite,
     }
   }, [formData, communityId])
 
