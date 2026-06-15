@@ -15,7 +15,6 @@ import {
   Inbox,
 } from "lucide-react"
 import { get } from "@/lib/api-client"
-import { useCircles } from "@/hooks/use-circles"
 import { useAuth } from "@/hooks/use-auth"
 import { PageHeader } from "@/components/shared/page-header"
 import { EmptyState } from "@/components/shared/empty-state"
@@ -114,8 +113,15 @@ function ActivityTimelineItem({ description, amount, date, type }: { description
 
 export default function DashboardContent() {
   const { user, isLoading: authLoading } = useAuth()
-  const { data: circlesData, isLoading: circlesLoading } = useCircles({ limit: 50 })
   const { t } = useTranslate()
+
+  const { data: circlesData, isLoading: circlesLoading } = useQuery({
+    queryKey: ["my-circles"],
+    queryFn: async () => {
+      const res = await get<ApiResponse<{ circles: Circle[] }>>("/users/me/circles")
+      return res.data?.circles ?? []
+    },
+  })
 
   const { data: contribsData, isLoading: contribsLoading } = useQuery({
     queryKey: ["contributions", "dashboard"],
@@ -133,7 +139,7 @@ export default function DashboardContent() {
     },
   })
 
-  const circles = useMemo(() => circlesData?.circles ?? [], [circlesData])
+  const circles = useMemo(() => circlesData ?? [], [circlesData])
   const contributions = useMemo(() => contribsData ?? [], [contribsData])
   const payouts = useMemo(() => payoutsData ?? [], [payoutsData])
 
