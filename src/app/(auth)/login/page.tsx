@@ -81,7 +81,23 @@ function LoginPageContent() {
       abortConditionalMediation()
       // Clear stale in-memory session from previous login in same tab
       adapter.reset?.()
-      const { publicKey } = await adapter.connect()
+      let publicKey: string
+      try {
+        const result = await adapter.connect()
+        publicKey = result.publicKey
+      } catch (err: unknown) {
+        const code = (err as { code?: string })?.code
+        if (code === "credential_unreadable") {
+          addToast({
+            type: "error",
+            title: "Passkey credential corrupted",
+            description: "Clear browser data for this site or re-register. Your old account may be lost if you don't have the recovery phrase.",
+          })
+          authenticatingRef.current = false
+          return
+        }
+        throw err
+      }
       if (!publicKey) {
         throw new Error("Could not retrieve passkey address")
       }
