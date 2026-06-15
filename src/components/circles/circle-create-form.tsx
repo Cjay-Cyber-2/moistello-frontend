@@ -33,7 +33,7 @@ const STEPS = [
 const CIRCLE_TYPES: { value: CircleType; label: string; description: string }[] = [
   { value: "public", label: "Public", description: "Anyone can discover and join" },
   { value: "private", label: "Private", description: "Invite-only access" },
-  { value: "org", label: "Organization", description: "For organizations and teams" },
+
   { value: "community", label: "Community", description: "Community-governed circle" },
   { value: "premium", label: "Premium", description: "High-trust, high-value circles" },
 ];

@@ -7,7 +7,7 @@ export type CircleStatus =
   | "cancelled"
   | "disputed"
 
-export type CircleType = "public" | "private" | "org" | "community" | "premium"
+export type CircleType = "public" | "private" | "community" | "premium"
 
 export type PayoutType = "random" | "fixed" | "auction" | "vote"
 

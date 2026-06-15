@@ -32,7 +32,6 @@ const payoutLabels: Record<PayoutType, string> = {
 const typeVariantMap: Record<CircleType, "default" | "success" | "warning" | "info"> = {
   public: "success",
   private: "default",
-  org: "info",
   community: "warning",
   premium: "info",
 };

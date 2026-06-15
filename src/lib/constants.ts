@@ -50,7 +50,7 @@ export const PAYOUT_TYPES = [
 export const CIRCLE_TYPES = [
   { value: "public", label: "Public" },
   { value: "private", label: "Private" },
-  { value: "org", label: "Organization" },
+
   { value: "community", label: "Community" },
   { value: "premium", label: "Premium" },
 ] as const

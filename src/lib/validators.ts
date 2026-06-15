@@ -24,7 +24,7 @@ export const createCircleSchema = z.object({
   name: z.string().min(3, "Name must be at least 3 characters").max(100),
   description: z.string().max(500).optional().or(z.literal("")),
   communityId: z.string().uuid().optional(),
-  circleType: z.enum(["public", "private", "org", "community", "premium"]),
+  circleType: z.enum(["public", "private", "community", "premium"]),
   payoutType: z.enum(["random", "fixed", "auction", "vote"]),
   contributionAmount: z.number().positive("Contribution must be positive"),
   currency: z.enum(["USDC", "XLM"]),

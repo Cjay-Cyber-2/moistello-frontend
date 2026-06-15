@@ -2,9 +2,10 @@
 
 import React from "react"
 
-import { Users, Shield, Target, Award, Calendar } from "lucide-react"
+import { Users, Shield, Target, Award, Calendar, AlertTriangle } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { cn } from "@/lib/cn"
+import { useAuth } from "@/hooks/use-auth"
 import type { CircleFormData, CircleType } from "@/types"
 
 interface CreateStepDetailsProps {
@@ -26,6 +27,10 @@ const CIRCLE_TYPES: {
 ]
 
 export function CreateStepDetails({ formData, setFormData, errors }: CreateStepDetailsProps) {
+  const { user } = useAuth()
+  const userMoiScore = user?.moiScore ?? 0
+  const showPremiumWarning = formData.circleType === "premium" && userMoiScore < 50
+
   return (
     <div className="space-y-6">
       <h3 className="font-heading text-lg font-semibold text-foreground dark:text-white">
@@ -51,6 +56,12 @@ export function CreateStepDetails({ formData, setFormData, errors }: CreateStepD
         <label className="mb-3 block font-heading text-sm text-muted-foreground">
           Circle Type
         </label>
+        {showPremiumWarning && (
+          <div className="mb-3 flex items-start gap-2 rounded-xl bg-red-500/10 border border-red-500/20 px-4 py-3 text-sm text-red-400">
+            <AlertTriangle className="h-4 w-4 shrink-0 mt-0.5" />
+            <span>Premium circles require at least <strong>50 MoiScore</strong>. Your score is <strong>{userMoiScore}</strong>.</span>
+          </div>
+        )}
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           {CIRCLE_TYPES.map((ct) => (
             <button

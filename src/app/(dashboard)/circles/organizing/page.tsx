@@ -18,7 +18,6 @@ import type { CircleType } from "@/types"
 const typeAccentColors: Record<CircleType, string> = {
   public: "from-emerald-500 to-cyan-400",
   private: "from-indigo-500 to-violet-400",
-  org: "from-cyan-400 to-indigo-500",
   community: "from-amber-400 to-violet-500",
   premium: "from-violet-500 to-fuchsia-400",
 }

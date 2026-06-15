@@ -39,7 +39,6 @@ const CURRENCIES: Currency[] = ["USDC", "XLM"]
 const typeAccentColors: Record<CircleType, string> = {
   public: "from-emerald-500 to-aurora-cyan",
   private: "from-aurora-indigo to-aurora-violet",
-  org: "from-aurora-cyan to-aurora-indigo",
   community: "from-aurora-amber to-aurora-violet",
   premium: "from-aurora-violet to-fuchsia-500",
 }

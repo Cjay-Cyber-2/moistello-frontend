@@ -4,6 +4,7 @@ import React, { useState, useCallback } from "react"
 import { useRouter } from "next/navigation"
 import { ChevronLeft, ChevronRight } from "lucide-react"
 import { useCreateCircle } from "@/hooks/use-circles"
+import { useAuth } from "@/hooks/use-auth"
 import { createCircleSchema, safeParse, type CreateCircleInput } from "@/lib/validators"
 import { Button } from "@/components/ui/button"
 import { CreateStepIndicator } from "@/components/circles/create-step-indicator"
@@ -32,6 +33,7 @@ interface CreateCircleWizardProps {
 export default function CreateCircleWizard({ communityId }: CreateCircleWizardProps) {
   const router = useRouter()
   const createCircle = useCreateCircle()
+  const { user } = useAuth()
   const addToast = useUIStore((s) => s.addToast)
 
   const [currentStep, setCurrentStep] = useState(1)
@@ -61,10 +63,22 @@ export default function CreateCircleWizard({ communityId }: CreateCircleWizardPr
     if (step === 1) {
       if (d.name.length < 3) { setErrors({ name: "Name must be at least 3 characters" }); return false }
       if (d.maxMembers < 2) { setErrors({ maxMembers: "Must have at least 2 members" }); return false }
+      if (d.circleType === "premium" && (user?.moiScore ?? 0) < 50) {
+        setErrors({ submit: "Premium circles require at least 50 MoiScore" })
+        return false
+      }
       return true
     }
     if (step === 2) {
       if (d.contributionAmount <= 0) { setErrors({ contributionAmount: "Contribution must be positive" }); return false }
+      if (d.circleType === "premium" && d.currency === "USDC" && d.contributionAmount < 50) {
+        setErrors({ contributionAmount: "Premium circles require minimum 50 USDC contribution" })
+        return false
+      }
+      if (d.circleType === "premium" && d.currency === "XLM" && d.contributionAmount < 100) {
+        setErrors({ contributionAmount: "Premium circles require minimum 100 XLM contribution" })
+        return false
+      }
       return true
     }
     if (step === 3) return true
