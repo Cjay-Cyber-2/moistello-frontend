@@ -117,7 +117,7 @@ export const useAuthStore = create<AuthStore>()(devtools((set, get) => ({
   login: async (walletAddress: string, signature: string) => {
     set({ isLoading: true });
     try {
-      const response = await post<ApiResponse<LoginResponse>>("/auth/verify", {
+      const response = await post<ApiResponse<LoginResponse>>("/auth/login", {
         walletAddress,
         signature,
       });

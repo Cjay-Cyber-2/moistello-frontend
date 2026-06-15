@@ -13,6 +13,48 @@ interface StoredCredential {
   publicKeyRaw: string
 }
 
+// ── Ephemeral session encryption for credentialId storage ──
+// A random encryption key is generated per browser tab session.
+// It is stored only in memory and destroyed on tab close,
+// so localStorage theft alone cannot reveal the credentialId.
+
+let sessionEncryptionKey: CryptoKey | null = null
+
+async function getEncryptionKey(): Promise<CryptoKey> {
+  if (sessionEncryptionKey) return sessionEncryptionKey
+  const key = await crypto.subtle.generateKey(
+    { name: "AES-GCM", length: 256 },
+    false, // not extractable — never leaves this context
+    ["encrypt", "decrypt"],
+  )
+  sessionEncryptionKey = key
+  return key
+}
+
+async function encryptCredential(cred: StoredCredential): Promise<string> {
+  const key = await getEncryptionKey()
+  const iv = crypto.getRandomValues(new Uint8Array(12))
+  const encoded = new TextEncoder().encode(JSON.stringify(cred))
+  const encrypted = await crypto.subtle.encrypt({ name: "AES-GCM", iv }, key, encoded)
+  const combined = new Uint8Array(iv.length + encrypted.byteLength)
+  combined.set(iv, 0)
+  combined.set(new Uint8Array(encrypted), iv.length)
+  return btoa(Array.from(combined).map((b) => String.fromCharCode(b)).join(""))
+}
+
+async function decryptCredential(encoded: string): Promise<StoredCredential | null> {
+  try {
+    const key = await getEncryptionKey()
+    const combined = new Uint8Array(Array.from(atob(encoded), (c) => c.charCodeAt(0)))
+    const iv = combined.slice(0, 12)
+    const ciphertext = combined.slice(12)
+    const decrypted = await crypto.subtle.decrypt({ name: "AES-GCM", iv }, key, ciphertext)
+    return JSON.parse(new TextDecoder().decode(decrypted)) as StoredCredential
+  } catch {
+    return null
+  }
+}
+
 interface PasskeySession {
   credentialId: string
   publicKey: Uint8Array
@@ -44,20 +86,29 @@ export function createPasskeyAdapter(): WalletAdapter {
 
   let session: PasskeySession | null = null
 
-  function getStoredCredential(): StoredCredential | null {
+  async function getStoredCredential(): Promise<StoredCredential | null> {
     if (typeof window === "undefined") return null
     try {
       const raw = localStorage.getItem(CREDENTIAL_STORAGE_KEY)
       if (!raw) return null
+      // Try decrypting first (new format), fall back to plaintext (legacy)
+      const decrypted = await decryptCredential(raw)
+      if (decrypted) return decrypted
       return JSON.parse(raw) as StoredCredential
     } catch {
       return null
     }
   }
 
-  function storeCredential(cred: StoredCredential): void {
+  async function storeCredential(cred: StoredCredential): Promise<void> {
     if (typeof window === "undefined") return
-    localStorage.setItem(CREDENTIAL_STORAGE_KEY, JSON.stringify(cred))
+    try {
+      const encrypted = await encryptCredential(cred)
+      localStorage.setItem(CREDENTIAL_STORAGE_KEY, encrypted)
+    } catch {
+      // Fallback to plaintext if encryption fails (e.g., no Web Crypto)
+      localStorage.setItem(CREDENTIAL_STORAGE_KEY, JSON.stringify(cred))
+    }
   }
 
   function zeroSession(): void {
@@ -93,7 +144,7 @@ export function createPasskeyAdapter(): WalletAdapter {
       }
 
       const { startRegistration, startAuthentication } = await import("@simplewebauthn/browser")
-      const stored = getStoredCredential()
+      const stored = await getStoredCredential()
 
       // Stored credential path — existing user logging in
       if (stored) {
@@ -160,7 +211,7 @@ export function createPasskeyAdapter(): WalletAdapter {
       const keypair = await deriveStellarKeypair(credentialId, registerResult.pepper)
       const publicKeyHex = hexEncode(keypair.publicKey)
 
-      storeCredential({
+      await storeCredential({
         credentialId,
         publicKeyRaw: publicKeyHex,
       })

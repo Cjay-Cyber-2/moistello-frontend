@@ -3,7 +3,7 @@ import { pbkdf2Async } from "@noble/hashes/pbkdf2.js"
 import { sha256, sha512 } from "@noble/hashes/sha2.js"
 import { bytesToHex } from "@noble/hashes/utils.js"
 
-const PBKDF2_ITERATIONS = 100_000
+const PBKDF2_ITERATIONS = 600_000 // OWASP 2023 recommendation
 
 /**
  * Derives an intermediate passkey secret on the client side.
