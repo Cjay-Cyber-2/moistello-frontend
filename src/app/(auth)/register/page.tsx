@@ -9,12 +9,14 @@ import { post, patch } from "@/lib/api-client"
 import { useAuthStore } from "@/stores/auth-store"
 import { useUIStore } from "@/stores/ui-store"
 import { AuthLayout } from "@/components/auth/auth-layout"
+import { ProfileStep } from "@/components/auth/profile-step"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 
 export default function RegisterPage() {
   const router = useRouter()
   const addToast = useUIStore((s) => s.addToast)
+
   type Step = "email" | "otp" | "profile" | "passkey" | "done"
   const [step, setStep] = useState<Step>("email")
   const [email, setEmail] = useState("")
@@ -58,6 +60,15 @@ export default function RegisterPage() {
       const body = res?.data ?? res
       if (body?.token) {
         useAuthStore.getState().setTokens(body.token, body.refreshToken ?? "", body.user)
+        // Claim a name before showing profile step
+        let claimed = ""
+        try {
+          const nameRes: any = await post("/claim-name")
+          const nameBody = nameRes?.data ?? nameRes
+          if (nameBody?.name) claimed = nameBody.name
+        } catch { /* use fallback name */ }
+        if (!claimed) claimed = "Moistello User"
+        setDisplayName(claimed)
         setStep("profile")
       } else {
         setError("Invalid response")
@@ -82,6 +93,10 @@ export default function RegisterPage() {
       setLoading(false)
     }
   }, [displayName, language, addToast])
+
+  const handleUpdateLanguage = useCallback((lang: string) => {
+    setLanguage(lang)
+  }, [])
 
   const skipPasskey = useCallback(() => {
     setStep("done")
@@ -159,32 +174,13 @@ export default function RegisterPage() {
             </div>
           </>
         ) : step === "profile" ? (
-          <>
-            <Input label="Your name" placeholder="e.g. John Doe" value={displayName}
-              onChange={(e) => setDisplayName(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && handleProfile()} />
-            <div>
-              <label className="mb-2 block text-xs font-heading tracking-wider uppercase text-muted-foreground">
-                Language
-              </label>
-              <select value={language} onChange={(e) => setLanguage(e.target.value)}
-                className="w-full bg-white/5 border border-border rounded-xl px-4 py-3 text-sm text-foreground">
-                <option value="en">English</option>
-                <option value="fr">Français</option>
-                <option value="es">Español</option>
-                <option value="de">Deutsch</option>
-                <option value="pt">Português</option>
-                <option value="zh">中文</option>
-                <option value="ja">日本語</option>
-                <option value="ar">العربية</option>
-              </select>
-            </div>
-            {error && <p className="text-sm text-red-400">{error}</p>}
-            <Button variant="primary" size="lg" className="w-full" onClick={handleProfile}
-              isLoading={loading} leftIcon={<ArrowRight className="h-4 w-4" />}>
-              Save Profile
-            </Button>
-          </>
+          <ProfileStep
+            displayName={displayName}
+            language={language}
+            onUpdateLanguage={handleUpdateLanguage}
+            onSubmit={handleProfile}
+            isSubmitting={loading}
+          />
         ) : (
           <>
             <div className="flex flex-col items-center justify-center py-4 space-y-4 text-center">
