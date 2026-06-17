@@ -8,7 +8,6 @@ import { Mail, LogIn, Shield, Lock, ArrowLeft } from "lucide-react"
 import { post } from "@/lib/api-client"
 import { useAuthStore } from "@/stores/auth-store"
 import { useUIStore } from "@/stores/ui-store"
-import { useRedirectIfAuthenticated } from "@/hooks/use-redirect-if-authenticated"
 import { AuthLayout } from "@/components/auth/auth-layout"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -16,8 +15,6 @@ import { Input } from "@/components/ui/input"
 export default function LoginPage() {
   const router = useRouter()
   const addToast = useUIStore((s) => s.addToast)
-  useRedirectIfAuthenticated()
-
   const [method, setMethod] = useState<"password" | "otp" | "passkey">("password")
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")

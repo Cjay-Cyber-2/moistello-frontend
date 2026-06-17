@@ -8,7 +8,6 @@ import { Mail, UserPlus, ArrowRight, ArrowLeft, CheckCircle, Shield, Lock } from
 import { post, patch } from "@/lib/api-client"
 import { useAuthStore } from "@/stores/auth-store"
 import { useUIStore } from "@/stores/ui-store"
-import { useRedirectIfAuthenticated } from "@/hooks/use-redirect-if-authenticated"
 import { AuthLayout } from "@/components/auth/auth-layout"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -16,8 +15,6 @@ import { Input } from "@/components/ui/input"
 export default function RegisterPage() {
   const router = useRouter()
   const addToast = useUIStore((s) => s.addToast)
-  useRedirectIfAuthenticated()
-
   type Step = "email" | "otp" | "profile" | "passkey" | "done"
   const [step, setStep] = useState<Step>("email")
   const [email, setEmail] = useState("")
