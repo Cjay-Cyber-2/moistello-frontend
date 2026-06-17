@@ -114,13 +114,13 @@ export default function AccountSettingsPage() {
       </div>
 
       <div className="glass-premium rounded-2xl p-6 space-y-5">
-        <Input
-          label="Display Name"
-          value={displayName}
-          onChange={(e) => setDisplayName(e.target.value)}
-          placeholder="Your public name"
-          hint="2-50 characters. Shown on your profile."
-        />
+        <div>
+          <label className="mb-1.5 block text-xs font-heading tracking-wider uppercase text-muted-foreground">
+            Display Name
+          </label>
+          <p className="font-heading text-lg font-semibold text-foreground">{displayName || user?.displayName || "Anonymous"}</p>
+          <p className="text-2xs text-muted-foreground mt-1">Your unique anonymous name. Cannot be changed.</p>
+        </div>
 
         <Input
           label="Email"

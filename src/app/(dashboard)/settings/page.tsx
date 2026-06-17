@@ -143,8 +143,8 @@ export default function SettingsHubPage() {
               <p className="text-xs text-muted-foreground font-mono truncate">
                 {user?.walletAddress ? formatAddress(user.walletAddress, 8, 6) : "No wallet"}
               </p>
-              <Link href="/settings/profile" className="text-xs text-aurora-violet hover:underline mt-1 inline-block">
-                Edit profile
+              <Link href="/profile" className="text-xs text-aurora-violet hover:underline mt-1 inline-block">
+                View profile
               </Link>
             </div>
             <div className="text-right shrink-0">

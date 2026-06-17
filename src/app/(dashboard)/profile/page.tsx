@@ -54,14 +54,12 @@ export default function ProfilePage() {
   const addToast = useUIStore((s) => s.addToast)
 
   const [isEditing, setIsEditing] = useState(false)
-  const [displayName, setDisplayName] = useState(user?.displayName ?? "")
   const [bio, setBio] = useState((user as unknown as Record<string, string>)?.bio ?? "")
   const [twitterUrl, setTwitterUrl] = useState((user as unknown as Record<string, string>)?.twitterUrl ?? "")
   const [githubUrl, setGithubUrl] = useState((user as unknown as Record<string, string>)?.githubUrl ?? "")
   const [saving, setSaving] = useState(false)
 
   const handleCancel = useCallback(() => {
-    setDisplayName(user?.displayName ?? "")
     setBio((user as unknown as Record<string, string>)?.bio ?? "")
     setTwitterUrl((user as unknown as Record<string, string>)?.twitterUrl ?? "")
     setGithubUrl((user as unknown as Record<string, string>)?.githubUrl ?? "")
@@ -72,7 +70,6 @@ export default function ProfilePage() {
     setSaving(true)
     try {
       await patch("/users/me", {
-        displayName: displayName.trim() || undefined,
         bio: bio.trim() || undefined,
         twitterUrl: twitterUrl.trim() || undefined,
         githubUrl: githubUrl.trim() || undefined,
@@ -85,10 +82,9 @@ export default function ProfilePage() {
     } finally {
       setSaving(false)
     }
-  }, [displayName, bio, twitterUrl, githubUrl, addToast])
+  }, [bio, twitterUrl, githubUrl, addToast])
 
   const handleStartEdit = useCallback(() => {
-    setDisplayName(user?.displayName ?? "")
     setBio((user as unknown as Record<string, string>)?.bio ?? "")
     setTwitterUrl((user as unknown as Record<string, string>)?.twitterUrl ?? "")
     setGithubUrl((user as unknown as Record<string, string>)?.githubUrl ?? "")
@@ -164,13 +160,13 @@ export default function ProfilePage() {
 
           {isEditing ? (
             <div className="w-full max-w-sm space-y-4">
-              <Input
-                label="Display Name"
-                placeholder="Your public name"
-                value={displayName}
-                onChange={(e) => setDisplayName(e.target.value)}
-                maxLength={50}
-              />
+              <div>
+                <label className="mb-1.5 block text-xs font-heading tracking-wider uppercase text-muted-foreground">
+                  Display Name
+                </label>
+                <p className="font-heading text-xl font-semibold text-foreground text-center">{user.displayName || "Anonymous"}</p>
+                <p className="text-2xs text-muted-foreground text-center mt-1">Your unique anonymous name. Cannot be changed.</p>
+              </div>
             </div>
           ) : (
             <>
@@ -328,7 +324,7 @@ export default function ProfilePage() {
               size="lg"
               onClick={handleSave}
               isLoading={saving}
-              disabled={!displayName.trim()}
+              disabled={false}
               leftIcon={saving ? undefined : <Save className="h-4 w-4" />}
             >
               {saving ? "Saving..." : "Save Changes"}
