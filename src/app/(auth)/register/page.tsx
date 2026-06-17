@@ -1,276 +1,177 @@
 "use client"
 
-import { useCallback, useEffect, useRef, useState } from "react"
+import React, { useState, useCallback, useEffect } from "react"
+import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { useTranslate } from "@/lib/locale/context"
-import { Fingerprint, Loader2, Shield } from "lucide-react"
-import { useAuthFlow, AuthFlowProvider } from "@/hooks/auth-flow-context"
-import { useAuthFlowStore } from "@/stores/auth-flow-store"
-import { useMultiWalletStore } from "@/stores/multi-wallet-store"
+import { Mail, UserPlus, ArrowRight, ArrowLeft, CheckCircle } from "lucide-react"
+import { post } from "@/lib/api-client"
+import { useAuthStore } from "@/stores/auth-store"
 import { useUIStore } from "@/stores/ui-store"
-import { useSignMessage } from "@/hooks/use-sign-message"
 import { useRedirectIfAuthenticated } from "@/hooks/use-redirect-if-authenticated"
-import { recordMetric } from "@/lib/monitoring"
-import { getWalletRegistry } from "@/lib/wallet/registry"
-import { createPasskeyAdapter } from "@/lib/wallet/adapters/passkey"
-import { post, patch } from "@/lib/api-client"
 import { AuthLayout } from "@/components/auth/auth-layout"
-import { AuthStepIndicator } from "@/components/auth/auth-step-indicator"
-import { ProfileStep } from "@/components/auth/profile-step"
-import { SignStep } from "@/components/auth/sign-step"
-import { SessionTimeoutBanner } from "@/components/auth/session-timeout-banner"
-import { PasskeyRevokedBanner } from "@/components/auth/passkey-revoked-banner"
-
-type Step = "choose" | "profile" | "sign"
-
-const STEPS = [
-  { key: "choose", label: "Create", number: 1 },
-  { key: "profile", label: "Profile", number: 2 },
-  { key: "sign", label: "Sign", number: 3 },
-]
-
-getWalletRegistry().register(createPasskeyAdapter())
-
-function RegisterPageContent() {
-  const router = useRouter()
-  useRedirectIfAuthenticated()
-
-  const { t } = useTranslate()
-
-  const status = useAuthFlow((s) => s.status)
-  const error = useAuthFlow((s) => s.error)
-  const connection = useAuthFlow((s) => s.connection)
-  const auth = useAuthFlow((s) => s.auth)
-  const mode = useAuthFlow((s) => s.mode)
-  const rateLimit = useAuthFlow((s) => s.rateLimit)
-  const passkeyRevoked = useAuthFlow((s) => s.passkeyRevoked)
-  const startRegisterFlow = useAuthFlow((s) => s.startRegisterFlow)
-  const connectStart = useAuthFlow((s) => s.connectStart)
-  const connectSuccess = useAuthFlow((s) => s.connectSuccess)
-
-  const passkeyState = useMultiWalletStore((s) => s.passkeyState)
-  const setPasskeyPublicKey = useMultiWalletStore((s) => s.setPasskeyPublicKey)
-
-  const { sign } = useSignMessage()
-
-  const addToast = useUIStore((s) => s.addToast)
-  const [localStep, setLocalStep] = useState<Step>("choose")
-  const [isCreatingPasskey, setIsCreatingPasskey] = useState(false)
-  const creatingPasskeyRef = useRef(false)
-  const [claimedName, setClaimedName] = useState("")
-  const [language, setLanguage] = useState("en")
-
-  const effectiveStep = localStep
-
-  useEffect(() => {
-    if (mode !== "register") startRegisterFlow()
-  }, [mode, startRegisterFlow])
-
-  useEffect(() => {
-    import("@/lib/wallet/adapters/passkey").then(({ createPasskeyAdapter }) => {
-      getWalletRegistry().register(createPasskeyAdapter())
-    })
-  }, [])
-
-  useEffect(() => {
-    if (effectiveStep === "choose" && status.status === "connected") {
-      setLocalStep("profile")
-    }
-  }, [effectiveStep, status])
-
-  useEffect(() => {
-    if (effectiveStep === "profile" && !claimedName) {
-      post("/claim-name").then((res) => {
-        const envelope = (res as Record<string, unknown>)?.data as Record<string, unknown> ?? res as Record<string, unknown>
-        const name = typeof envelope === "string" ? envelope : (envelope?.name as string ?? "")
-        setClaimedName(name || "")
-      }).catch((err) => {
-        console.error("claim-name error:", err)
-        setClaimedName("")
-      })
-    }
-  }, [effectiveStep, claimedName])
-
-  const handlePasskeyStart = useCallback(async () => {
-    if (creatingPasskeyRef.current) return
-    creatingPasskeyRef.current = true
-    setIsCreatingPasskey(true)
-    connectStart("passkey")
-
-    try {
-      recordMetric("auth.flow.started", 1, { mode: "register", method: "passkey" })
-      const adapter = getWalletRegistry().getAdapter("passkey")
-      if (!adapter) throw new Error("Passkey adapter not found")
-      const { publicKey } = await adapter.connect()
-      setPasskeyPublicKey(publicKey)
-      connectSuccess("passkey", publicKey)
-      useMultiWalletStore.setState((s) => ({
-        wallets: {
-          ...s.wallets,
-          passkey: { ...s.wallets.passkey, adapter, publicKey, status: "connected" as const },
-        },
-      }))
-      setLocalStep("profile")
-    } catch (err: unknown) {
-      const message = (err && typeof err === "object" && "message" in err)
-        ? (err as { message: string }).message
-        : "Passkey setup failed"
-      addToast({ type: "error", title: "Passkey Setup Failed", description: message })
-    } finally {
-      setIsCreatingPasskey(false)
-      creatingPasskeyRef.current = false
-    }
-  }, [connectStart, connectSuccess, setPasskeyPublicKey, addToast])
-
-  const handleProfileSubmit = useCallback(() => {
-    if (!claimedName) return
-    setLocalStep("sign")
-  }, [claimedName])
-
-  const handleSignSubmit = useCallback(async () => {
-    await sign()
-    const authStatus = useAuthFlowStore.getState().status.status
-    if (authStatus === "authenticated") {
-      // Save name + language after auth succeeds
-      try {
-        await patch("/users/me", {
-          displayName: claimedName,
-          preferredLanguage: language,
-        })
-      } catch { /* best-effort */ }
-      // Create Stellar wallet via backend
-      try {
-        const stored = JSON.parse(localStorage.getItem("moistello_passkey_credential") || "{}")
-        const credentialId = stored.credentialId
-        if (credentialId) {
-          const enc = new TextEncoder()
-          const seedBuf = await crypto.subtle.digest("SHA-256", enc.encode(credentialId))
-          const passkeySeed = Array.from(new Uint8Array(seedBuf)).map(b => b.toString(16).padStart(2, "0")).join("")
-          await post("/wallets", { passkeySeed })
-        }
-      } catch (e) {
-        console.error("Failed to create Stellar wallet:", e)
-        addToast({ type: "error", title: "Wallet setup failed", description: "Your Stellar wallet could not be created. You can retry in Settings." })
-      }
-      router.replace("/")
-    }
-  }, [sign, router, addToast, claimedName, language])
-
-  if (status.status === "authenticated") {
-    return (
-      <AuthLayout>
-        <div className="flex flex-col items-center gap-4 py-8" role="status" aria-live="polite">
-          <p className="text-sm text-muted-foreground">Redirecting to dashboard...</p>
-        </div>
-      </AuthLayout>
-    )
-  }
-
-  return (
-    <>
-      <AuthLayout
-        footerLinks={[
-          { label: t("auth.register.alreadyHaveAccount"), href: "/login", text: t("auth.register.signIn") },
-          { label: "", href: "/", text: `\u2190 ${t("auth.register.backHome")}` },
-        ]}
-      >
-        <AuthStepIndicator
-          steps={STEPS}
-          currentStep={effectiveStep}
-          className="mb-6"
-        />
-
-        <SessionTimeoutBanner />
-        {passkeyRevoked && <PasskeyRevokedBanner />}
-
-        {effectiveStep === "choose" && (
-          <div className="space-y-6" aria-label="Create wallet step">
-            <div className="text-center space-y-2">
-              <div className="flex justify-center">
-                <div className="flex h-14 w-14 items-center justify-center rounded-2xl gradient-bg-extended">
-                  <Fingerprint className="h-7 w-7 text-white" />
-                </div>
-              </div>
-              <p className="font-heading text-lg font-medium text-foreground">{t("auth.register.createWallet")}</p>
-              <p className="text-sm text-muted-foreground">
-                {t("auth.register.description")}
-              </p>
-            </div>
-
-            {error && (
-              <div className="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-400" role="alert">
-                {error.message}
-              </div>
-            )}
-
-            <button
-              type="button"
-              onClick={handlePasskeyStart}
-              disabled={isCreatingPasskey}
-              className="w-full h-12 rounded-xl gradient-bg-extended text-white text-sm font-heading font-bold transition-all hover:opacity-90 disabled:opacity-50 disabled:pointer-events-none flex items-center justify-center gap-2 shadow-[0_0_24px_rgb(var(--aurora-violet)/0.25)]"
-            >
-              {isCreatingPasskey ? (
-                <>
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                  {passkeyState === "registering" || passkeyState === "deriving"
-                    ? "Creating passkey..."
-                    : passkeyState === "awaiting_biometric"
-                      ? "Scan biometric..."
-                      : "Setting up wallet..."}
-                </>
-              ) : (
-                <>
-                  <Shield className="h-4 w-4" />
-                  {t("auth.register.createWalletBtn")}
-                </>
-              )}
-            </button>
-
-            {isCreatingPasskey && (
-              <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground">
-                <Loader2 className="h-3 w-3 animate-spin" />
-                {t("auth.register.biometricPrompt")}
-              </div>
-            )}
-
-            <p className="text-center text-2xs text-muted-foreground">
-              {t("auth.register.securityNote")}
-            </p>
-          </div>
-        )}
-
-        {effectiveStep === "profile" && (
-          <ProfileStep
-            displayName={claimedName || "Generating..."}
-            language={language}
-            onUpdateLanguage={setLanguage}
-            onSubmit={handleProfileSubmit}
-            isSubmitting={!claimedName}
-          />
-        )}
-
-        {effectiveStep === "sign" && (
-          <SignStep
-            mode="register"
-            connection={connection}
-            profile={{ displayName: claimedName, countryCode: "", language }}
-            auth={auth}
-            status={status}
-            error={error}
-            rateLimit={rateLimit}
-            onSign={handleSignSubmit}
-            onBack={() => setLocalStep("profile")}
-          />
-        )}
-      </AuthLayout>
-    </>
-  )
-}
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
 
 export default function RegisterPage() {
+  const router = useRouter()
+  const addToast = useUIStore((s) => s.addToast)
+  useRedirectIfAuthenticated()
+
+  const [step, setStep] = useState<"email" | "otp" | "done">("email")
+  const [email, setEmail] = useState("")
+  const [code, setCode] = useState("")
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState("")
+  const [cooldown, setCooldown] = useState(0)
+
+  useEffect(() => {
+    if (cooldown <= 0) return
+    const t = setTimeout(() => setCooldown((c) => c - 1), 1000)
+    return () => clearTimeout(t)
+  }, [cooldown])
+
+  const handleSendCode = useCallback(async () => {
+    if (!email.trim()) return
+    setLoading(true)
+    setError("")
+    try {
+      const res = await post(`/auth/register`, { email: email.trim() })
+      if ((res as Record<string, unknown>)?.error) {
+        setError((res as Record<string, unknown>).error as string)
+        return
+      }
+      setStep("otp")
+      setCooldown(60)
+    } catch (err: unknown) {
+      const msg = (err as { response?: { data?: { error?: string } } })?.response?.data?.error
+        ?? (err as { message?: string })?.message
+        ?? "Failed to send verification code"
+      setError(msg)
+    } finally {
+      setLoading(false)
+    }
+  }, [email])
+
+  const handleVerify = useCallback(async () => {
+    if (code.length !== 6) return
+    setLoading(true)
+    setError("")
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const res: any = await post(`/auth/register/verify`, { email: email.trim(), code })
+      const body = res?.data ?? res
+      if (body?.token) {
+        useAuthStore.getState().setTokens(body.token, body.refreshToken ?? "", body.user)
+        setStep("done")
+        addToast({ type: "success", title: "Account created", description: "Your account is ready." })
+        setTimeout(() => router.replace("/"), 1000)
+      } else {
+        setError("Invalid response from server")
+      }
+    } catch (err: unknown) {
+      const msg = (err as { response?: { data?: { error?: string } } })?.response?.data?.error
+        ?? "Invalid code. Try again."
+      setError(msg)
+    } finally {
+      setLoading(false)
+    }
+  }, [email, code, router, addToast])
+
   return (
-    <AuthFlowProvider>
-      <RegisterPageContent />
-    </AuthFlowProvider>
+    <AuthLayout title="Create Account">
+      <div className="space-y-5">
+        {step === "done" ? (
+          <div className="flex flex-col items-center justify-center py-8 space-y-3">
+            <div className="flex h-14 w-14 items-center justify-center rounded-full bg-emerald-500/20">
+              <CheckCircle className="h-7 w-7 text-emerald-400" />
+            </div>
+            <p className="font-heading text-lg font-semibold text-foreground">
+              Account created!
+            </p>
+            <p className="text-sm text-muted-foreground">
+              Redirecting to your dashboard...
+            </p>
+          </div>
+        ) : step === "email" ? (
+          <>
+            <Input
+              label="Email address"
+              type="email"
+              placeholder="you@example.com"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && handleSendCode()}
+              leftIcon={<Mail className="h-4 w-4" />}
+              error={error}
+            />
+            <Button
+              variant="primary"
+              size="lg"
+              className="w-full"
+              onClick={handleSendCode}
+              isLoading={loading}
+              disabled={!email.trim()}
+              leftIcon={<ArrowRight className="h-4 w-4" />}
+            >
+              Send Verification Code
+            </Button>
+          </>
+        ) : (
+          <>
+            <div className="flex items-center gap-2 mb-2">
+              <button
+                type="button"
+                onClick={() => { setStep("email"); setError("") }}
+                className="text-sm text-muted-foreground hover:text-foreground transition-colors inline-flex items-center gap-1"
+              >
+                <ArrowLeft className="h-3.5 w-3.5" /> Change email
+              </button>
+            </div>
+            <p className="text-sm text-muted-foreground -mt-2 mb-2">
+              Code sent to <strong className="text-foreground">{email}</strong>
+            </p>
+            <Input
+              label="6-digit verification code"
+              placeholder="000000"
+              value={code}
+              onChange={(e) => setCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
+              onKeyDown={(e) => e.key === "Enter" && handleVerify()}
+              className="text-center text-2xl tracking-[0.5em] font-mono"
+              error={error}
+            />
+            <Button
+              variant="primary"
+              size="lg"
+              className="w-full"
+              onClick={handleVerify}
+              isLoading={loading}
+              disabled={code.length !== 6}
+              leftIcon={<UserPlus className="h-4 w-4" />}
+            >
+              Create Account
+            </Button>
+            <div className="text-center">
+              <button
+                type="button"
+                disabled={cooldown > 0 || loading}
+                onClick={handleSendCode}
+                className="text-xs text-muted-foreground hover:text-foreground transition-colors disabled:opacity-50"
+              >
+                {cooldown > 0 ? `Resend code in ${cooldown}s` : "Resend code"}
+              </button>
+            </div>
+          </>
+        )}
+
+        {step !== "done" && (
+          <p className="text-center text-xs text-muted-foreground pt-2 border-t border-border">
+            Already have an account?{" "}
+            <Link href="/login" className="gradient-text font-semibold hover:underline">
+              Sign in
+            </Link>
+          </p>
+        )}
+      </div>
+    </AuthLayout>
   )
 }
