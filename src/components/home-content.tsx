@@ -10,27 +10,27 @@ import { useAuthStore } from "@/stores/auth-store"
 export function HomeContent() {
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated)
   const isLoading = useAuthStore((s) => s.isLoading)
-  const [showDashboard, setShowDashboard] = useState(false)
+  const [resolved, setResolved] = useState(false)
 
   useEffect(() => {
-    if (isAuthenticated && !isLoading) {
-      setShowDashboard(true)
-    }
-  }, [isAuthenticated, isLoading])
+    if (!isLoading) setResolved(true)
+  }, [isLoading])
 
-  // Show landing page immediately for unauthenticated users.
-  // SSR and initial client render both show the landing page.
-  if (!showDashboard) {
+  // SSR / initial load: show nothing while auth resolves
+  if (!resolved) return null
+
+  // Once resolved, show the right layout
+  if (isAuthenticated) {
     return (
-      <PublicLayout>
-        <LandingContent />
-      </PublicLayout>
+      <DashboardLayout>
+        <DashboardContent />
+      </DashboardLayout>
     )
   }
 
   return (
-    <DashboardLayout>
-      <DashboardContent />
-    </DashboardLayout>
+    <PublicLayout>
+      <LandingContent />
+    </PublicLayout>
   )
 }

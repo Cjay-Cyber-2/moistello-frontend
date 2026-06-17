@@ -15,6 +15,14 @@ import { Input } from "@/components/ui/input"
 export default function LoginPage() {
   const router = useRouter()
   const addToast = useUIStore((s) => s.addToast)
+
+  // Redirect authenticated users away from login page
+  useEffect(() => {
+    if (useAuthStore.getState().isAuthenticated) {
+      router.replace("/")
+    }
+  }, [router])
+
   const [method, setMethod] = useState<"password" | "otp" | "passkey">("password")
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")

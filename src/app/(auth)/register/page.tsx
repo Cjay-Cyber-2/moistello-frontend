@@ -17,6 +17,13 @@ export default function RegisterPage() {
   const router = useRouter()
   const addToast = useUIStore((s) => s.addToast)
 
+  // Redirect authenticated users away from register page
+  useEffect(() => {
+    if (useAuthStore.getState().isAuthenticated) {
+      router.replace("/")
+    }
+  }, [router])
+
   type Step = "email" | "otp" | "profile" | "passkey" | "done"
   const [step, setStep] = useState<Step>("email")
   const [email, setEmail] = useState("")
