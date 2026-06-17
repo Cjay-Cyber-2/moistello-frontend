@@ -1,10 +1,11 @@
 "use client"
+/* eslint-disable @typescript-eslint/no-explicit-any */
 
 import React, { useState, useCallback, useEffect } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { Mail, UserPlus, ArrowRight, ArrowLeft, CheckCircle } from "lucide-react"
-import { post } from "@/lib/api-client"
+import { Mail, UserPlus, ArrowRight, ArrowLeft, CheckCircle, Shield, Lock } from "lucide-react"
+import { post, patch } from "@/lib/api-client"
 import { useAuthStore } from "@/stores/auth-store"
 import { useUIStore } from "@/stores/ui-store"
 import { useRedirectIfAuthenticated } from "@/hooks/use-redirect-if-authenticated"
@@ -17,9 +18,13 @@ export default function RegisterPage() {
   const addToast = useUIStore((s) => s.addToast)
   useRedirectIfAuthenticated()
 
-  const [step, setStep] = useState<"email" | "otp" | "done">("email")
+  type Step = "email" | "otp" | "profile" | "passkey" | "done"
+  const [step, setStep] = useState<Step>("email")
   const [email, setEmail] = useState("")
+  const [password, setPassword] = useState("")
   const [code, setCode] = useState("")
+  const [displayName, setDisplayName] = useState("")
+  const [language, setLanguage] = useState("en")
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
   const [cooldown, setCooldown] = useState(0)
@@ -30,52 +35,81 @@ export default function RegisterPage() {
     return () => clearTimeout(t)
   }, [cooldown])
 
-  const handleSendCode = useCallback(async () => {
-    if (!email.trim()) return
+  const handleRegister = useCallback(async () => {
+    if (!email.trim() || password.length < 8) return
     setLoading(true)
     setError("")
     try {
-      const res = await post(`/auth/register`, { email: email.trim() })
-      if ((res as Record<string, unknown>)?.error) {
-        setError((res as Record<string, unknown>).error as string)
-        return
-      }
+      const res: any = await post("/auth/register", { email: email.trim(), password })
+      if (res?.error) { setError(res.error); return }
       setStep("otp")
       setCooldown(60)
-    } catch (err: unknown) {
-      const msg = (err as { response?: { data?: { error?: string } } })?.response?.data?.error
-        ?? (err as { message?: string })?.message
-        ?? "Failed to send verification code"
-      setError(msg)
+      addToast({ type: "info", title: "Code sent", description: "Check your email for the verification code." })
+    } catch (err: any) {
+      setError(err?.response?.data?.error || "Failed to create account")
     } finally {
       setLoading(false)
     }
-  }, [email])
+  }, [email, password, addToast])
 
   const handleVerify = useCallback(async () => {
     if (code.length !== 6) return
     setLoading(true)
     setError("")
     try {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const res: any = await post(`/auth/register/verify`, { email: email.trim(), code })
+      const res: any = await post("/auth/register/verify", { email: email.trim(), code })
       const body = res?.data ?? res
       if (body?.token) {
         useAuthStore.getState().setTokens(body.token, body.refreshToken ?? "", body.user)
-        setStep("done")
-        addToast({ type: "success", title: "Account created", description: "Your account is ready." })
-        setTimeout(() => router.replace("/"), 1000)
+        setStep("profile")
       } else {
-        setError("Invalid response from server")
+        setError("Invalid response")
       }
-    } catch (err: unknown) {
-      const msg = (err as { response?: { data?: { error?: string } } })?.response?.data?.error
-        ?? "Invalid code. Try again."
-      setError(msg)
+    } catch (err: any) {
+      setError(err?.response?.data?.error || "Invalid code")
     } finally {
       setLoading(false)
     }
-  }, [email, code, router, addToast])
+  }, [email, code])
+
+  const handleProfile = useCallback(async () => {
+    setLoading(true)
+    setError("")
+    try {
+      await patch("/users/me", { displayName: displayName || undefined, preferredLanguage: language })
+      addToast({ type: "success", title: "Profile saved" })
+      setStep("passkey")
+    } catch {
+      setError("Failed to save profile")
+    } finally {
+      setLoading(false)
+    }
+  }, [displayName, language, addToast])
+
+  const skipPasskey = useCallback(() => {
+    setStep("done")
+    setTimeout(() => router.replace("/"), 500)
+  }, [router])
+
+  const handleLinkPasskey = useCallback(async () => {
+    setLoading(true)
+    try {
+      const adapter = (await import("@/lib/wallet/registry")).getWalletRegistry().getAdapter("passkey")
+      if (adapter) {
+        await adapter.connect?.()
+        const stored = localStorage.getItem("moistello_passkey_credential")
+        if (stored) {
+          const { credentialId } = JSON.parse(stored)
+          if (credentialId) {
+            await post("/auth/passkey/link", { credentialId })
+            addToast({ type: "success", title: "Passkey linked" })
+          }
+        }
+      }
+    } catch { /* user cancelled */ }
+    setLoading(false)
+    skipPasskey()
+  }, [addToast, skipPasskey])
 
   return (
     <AuthLayout title="Create Account">
@@ -85,90 +119,100 @@ export default function RegisterPage() {
             <div className="flex h-14 w-14 items-center justify-center rounded-full bg-emerald-500/20">
               <CheckCircle className="h-7 w-7 text-emerald-400" />
             </div>
-            <p className="font-heading text-lg font-semibold text-foreground">
-              Account created!
-            </p>
-            <p className="text-sm text-muted-foreground">
-              Redirecting to your dashboard...
-            </p>
+            <p className="font-heading text-lg font-semibold text-foreground">All set!</p>
+            <p className="text-sm text-muted-foreground">Redirecting to your dashboard...</p>
           </div>
         ) : step === "email" ? (
           <>
-            <Input
-              label="Email address"
-              type="email"
-              placeholder="you@example.com"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && handleSendCode()}
-              leftIcon={<Mail className="h-4 w-4" />}
-              error={error}
-            />
-            <Button
-              variant="primary"
-              size="lg"
-              className="w-full"
-              onClick={handleSendCode}
-              isLoading={loading}
-              disabled={!email.trim()}
-              leftIcon={<ArrowRight className="h-4 w-4" />}
-            >
-              Send Verification Code
+            <Input label="Email address" type="email" placeholder="you@example.com" value={email}
+              onChange={(e) => setEmail(e.target.value)} leftIcon={<Mail className="h-4 w-4" />} error={error} />
+            <Input label="Password" type="password" placeholder="Min 8 characters" value={password}
+              onChange={(e) => setPassword(e.target.value)} onKeyDown={(e) => e.key === "Enter" && handleRegister()}
+              leftIcon={<Lock className="h-4 w-4" />} />
+            <Button variant="primary" size="lg" className="w-full" onClick={handleRegister}
+              isLoading={loading} disabled={!email.trim() || password.length < 8}
+              leftIcon={<ArrowRight className="h-4 w-4" />}>
+              Create Account
             </Button>
           </>
-        ) : (
+        ) : step === "otp" ? (
           <>
             <div className="flex items-center gap-2 mb-2">
-              <button
-                type="button"
-                onClick={() => { setStep("email"); setError("") }}
-                className="text-sm text-muted-foreground hover:text-foreground transition-colors inline-flex items-center gap-1"
-              >
+              <button type="button" onClick={() => setStep("email")}
+                className="text-sm text-muted-foreground hover:text-foreground inline-flex items-center gap-1">
                 <ArrowLeft className="h-3.5 w-3.5" /> Change email
               </button>
             </div>
             <p className="text-sm text-muted-foreground -mt-2 mb-2">
               Code sent to <strong className="text-foreground">{email}</strong>
             </p>
-            <Input
-              label="6-digit verification code"
-              placeholder="000000"
-              value={code}
+            <Input label="6-digit verification code" placeholder="000000" value={code}
               onChange={(e) => setCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
               onKeyDown={(e) => e.key === "Enter" && handleVerify()}
-              className="text-center text-2xl tracking-[0.5em] font-mono"
-              error={error}
-            />
-            <Button
-              variant="primary"
-              size="lg"
-              className="w-full"
-              onClick={handleVerify}
-              isLoading={loading}
-              disabled={code.length !== 6}
-              leftIcon={<UserPlus className="h-4 w-4" />}
-            >
-              Create Account
+              className="text-center text-2xl tracking-[0.5em] font-mono" error={error} />
+            <Button variant="primary" size="lg" className="w-full" onClick={handleVerify}
+              isLoading={loading} disabled={code.length !== 6} leftIcon={<UserPlus className="h-4 w-4" />}>
+              Verify & Continue
             </Button>
             <div className="text-center">
-              <button
-                type="button"
-                disabled={cooldown > 0 || loading}
-                onClick={handleSendCode}
-                className="text-xs text-muted-foreground hover:text-foreground transition-colors disabled:opacity-50"
-              >
-                {cooldown > 0 ? `Resend code in ${cooldown}s` : "Resend code"}
+              <button type="button" disabled={cooldown > 0} onClick={handleRegister}
+                className="text-xs text-muted-foreground hover:text-foreground disabled:opacity-50">
+                {cooldown > 0 ? `Resend in ${cooldown}s` : "Resend code"}
               </button>
             </div>
           </>
+        ) : step === "profile" ? (
+          <>
+            <Input label="Your name" placeholder="e.g. John Doe" value={displayName}
+              onChange={(e) => setDisplayName(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && handleProfile()} />
+            <div>
+              <label className="mb-2 block text-xs font-heading tracking-wider uppercase text-muted-foreground">
+                Language
+              </label>
+              <select value={language} onChange={(e) => setLanguage(e.target.value)}
+                className="w-full bg-white/5 border border-border rounded-xl px-4 py-3 text-sm text-foreground">
+                <option value="en">English</option>
+                <option value="fr">Français</option>
+                <option value="es">Español</option>
+                <option value="de">Deutsch</option>
+                <option value="pt">Português</option>
+                <option value="zh">中文</option>
+                <option value="ja">日本語</option>
+                <option value="ar">العربية</option>
+              </select>
+            </div>
+            {error && <p className="text-sm text-red-400">{error}</p>}
+            <Button variant="primary" size="lg" className="w-full" onClick={handleProfile}
+              isLoading={loading} leftIcon={<ArrowRight className="h-4 w-4" />}>
+              Save Profile
+            </Button>
+          </>
+        ) : (
+          <>
+            <div className="flex flex-col items-center justify-center py-4 space-y-4 text-center">
+              <Shield className="h-10 w-10 text-aurora-violet" />
+              <div>
+                <p className="font-heading text-lg font-semibold text-foreground">Faster Login with Passkey</p>
+                <p className="text-sm text-muted-foreground mt-1">
+                  Use your device&apos;s biometric to sign in without typing your password.
+                </p>
+              </div>
+            </div>
+            <Button variant="premium" size="lg" className="w-full" onClick={handleLinkPasskey}
+              isLoading={loading}>
+              Link Passkey
+            </Button>
+            <Button variant="ghost" size="md" className="w-full" onClick={skipPasskey}>
+              Skip — I&apos;ll do it later
+            </Button>
+          </>
         )}
 
-        {step !== "done" && (
+        {step === "email" && (
           <p className="text-center text-xs text-muted-foreground pt-2 border-t border-border">
             Already have an account?{" "}
-            <Link href="/login" className="gradient-text font-semibold hover:underline">
-              Sign in
-            </Link>
+            <Link href="/login" className="gradient-text font-semibold hover:underline">Sign in</Link>
           </p>
         )}
       </div>
