@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import {
   Home,
   CircleDot,
@@ -31,6 +31,7 @@ interface MobileMenuProps {
 
 export function MobileMenu({ isOpen, onClose }: MobileMenuProps) {
   const pathname = usePathname();
+  const router = useRouter();
   const { theme, toggleTheme } = useUIStore();
   const { isAuthenticated, logout } = useAuthStore();
   const { unreadCount } = useNotificationStore();
@@ -59,6 +60,7 @@ export function MobileMenu({ isOpen, onClose }: MobileMenuProps) {
   const handleLogout = () => {
     logout();
     onClose();
+    router.push("/login");
   };
 
   if (!isOpen) return null;

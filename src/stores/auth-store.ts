@@ -150,6 +150,8 @@ export const useAuthStore = create<AuthStore>()(devtools((set, get) => ({
   },
 
   logout: () => {
+    // Attempt server-side session invalidation (best-effort)
+    post("/auth/logout").catch(() => {})
     get().clearTokens()
     set({
       isAuthenticated: false,
