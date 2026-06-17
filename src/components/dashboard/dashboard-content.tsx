@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useMemo } from "react"
+import React, { useMemo, useEffect } from "react"
 import Link from "next/link"
 import { useQuery } from "@tanstack/react-query"
 import {
@@ -14,7 +14,7 @@ import {
   Shield,
   Inbox,
 } from "lucide-react"
-import { get } from "@/lib/api-client"
+import { get, post } from "@/lib/api-client"
 import { useAuth } from "@/hooks/use-auth"
 import { PageHeader } from "@/components/shared/page-header"
 import { EmptyState } from "@/components/shared/empty-state"
@@ -142,6 +142,11 @@ export default function DashboardContent() {
   const circles = useMemo(() => circlesData ?? [], [circlesData])
   const contributions = useMemo(() => contribsData ?? [], [contribsData])
   const payouts = useMemo(() => payoutsData ?? [], [payoutsData])
+
+  // Initialize wallet on first dashboard load (fires once per session)
+  useEffect(() => {
+    post("/auth/wallet/init").catch(() => {})
+  }, [])
 
   const isLoading = authLoading || circlesLoading || contribsLoading || payoutsLoading
 
