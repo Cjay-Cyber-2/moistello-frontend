@@ -18,8 +18,8 @@ export function middleware(request: NextRequest) {
     }
   }
 
-  // Redirect authenticated users away from auth pages
-  if (token && (pathname === "/login" || pathname === "/register")) {
+  // Redirect authenticated users away from login page
+  if (token && pathname === "/login") {
     const url = new URL("/", request.url)
     return NextResponse.redirect(url)
   }
