@@ -5,31 +5,27 @@ import Link from "next/link"
 import { ArrowLeft, Bell, Check } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { put } from "@/lib/api-client"
-
-interface ToggleRow {
-  key: string
-  label: string
-  hint: string
-  enabled: boolean
-}
-
-const CATEGORIES: ToggleRow[] = [
-  { key: "contributions", label: "Contributions", hint: "When a contribution is recorded or missed", enabled: true },
-  { key: "payouts", label: "Payouts", hint: "When you receive or send a payout", enabled: true },
-  { key: "invitations", label: "Invitations", hint: "When someone invites you to a circle", enabled: true },
-  { key: "disputes", label: "Disputes", hint: "When a dispute is raised or resolved", enabled: true },
-  { key: "announcements", label: "Announcements", hint: "Platform-wide updates and notices", enabled: true },
-  { key: "circleActivity", label: "Circle Activity", hint: "Member joins, exits, and status changes", enabled: false },
-  { key: "friendRequests", label: "Friend Requests", hint: "When someone sends you a friend request", enabled: true },
-]
-
-const FREQUENCIES = [
-  { value: "instant", label: "Instant" },
-  { value: "daily", label: "Daily digest" },
-  { value: "off", label: "Off" },
-]
+import { useTranslate } from "@/lib/locale/context"
 
 export default function NotificationsSettingsPage() {
+  const { t } = useTranslate()
+
+  const FREQUENCIES = [
+    { value: "instant", label: t("notif.instant") },
+    { value: "daily", label: t("notif.daily") },
+    { value: "off", label: t("notif.off") },
+  ]
+
+  const CATEGORIES = [
+    { key: "contributions", label: t("notif.circleUpdates"), hint: t("notif.contributionsHint"), enabled: true },
+    { key: "payouts", label: "Payouts", hint: "When you receive or send a payout", enabled: true },
+    { key: "invitations", label: t("nav.invitations"), hint: t("notif.invitationsHint"), enabled: true },
+    { key: "disputes", label: "Disputes", hint: "When a dispute is raised or resolved", enabled: true },
+    { key: "announcements", label: "Announcements", hint: "Platform-wide updates and notices", enabled: true },
+    { key: "circleActivity", label: "Circle Activity", hint: "Member joins, exits, and status changes", enabled: false },
+    { key: "marketing", label: t("notif.marketing"), hint: t("notif.marketingHint"), enabled: false },
+  ]
+
   const [toggles, setToggles] = useState<Record<string, boolean>>(
     Object.fromEntries(CATEGORIES.map((c) => [c.key, c.enabled]))
   )
@@ -66,8 +62,8 @@ export default function NotificationsSettingsPage() {
           <ArrowLeft className="h-5 w-5" />
         </Link>
         <div>
-          <h1 className="font-heading text-xl font-bold text-foreground">Notifications</h1>
-          <p className="text-sm text-muted-foreground">Choose what notifications you receive</p>
+          <h1 className="font-heading text-xl font-bold text-foreground">{t("notif.title")}</h1>
+          <p className="text-sm text-muted-foreground">{t("notif.desc")}</p>
         </div>
       </div>
 

@@ -4,18 +4,22 @@ import { useState } from "react"
 import Link from "next/link"
 import { ArrowLeft, Sun, Moon, Monitor, Check } from "lucide-react"
 import { useUIStore } from "@/stores/ui-store"
+import { useTranslate } from "@/lib/locale/context"
 import { cn } from "@/lib/cn"
 
 type ThemeOption = "light" | "dark" | "system"
 type DensityOption = "comfortable" | "compact"
 
-const THEME_OPTIONS: { value: ThemeOption; label: string; icon: React.ReactNode; desc: string }[] = [
-  { value: "light", label: "Light", icon: <Sun className="h-5 w-5" />, desc: "Always light mode" },
-  { value: "dark", label: "Dark", icon: <Moon className="h-5 w-5" />, desc: "Always dark mode" },
-  { value: "system", label: "System", icon: <Monitor className="h-5 w-5" />, desc: "Follow your device setting" },
-]
+function getThemeOptions(t: (key: string) => string) {
+  return [
+    { value: "light" as ThemeOption, icon: <Sun className="h-5 w-5" />, label: t("theme.light"), desc: t("theme.lightDesc") },
+    { value: "dark" as ThemeOption, icon: <Moon className="h-5 w-5" />, label: t("theme.dark"), desc: t("theme.darkDesc") },
+    { value: "system" as ThemeOption, icon: <Monitor className="h-5 w-5" />, label: t("theme.system"), desc: t("theme.systemDesc") },
+  ]
+}
 
 export default function ThemeSettingsPage() {
+  const { t } = useTranslate()
   const { theme, setTheme } = useUIStore()
   const [density, setDensity] = useState<DensityOption>("comfortable")
   const [fontSize, setFontSize] = useState("medium")
@@ -27,8 +31,8 @@ export default function ThemeSettingsPage() {
           <ArrowLeft className="h-5 w-5" />
         </Link>
         <div>
-          <h1 className="font-heading text-xl font-bold text-foreground">Appearance</h1>
-          <p className="text-sm text-muted-foreground">Customize how Moistello looks</p>
+          <h1 className="font-heading text-xl font-bold text-foreground">{t("theme.title")}</h1>
+          <p className="text-sm text-muted-foreground">{t("theme.desc")}</p>
         </div>
       </div>
 
@@ -36,7 +40,7 @@ export default function ThemeSettingsPage() {
       <div className="glass-premium rounded-2xl p-6 space-y-4">
         <h3 className="font-heading text-sm font-semibold text-foreground">Theme</h3>
         <div className="grid grid-cols-3 gap-3">
-          {THEME_OPTIONS.map((opt) => (
+          {getThemeOptions(t).map((opt) => (
             <button
               key={opt.value}
               onClick={() => setTheme(opt.value)}

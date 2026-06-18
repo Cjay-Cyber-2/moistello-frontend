@@ -178,7 +178,7 @@ export const useAuthStore = create<AuthStore>()(devtools((set, get) => ({
     // If token hasn't expired yet, skip the HTTP call
     const exp = extractTokenExpiry(token);
     if (exp && Date.now() < exp) {
-      set({ isLoading: false, isAuthenticated: true, token, refreshToken: getStoredRefreshToken() });
+      set({ isLoading: false, isAuthenticated: true, token, refreshToken: getStoredRefreshToken(), tokenExpiresAt: exp });
       return;
     }
 

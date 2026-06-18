@@ -84,7 +84,7 @@ export function MobileMenu({ isOpen, onClose }: MobileMenuProps) {
         <nav className="flex-1 overflow-y-auto px-4 py-4">
           <div className="space-y-1 mb-6">
             <p className="px-3 text-[10px] font-heading tracking-[0.2em] uppercase text-muted-foreground/70 mb-2">
-              Navigation
+              {t("nav.navigation")}
             </p>
             {navLinks.map((link) => {
               const active = isActive(link.href);
@@ -109,7 +109,7 @@ export function MobileMenu({ isOpen, onClose }: MobileMenuProps) {
 
           <div className="space-y-1">
             <p className="px-3 text-[10px] font-heading tracking-[0.2em] uppercase text-muted-foreground/70 mb-2">
-              Account
+              {t("nav.account")}
             </p>
             {accountLinks.map((link) => {
               const active = isActive(link.href);
@@ -139,12 +139,12 @@ export function MobileMenu({ isOpen, onClose }: MobileMenuProps) {
 
           <div className="space-y-1 mt-6">
             <p className="px-3 text-[10px] font-heading tracking-[0.2em] uppercase text-muted-foreground/70 mb-2">
-              Docs
+              {t("nav.docs")}
             </p>
             {[
-              { label: "Documentation", href: "/docs", icon: <BookOpen className="h-4 w-4" /> },
-              { label: "FAQs", href: "/faq", icon: <HelpCircle className="h-4 w-4" /> },
-              { label: "Support", href: "/support", icon: <LifeBuoy className="h-4 w-4" /> },
+              { label: t("nav.documentation"), href: "/docs", icon: <BookOpen className="h-4 w-4" /> },
+              { label: t("nav.faqs"), href: "/faq", icon: <HelpCircle className="h-4 w-4" /> },
+              { label: t("nav.support"), href: "/support", icon: <LifeBuoy className="h-4 w-4" /> },
             ].map((link) => {
               const active = isActive(link.href);
               return (
@@ -173,7 +173,7 @@ export function MobileMenu({ isOpen, onClose }: MobileMenuProps) {
             className="flex items-center gap-3 w-full px-3 py-2.5 rounded-xl text-sm text-muted-foreground hover:text-foreground hover:glass-whisper"
           >
             <Sun className="h-4 w-4" />
-            <span>{isDark ? "Light Mode" : "Dark Mode"}</span>
+            <span>{isDark ? t("common.darkMode") : t("common.lightMode")}</span>
           </button>
 
           {isAuthenticated && (
@@ -182,7 +182,7 @@ export function MobileMenu({ isOpen, onClose }: MobileMenuProps) {
               className="flex items-center gap-3 w-full px-3 py-2.5 rounded-xl text-sm text-red-400 hover:bg-red-500/10"
             >
               <LogOut className="h-4 w-4" />
-              <span>Logout</span>
+              <span>{t("common.logout")}</span>
             </button>
           )}
         </div>

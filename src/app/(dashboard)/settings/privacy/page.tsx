@@ -5,8 +5,10 @@ import Link from "next/link"
 import { ArrowLeft, Shield, Check } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { patch } from "@/lib/api-client"
+import { useTranslate } from "@/lib/locale/context"
 
 export default function PrivacySettingsPage() {
+  const { t } = useTranslate()
   const [profileVisibility, setProfileVisibility] = useState("public")
   const [showLeaderboard, setShowLeaderboard] = useState(true)
   const [allowFriendRequests, setAllowFriendRequests] = useState(true)
@@ -42,8 +44,8 @@ export default function PrivacySettingsPage() {
           <ArrowLeft className="h-5 w-5" />
         </Link>
         <div>
-          <h1 className="font-heading text-xl font-bold text-foreground">Privacy</h1>
-          <p className="text-sm text-muted-foreground">Control who can see your information</p>
+          <h1 className="font-heading text-xl font-bold text-foreground">{t("privacy.title")}</h1>
+          <p className="text-sm text-muted-foreground">{t("privacy.desc")}</p>
         </div>
       </div>
 

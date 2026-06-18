@@ -5,6 +5,7 @@ import Link from "next/link"
 import { ArrowLeft, Clock, Trash2, Monitor, Smartphone, Globe } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { del } from "@/lib/api-client"
+import { useTranslate } from "@/lib/locale/context"
 
 interface Session {
   id: string
@@ -61,6 +62,7 @@ function DeviceIcon({ device }: { device: string }) {
 }
 
 export default function SessionsSettingsPage() {
+  const { t } = useTranslate()
   const [sessions] = useState<Session[]>(mockSessions)
   const [confirmRevoke, setConfirmRevoke] = useState<string | null>(null)
 
@@ -86,8 +88,8 @@ export default function SessionsSettingsPage() {
           <ArrowLeft className="h-5 w-5" />
         </Link>
         <div>
-          <h1 className="font-heading text-xl font-bold text-foreground">Sessions</h1>
-          <p className="text-sm text-muted-foreground">Manage your active sessions across devices</p>
+          <h1 className="font-heading text-xl font-bold text-foreground">{t("session.title")}</h1>
+          <p className="text-sm text-muted-foreground">{t("session.desc")}</p>
         </div>
       </div>
 
