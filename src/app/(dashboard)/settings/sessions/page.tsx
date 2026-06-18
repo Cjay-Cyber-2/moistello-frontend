@@ -27,8 +27,11 @@ function DeviceIcon({ deviceInfo }: { deviceInfo: string }) {
 }
 
 function parseDeviceInfo(info: string): { device: string; ip: string } {
+  if (!info || info === "|" || info === "unknown|unknown") {
+    return { device: "Login from this browser", ip: "" }
+  }
   const parts = info.split("|")
-  const ua = parts[0] || "Unknown"
+  const ua = parts[0] || "Login from this browser"
   const ip = parts[1] || ""
   const uaShort = ua.length > 40 ? ua.slice(0, 40) + "…" : ua
   return { device: uaShort, ip }
