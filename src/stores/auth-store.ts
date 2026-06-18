@@ -9,6 +9,7 @@ import { post } from "@/lib/api-client";
 
 const ACCESS_TOKEN_KEY = "moistello_token";
 const REFRESH_TOKEN_KEY = "moistello_refresh";
+const USER_DATA_KEY = "moistello_user";
 
 function getStoredAccessToken(): string | null {
   if (typeof window === "undefined") return null;
@@ -38,6 +39,24 @@ function setStoredRefreshToken(value: string): void {
 function removeStoredRefreshToken(): void {
   if (typeof window === "undefined") return;
   try { localStorage.removeItem(REFRESH_TOKEN_KEY) } catch {}
+}
+
+function getStoredUser(): User | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const raw = localStorage.getItem(USER_DATA_KEY);
+    return raw ? JSON.parse(raw) : null;
+  } catch { return null }
+}
+
+function setStoredUser(user: User): void {
+  if (typeof window === "undefined") return;
+  try { localStorage.setItem(USER_DATA_KEY, JSON.stringify(user)) } catch {}
+}
+
+function removeStoredUser(): void {
+  if (typeof window === "undefined") return;
+  try { localStorage.removeItem(USER_DATA_KEY) } catch {}
 }
 
 // Migrate legacy keys if they exist
@@ -105,7 +124,7 @@ type AuthStore = AuthState & AuthActions;
 
 export const useAuthStore = create<AuthStore>()(devtools((set, get) => ({
   isAuthenticated: !!getStoredAccessToken(),
-  user: null,
+  user: getStoredUser(),
   token: getStoredAccessToken(),
   refreshToken: getStoredRefreshToken(),
   isLoading: true,
@@ -130,6 +149,7 @@ export const useAuthStore = create<AuthStore>()(devtools((set, get) => ({
 
       setStoredAccessToken(token);
       setStoredRefreshToken(refreshToken);
+      setStoredUser(user);
       setCookie("moistello_token", token, 86400);
 
       set({
@@ -175,7 +195,7 @@ export const useAuthStore = create<AuthStore>()(devtools((set, get) => ({
     // If token hasn't expired yet, skip the HTTP call
     const exp = extractTokenExpiry(token);
     if (exp && Date.now() < exp) {
-      set({ isLoading: false, isAuthenticated: true, token, refreshToken: getStoredRefreshToken(), tokenExpiresAt: exp });
+      set({ isLoading: false, isAuthenticated: true, token, refreshToken: getStoredRefreshToken(), tokenExpiresAt: exp, user: getStoredUser() });
       return;
     }
 
@@ -187,6 +207,8 @@ export const useAuthStore = create<AuthStore>()(devtools((set, get) => ({
 
       const refreshToken = getStoredRefreshToken();
       const updatedExp = extractTokenExpiry(token);
+
+      setStoredUser(data.user);
 
       set({
         isAuthenticated: true,
@@ -206,18 +228,20 @@ export const useAuthStore = create<AuthStore>()(devtools((set, get) => ({
     setStoredRefreshToken(refreshToken);
     setCookie("moistello_token", accessToken, 86400);
     const exp = extractTokenExpiry(accessToken);
+    if (user) setStoredUser(user);
     set({
       token: accessToken,
       refreshToken,
       tokenExpiresAt: exp ?? Date.now() + 15 * 60 * 1000,
       isAuthenticated: true,
-      user: user ?? null,
+      user: user ?? getStoredUser(),
     });
   },
 
   clearTokens: () => {
     removeStoredAccessToken();
     removeStoredRefreshToken();
+    removeStoredUser();
     // Also clean up any legacy keys
     if (typeof window !== "undefined") {
       try {
