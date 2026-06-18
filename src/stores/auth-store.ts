@@ -54,9 +54,6 @@ function migrateLegacyTokens(): void {
   try {
     if (oldAccess) localStorage.removeItem("moistello_access_token");
     if (oldRefresh) localStorage.removeItem("moistello_refresh_token");
-    // Also clean up the JSON-stringified variants
-    localStorage.removeItem("moistello_token"); // overwritten above if existed
-    localStorage.removeItem("moistello_refresh");
   } catch {}
 }
 

@@ -1,84 +1,84 @@
 "use client"
 
-import { useState, useCallback } from "react"
+import { useState, useCallback, useEffect } from "react"
 import Link from "next/link"
-import { ArrowLeft, Clock, Trash2, Monitor, Smartphone, Globe } from "lucide-react"
+import { ArrowLeft, Monitor, Smartphone, Globe, Clock, Shield } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { del } from "@/lib/api-client"
+import { get, del, patch } from "@/lib/api-client"
 import { useTranslate } from "@/lib/locale/context"
+import { useAuthStore } from "@/stores/auth-store"
 
-interface Session {
+interface SessionInfo {
   id: string
-  device: string
-  browser: string
-  os: string
-  ip: string
+  deviceInfo: string
   lastActive: string
   isCurrent: boolean
-  location: string
 }
 
-const mockSessions: Session[] = [
-  {
-    id: "1",
-    device: "MacBook Pro",
-    browser: "Chrome 125",
-    os: "macOS 14.5",
-    ip: "102.89.34.12",
-    lastActive: "Just now",
-    isCurrent: true,
-    location: "Lagos, Nigeria",
-  },
-  {
-    id: "2",
-    device: "iPhone 15",
-    browser: "Safari",
-    os: "iOS 18",
-    ip: "102.89.34.12",
-    lastActive: "2 hours ago",
-    isCurrent: false,
-    location: "Lagos, Nigeria",
-  },
-  {
-    id: "3",
-    device: "Windows PC",
-    browser: "Firefox 127",
-    os: "Windows 11",
-    ip: "197.210.64.88",
-    lastActive: "3 days ago",
-    isCurrent: false,
-    location: "Abuja, Nigeria",
-  },
-]
-
-function DeviceIcon({ device }: { device: string }) {
-  if (device.toLowerCase().includes("iphone") || device.toLowerCase().includes("android")) {
+function DeviceIcon({ deviceInfo }: { deviceInfo: string }) {
+  const lower = deviceInfo.toLowerCase()
+  if (lower.includes("iphone") || lower.includes("android") || lower.includes("mobile")) {
     return <Smartphone className="h-5 w-5" />
   }
-  if (device.toLowerCase().includes("mac") || device.toLowerCase().includes("windows")) {
+  if (lower.includes("mac") || lower.includes("windows") || lower.includes("linux")) {
     return <Monitor className="h-5 w-5" />
   }
   return <Globe className="h-5 w-5" />
 }
 
+function parseDeviceInfo(info: string): { device: string; ip: string } {
+  const parts = info.split("|")
+  const ua = parts[0] || "Unknown"
+  const ip = parts[1] || ""
+  const uaShort = ua.length > 40 ? ua.slice(0, 40) + "…" : ua
+  return { device: uaShort, ip }
+}
+
 export default function SessionsSettingsPage() {
   const { t } = useTranslate()
-  const [sessions] = useState<Session[]>(mockSessions)
+  const user = useAuthStore((s) => s.user)
+  const [sessionTTL, setSessionTTL] = useState(user?.sessionTtlMinutes ?? 240)
+  const [saving, setSaving] = useState(false)
+  const [saved, setSaved] = useState(false)
+  const [sessions, setSessions] = useState<SessionInfo[]>([])
+  const [loadingSessions, setLoadingSessions] = useState(true)
   const [confirmRevoke, setConfirmRevoke] = useState<string | null>(null)
+
+  useEffect(() => {
+    if (user?.sessionTtlMinutes) setSessionTTL(user.sessionTtlMinutes)
+  }, [user])
+
+  useEffect(() => {
+    get<{ data?: { sessions?: SessionInfo[] } }>("/sessions").then((res) => {
+      const body = (res as Record<string, unknown>)?.data as Record<string, unknown> ?? res
+      setSessions((body?.sessions ?? []) as SessionInfo[])
+      setLoadingSessions(false)
+    }).catch(() => setLoadingSessions(false))
+  }, [])
+
+  const handleSaveTTL = useCallback(async () => {
+    setSaving(true)
+    try {
+      await patch("/users/me", { sessionTtlMinutes: sessionTTL })
+      setSaved(true)
+      setTimeout(() => setSaved(false), 3000)
+    } catch {}
+    setSaving(false)
+  }, [sessionTTL])
 
   const handleRevoke = useCallback(async (sessionId: string) => {
     try {
       await del(`/sessions/${sessionId}`)
-    } catch {
-    }
+      setSessions((prev) => prev.filter((s) => s.id !== sessionId))
+    } catch {}
     setConfirmRevoke(null)
   }, [])
 
   const handleRevokeAll = useCallback(async () => {
     try {
       await del("/sessions")
-    } catch {
-    }
+      setSessions((prev) => prev.filter((s) => s.isCurrent))
+    } catch {}
   }, [])
 
   return (
@@ -93,92 +93,97 @@ export default function SessionsSettingsPage() {
         </div>
       </div>
 
-      {sessions.length > 1 && (
-        <div className="flex justify-end">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleRevokeAll}
-            leftIcon={<Trash2 className="h-3.5 w-3.5" />}
-            className="text-red-400 border-red-500/20 hover:bg-red-500/10"
-          >
-            Revoke All Other Sessions
-          </Button>
+      <div className="glass-premium rounded-2xl p-6 space-y-4">
+        <div className="flex items-center gap-2">
+          <Clock className="h-4 w-4 text-aurora-violet" />
+          <h3 className="font-heading text-sm font-semibold text-foreground">Session Duration</h3>
         </div>
-      )}
-
-      <div className="space-y-3">
-        {sessions.map((session) => (
-          <div
-            key={session.id}
-            className={`glass-premium rounded-2xl p-5 transition-all ${
-              confirmRevoke === session.id ? "ring-2 ring-red-500/30" : ""
-            }`}
-          >
-            <div className="flex items-start gap-4">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-aurora-violet/20 to-aurora-indigo/20 text-aurora-violet shrink-0">
-                <DeviceIcon device={session.device} />
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 flex-wrap">
-                  <p className="text-sm font-medium text-foreground">{session.device}</p>
-                  {session.isCurrent && (
-                    <span className="inline-flex h-5 items-center rounded-full bg-emerald-500/15 px-2 text-[10px] font-medium text-emerald-400">
-                      Current
-                    </span>
-                  )}
-                </div>
-                <p className="text-xs text-muted-foreground mt-0.5">
-                  {session.browser} &middot; {session.os}
-                </p>
-                <div className="flex items-center gap-3 mt-2 text-2xs text-muted-foreground">
-                  <span className="flex items-center gap-1">
-                    <Clock className="h-3 w-3" />
-                    {session.lastActive}
-                  </span>
-                  <span>{session.location}</span>
-                  <span className="font-mono">{session.ip}</span>
-                </div>
-              </div>
-              <div className="shrink-0">
-                {session.isCurrent ? (
-                  <span className="text-2xs text-muted-foreground px-2">This device</span>
-                ) : confirmRevoke === session.id ? (
-                  <div className="flex gap-2">
-                    <Button
-                      variant="destructive"
-                      size="sm"
-                      onClick={() => handleRevoke(session.id)}
-                      className="h-8 text-xs"
-                    >
-                      Confirm
-                    </Button>
-                    <Button variant="outline" size="sm" onClick={() => setConfirmRevoke(null)} className="h-8 text-xs">
-                      Keep
-                    </Button>
-                  </div>
-                ) : (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setConfirmRevoke(session.id)}
-                    className="h-8 text-xs text-red-400"
-                  >
-                    Revoke
-                  </Button>
-                )}
-              </div>
-            </div>
+        <p className="text-xs text-muted-foreground">
+          Automatically log out after this time. Longer sessions mean fewer logins but higher risk if your device is compromised.
+        </p>
+        <div className="space-y-3">
+          <div className="flex items-center justify-between text-sm">
+            <span className="text-muted-foreground">1 hour</span>
+            <span className="font-heading font-semibold text-foreground">{Math.round(sessionTTL / 60)}h {sessionTTL % 60}m</span>
+            <span className="text-muted-foreground">24 hours</span>
           </div>
-        ))}
+          <input type="range" min={60} max={1440} step={30} value={sessionTTL}
+            onChange={(e) => setSessionTTL(Number(e.target.value))}
+            className="w-full accent-aurora-violet h-2 rounded-full appearance-none bg-white/10 cursor-pointer" />
+          <div className="flex justify-between text-2xs text-muted-foreground">
+            <button type="button" onClick={() => setSessionTTL(60)} className="hover:text-foreground">1h</button>
+            <button type="button" onClick={() => setSessionTTL(240)} className="hover:text-foreground">4h</button>
+            <button type="button" onClick={() => setSessionTTL(480)} className="hover:text-foreground">8h</button>
+            <button type="button" onClick={() => setSessionTTL(720)} className="hover:text-foreground">12h</button>
+            <button type="button" onClick={() => setSessionTTL(1440)} className="hover:text-foreground">24h</button>
+          </div>
+        </div>
+        <div className="flex items-center justify-end gap-3 pt-2">
+          {saved && <span className="text-xs text-emerald-400">Saved</span>}
+          <Button variant="primary" size="sm" onClick={handleSaveTTL} isLoading={saving}>Save Duration</Button>
+        </div>
       </div>
 
-      {sessions.length === 0 && (
-        <div className="glass-premium rounded-2xl p-8 text-center">
-          <Clock className="h-8 w-8 text-muted-foreground/50 mx-auto mb-3" />
-          <p className="text-sm text-muted-foreground">No active sessions found.</p>
+      <div className="glass-premium rounded-2xl p-6 space-y-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Shield className="h-4 w-4 text-aurora-violet" />
+            <h3 className="font-heading text-sm font-semibold text-foreground">Active Sessions</h3>
+          </div>
+          {sessions.length > 1 && (
+            <Button variant="outline" size="xs" onClick={handleRevokeAll}
+              className="text-red-400 border-red-500/20 hover:bg-red-500/10 text-xs h-7">
+              Revoke All Others
+            </Button>
+          )}
         </div>
-      )}
+
+        {loadingSessions ? (
+          <div className="space-y-3">
+            {[1, 2].map((n) => <div key={n} className="h-16 bg-white/5 rounded-xl animate-pulse" />)}
+          </div>
+        ) : sessions.length === 0 ? (
+          <p className="text-sm text-muted-foreground text-center py-4">No active sessions found.</p>
+        ) : (
+          <div className="space-y-2">
+            {sessions.map((session) => {
+              const info = parseDeviceInfo(session.deviceInfo)
+              return (
+                <div key={session.id}
+                  className={`rounded-xl p-4 transition-all ${session.isCurrent ? "glass-strong" : "glass-whisper"} ${confirmRevoke === session.id ? "ring-2 ring-red-500/30" : ""}`}>
+                  <div className="flex items-start gap-3">
+                    <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br from-aurora-violet/20 to-aurora-indigo/20 shrink-0">
+                      <DeviceIcon deviceInfo={session.deviceInfo} />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2">
+                        <p className="text-sm font-medium text-foreground truncate">{info.device}</p>
+                        {session.isCurrent && (
+                          <span className="text-[10px] font-medium text-emerald-400 bg-emerald-500/15 px-2 py-0.5 rounded-full shrink-0">Current</span>
+                        )}
+                      </div>
+                      {info.ip && <p className="text-xs text-muted-foreground font-mono">{info.ip}</p>}
+                      {session.lastActive && <p className="text-2xs text-muted-foreground mt-0.5">{session.lastActive}</p>}
+                    </div>
+                    <div className="shrink-0">
+                      {session.isCurrent ? (
+                        <span className="text-2xs text-muted-foreground px-2">This device</span>
+                      ) : confirmRevoke === session.id ? (
+                        <div className="flex gap-1">
+                          <Button variant="destructive" size="xs" onClick={() => handleRevoke(session.id)} className="h-7 text-xs">Confirm</Button>
+                          <Button variant="outline" size="xs" onClick={() => setConfirmRevoke(null)} className="h-7 text-xs">Keep</Button>
+                        </div>
+                      ) : (
+                        <Button variant="outline" size="xs" onClick={() => setConfirmRevoke(session.id)} className="h-7 text-xs text-red-400">Revoke</Button>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        )}
+      </div>
     </div>
   )
 }

@@ -41,8 +41,8 @@ export interface User {
   countryCode?: string | null
   preferredLanguage: string
   moiScore: number
+  sessionTtlMinutes?: number
   createdAt: string
-  updatedAt: string
 }
 
 export interface Circle {
