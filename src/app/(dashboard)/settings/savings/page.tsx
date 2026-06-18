@@ -15,6 +15,7 @@ import {
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { cn } from "@/lib/cn"
+import { useTranslate } from "@/lib/locale/context"
 
 interface SavingsGoal {
   id: string
@@ -27,6 +28,7 @@ interface SavingsGoal {
 }
 
 export default function SavingsSettingsPage() {
+  const { t } = useTranslate()
   const [goals, setGoals] = useState<SavingsGoal[]>([
     {
       id: "1",
@@ -86,21 +88,21 @@ export default function SavingsSettingsPage() {
           <ArrowLeft className="h-5 w-5" />
         </Link>
         <div>
-          <h1 className="font-heading text-xl font-bold text-foreground">Savings Goals</h1>
-          <p className="text-sm text-muted-foreground">Track your savings targets and automate contributions</p>
+          <h1 className="font-heading text-xl font-bold text-foreground">{t("settings.savings")}</h1>
+          <p className="text-sm text-muted-foreground">{t("savings.desc")}</p>
         </div>
       </div>
 
       <div className="glass-premium rounded-2xl p-6 space-y-5">
-        <h3 className="font-heading text-sm font-semibold text-foreground flex items-center gap-2">
-          <Settings className="h-4 w-4 text-aurora-violet" />
-          Global Preferences
-        </h3>
+          <h3 className="font-heading text-sm font-semibold text-foreground flex items-center gap-2">
+            <Settings className="h-4 w-4 text-aurora-violet" />
+            {t("savings.globalPreferences")}
+          </h3>
 
         <div className="flex items-center justify-between py-2">
           <div>
-            <p className="text-sm font-medium text-foreground">Auto-Contribute</p>
-            <p className="text-xs text-muted-foreground">Automatically send contributions from your wallet</p>
+            <p className="text-sm font-medium text-foreground">{t("savings.autoContribute")}</p>
+            <p className="text-xs text-muted-foreground">{t("savings.autoContributeHint")}</p>
           </div>
           <button
             type="button"
@@ -123,8 +125,8 @@ export default function SavingsSettingsPage() {
 
         <div className="flex items-center justify-between py-2">
           <div>
-            <p className="text-sm font-medium text-foreground">Round-Ups</p>
-            <p className="text-xs text-muted-foreground">Round up transactions to nearest USDC and save the difference</p>
+            <p className="text-sm font-medium text-foreground">{t("savings.roundUps")}</p>
+            <p className="text-xs text-muted-foreground">{t("savings.roundUpsHint")}</p>
           </div>
           <button
             type="button"
@@ -150,7 +152,7 @@ export default function SavingsSettingsPage() {
         <div className="flex items-center justify-between">
           <h3 className="font-heading text-sm font-semibold text-foreground flex items-center gap-2">
             <Target className="h-4 w-4 text-aurora-violet" />
-            Your Goals
+            {t("savings.yourGoals")}
           </h3>
           <Button
             variant="outline"
@@ -158,15 +160,15 @@ export default function SavingsSettingsPage() {
             onClick={() => setShowForm(true)}
             leftIcon={<Plus className="h-3.5 w-3.5" />}
           >
-            Add Goal
+            {t("savings.addGoal")}
           </Button>
         </div>
 
         {goals.length === 0 && !showForm && (
           <div className="py-6 text-center">
             <PiggyBank className="h-8 w-8 text-muted-foreground/50 mx-auto mb-2" />
-            <p className="text-sm text-muted-foreground">No savings goals yet.</p>
-            <p className="text-xs text-muted-foreground/60 mt-1">Set your first savings goal to get started.</p>
+            <p className="text-sm text-muted-foreground">{t("savings.noGoals")}</p>
+            <p className="text-xs text-muted-foreground/60 mt-1">{t("savings.noGoalsHint")}</p>
           </div>
         )}
 
@@ -204,15 +206,15 @@ export default function SavingsSettingsPage() {
               </div>
 
               <div className="flex items-center justify-between text-xs text-muted-foreground">
-                <span className="font-medium">{pct}% complete</span>
+                <span className="font-medium">{t("savings.percentComplete").replace("{pct}", String(pct))}</span>
                 {goal.autoContribute && (
                   <span className="flex items-center gap-1 text-emerald-400">
-                    <TrendingUp className="h-3 w-3" /> Auto
+                    <TrendingUp className="h-3 w-3" /> {t("savings.auto")}
                   </span>
                 )}
                 {goal.targetDate && (
                   <span>
-                    Due {new Date(goal.targetDate).toLocaleDateString()}
+                    {t("savings.due").replace("{date}", new Date(goal.targetDate).toLocaleDateString())}
                   </span>
                 )}
               </div>
@@ -222,15 +224,15 @@ export default function SavingsSettingsPage() {
 
         {showForm && (
           <div className="space-y-4 border-t border-white/[0.06] pt-4">
-            <h4 className="text-sm font-medium text-foreground">New Savings Goal</h4>
+            <h4 className="text-sm font-medium text-foreground">{t("savings.newGoal")}</h4>
             <Input
-              label="Goal Name"
+              label={t("savings.goalName")}
               value={name}
               onChange={(e) => setName(e.target.value)}
-              placeholder="e.g. Emergency Fund"
+              placeholder={t("savings.goalNamePlaceholder")}
             />
             <Input
-              label="Target Amount (USDC)"
+              label={t("savings.targetAmount")}
               type="number"
               min={1}
               value={targetAmount}
@@ -238,14 +240,14 @@ export default function SavingsSettingsPage() {
               placeholder="500"
             />
             <Input
-              label="Target Date"
+              label={t("savings.targetDate")}
               type="date"
               value={targetDate}
               onChange={(e) => setTargetDate(e.target.value)}
             />
 
             <div className="flex items-center justify-between py-2">
-              <span className="text-sm text-foreground">Auto-contribute to this goal</span>
+              <span className="text-sm text-foreground">{t("savings.autoContributeGoal")}</span>
               <button
                 type="button"
                 role="switch"
@@ -266,7 +268,7 @@ export default function SavingsSettingsPage() {
             </div>
 
             <div className="flex items-center justify-between py-2">
-              <span className="text-sm text-foreground">Enable round-ups</span>
+              <span className="text-sm text-foreground">{t("savings.enableRoundUps")}</span>
               <button
                 type="button"
                 role="switch"
@@ -288,7 +290,7 @@ export default function SavingsSettingsPage() {
 
             <div className="flex gap-2 justify-end">
               <Button variant="outline" size="sm" onClick={() => setShowForm(false)}>
-                Cancel
+                {t("common.cancel")}
               </Button>
               <Button
                 variant="primary"
@@ -297,7 +299,7 @@ export default function SavingsSettingsPage() {
                 isLoading={saving}
                 disabled={!name || !targetAmount}
               >
-                Create Goal
+                {t("savings.createGoal")}
               </Button>
             </div>
           </div>
