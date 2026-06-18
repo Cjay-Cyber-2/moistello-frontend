@@ -33,11 +33,11 @@ export function LocaleProvider({ children }: { children: ReactNode }) {
   // Load locale data
   useEffect(() => {
     const code = (() => {
-      if (isAuthenticated && authUser?.preferredLanguage) return authUser.preferredLanguage
       if (typeof window !== "undefined") {
         const stored = localStorage.getItem("moistello_locale")
         if (stored) return stored
       }
+      if (isAuthenticated && authUser?.preferredLanguage) return authUser.preferredLanguage
       return "en"
     })()
 
@@ -76,7 +76,13 @@ export function LocaleProvider({ children }: { children: ReactNode }) {
     const state = useAuthStore.getState()
     if (state.isAuthenticated && state.user) {
       import("@/lib/api-client").then(({ patch }) => {
-        patch("/users/me", { preferredLanguage: lang }).catch(() => {})
+        patch("/users/me", { preferredLanguage: lang }).then(() => {
+          const updatedUser = { ...state.user!, preferredLanguage: lang }
+          import("@/stores/auth-store").then(({ useAuthStore: store }) => {
+            const s = store.getState()
+            if (s.token) s.setTokens(s.token, s.refreshToken ?? "", updatedUser)
+          })
+        }).catch(() => {})
       })
     }
   }, [])
