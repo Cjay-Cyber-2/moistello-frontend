@@ -1,7 +1,9 @@
 "use client"
 
 import { useState, useCallback } from "react"
+import Link from "next/link"
 import { motion } from "framer-motion"
+import { useQuery } from "@tanstack/react-query"
 import {
   User,
   Pencil,
@@ -13,9 +15,10 @@ import {
   Trophy,
   ArrowUpCircle,
   Globe,
+  PiggyBank,
 } from "lucide-react"
 import { useAuth } from "@/hooks/use-auth"
-import { patch, getErrorMessage } from "@/lib/api-client"
+import { patch, get, getErrorMessage } from "@/lib/api-client"
 import { useUIStore } from "@/stores/ui-store"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -52,6 +55,14 @@ function SkeletonCard({ className }: { className?: string }) {
 export default function ProfilePage() {
   const { user, isLoading: authLoading } = useAuth()
   const addToast = useUIStore((s) => s.addToast)
+
+  const { data: savingsSummary } = useQuery({
+    queryKey: ["savings-summary"],
+    queryFn: async () => {
+      const res = await get<{ summary?: Record<string, unknown> }>("/savings/goals/summary")
+      return (res as Record<string, unknown>)?.summary as Record<string, unknown> ?? null
+    },
+  })
 
   const [isEditing, setIsEditing] = useState(false)
   const [bio, setBio] = useState((user as unknown as Record<string, string>)?.bio ?? "")
@@ -215,6 +226,37 @@ export default function ProfilePage() {
             </div>
           ))}
         </motion.div>
+
+        {/* Savings Record */}
+        {savingsSummary && (savingsSummary as Record<string, unknown>).completedGoals as number > 0 && (
+          <motion.div variants={item} className="glass-premium rounded-2xl p-5 space-y-3">
+            <div className="flex items-center justify-between">
+              <h3 className="font-heading text-sm font-semibold text-foreground flex items-center gap-2">
+                <PiggyBank className="h-4 w-4 text-aurora-violet" />
+                Savings Record
+              </h3>
+              <Link href="/savings" className="text-xs text-aurora-violet hover:underline">
+                Manage &rarr;
+              </Link>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="glass-whisper rounded-xl p-3 text-center">
+                <p className="font-heading text-xl font-bold gradient-text">{(savingsSummary as Record<string, unknown>).completedGoals as number}</p>
+                <p className="text-2xs text-muted-foreground uppercase tracking-wider mt-0.5">Goals Completed</p>
+              </div>
+              <div className="glass-whisper rounded-xl p-3 text-center">
+                <p className="font-heading text-xl font-bold text-foreground">{(savingsSummary as Record<string, unknown>).savingsStreak as number}m</p>
+                <p className="text-2xs text-muted-foreground uppercase tracking-wider mt-0.5">Month Streak</p>
+              </div>
+            </div>
+            {(savingsSummary as Record<string, unknown>).totalSaved as number > 0 && (
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-muted-foreground">Total saved</span>
+                <span className="font-heading font-semibold text-foreground">${((savingsSummary as Record<string, unknown>).totalSaved as number).toFixed(2)}</span>
+              </div>
+            )}
+          </motion.div>
+        )}
 
         {/* Bio Section */}
         <motion.div variants={item} className="glass-premium rounded-2xl p-5 space-y-3">

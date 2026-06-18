@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   LayoutDashboard,
+  PiggyBank,
   CircleDot,
   ArrowUpCircle,
   ArrowDownCircle,
@@ -55,6 +56,7 @@ export function Sidebar() {
       title: t("nav.platform"),
       items: [
         { label: t("nav.dashboard"), href: Routes.DASHBOARD, icon: <LayoutDashboard className="h-[18px] w-[18px]" /> },
+        { label: t("nav.savings"), href: "/savings", icon: <PiggyBank className="h-[18px] w-[18px]" /> },
         { label: t("nav.circles"), href: Routes.CIRCLES, icon: <CircleDot className="h-[18px] w-[18px]" /> },
       ],
     },

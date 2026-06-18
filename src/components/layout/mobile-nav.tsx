@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, CircleDot, Users, User } from "lucide-react";
+import { LayoutDashboard, PiggyBank, CircleDot, Users, User } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { Routes } from "@/lib/constants";
 import { useTranslate } from "@/lib/locale/context";
@@ -19,6 +19,7 @@ export function MobileNav() {
 
   const navItems: MobileNavItem[] = [
     { label: t("nav.dashboard"), href: Routes.DASHBOARD, icon: <LayoutDashboard className="h-5 w-5" /> },
+    { label: t("nav.savings"), href: "/savings", icon: <PiggyBank className="h-5 w-5" /> },
     { label: t("nav.circles"), href: Routes.CIRCLES, icon: <CircleDot className="h-5 w-5" /> },
     { label: t("nav.communities"), href: Routes.COMMUNITIES, icon: <Users className="h-5 w-5" /> },
     { label: t("nav.profile"), href: Routes.PROFILE, icon: <User className="h-5 w-5" /> },

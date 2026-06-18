@@ -9,6 +9,7 @@ import {
   Wallet,
   Bell,
   Home,
+  PiggyBank,
   CircleDot,
   Users,
 } from "lucide-react";
@@ -34,6 +35,7 @@ export function Header({ onToggleMobileMenu, isMobileMenuOpen }: HeaderProps) {
 
   const navLinks: { label: string; href: string; icon: React.ReactNode }[] = [
     { label: t("nav.dashboard"), href: Routes.DASHBOARD, icon: <Home className="h-4 w-4" /> },
+    { label: t("nav.savings"), href: "/savings", icon: <PiggyBank className="h-4 w-4" /> },
     { label: t("nav.circles"), href: Routes.CIRCLES, icon: <CircleDot className="h-4 w-4" /> },
     { label: t("nav.communities"), href: Routes.COMMUNITIES, icon: <Users className="h-4 w-4" /> },
   ];

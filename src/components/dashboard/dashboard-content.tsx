@@ -13,6 +13,8 @@ import {
   Clock,
   Shield,
   Inbox,
+  PiggyBank,
+  AlertCircle,
 } from "lucide-react"
 import { get, post } from "@/lib/api-client"
 import { useAuth } from "@/hooks/use-auth"
@@ -139,6 +141,16 @@ export default function DashboardContent() {
     },
   })
 
+  const { data: savingsObligations = [] } = useQuery({
+    queryKey: ["savings-obligations"],
+    queryFn: async () => {
+      const res = await get<Record<string, unknown>>("/savings/goals/obligations")
+      const goals = (res?.goals ?? []) as { id: string; name: string; targetAmount: number; currentAmount: number; autoReserve: boolean; targetDate: string | null }[]
+      return goals
+    },
+    enabled: true,
+  })
+
   const circles = useMemo(() => circlesData ?? [], [circlesData])
   const contributions = useMemo(() => contribsData ?? [], [contribsData])
   const payouts = useMemo(() => payoutsData ?? [], [payoutsData])
@@ -208,6 +220,40 @@ export default function DashboardContent() {
         <StatCard label={t("dash.totalReceived")} value={stats.totalReceived} icon={<ArrowDownCircle className="h-5 w-5" />} gradient="from-emerald-500 to-aurora-cyan" />
         <StatCard label={t("dash.moiScore")} value={stats.moiScore} icon={<Award className="h-5 w-5" />} gradient="from-aurora-amber to-aurora-violet" pulseGlow={moiHighScore} />
       </div>
+
+      {/* Upcoming Savings Obligations */}
+      {savingsObligations.length > 0 && (
+        <div className="glass-premium rounded-2xl p-5 space-y-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <PiggyBank className="h-4 w-4 text-aurora-violet" />
+              <h3 className="font-heading text-sm font-semibold text-foreground">{t("dash.upcomingSavings")}</h3>
+            </div>
+            <Link href="/savings" className="text-xs text-aurora-violet hover:underline">{t("dash.createSavingsGoal")}</Link>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+            {savingsObligations.slice(0, 4).map((goal: { id: string; name: string; targetAmount: number; currentAmount: number; autoReserve: boolean; targetDate: string | null }) => {
+              const pct = goal.targetAmount > 0 ? Math.min(100, Math.round((goal.currentAmount / goal.targetAmount) * 100)) : 0
+              return (
+                <Link key={goal.id} href="/savings" className="glass-whisper rounded-xl p-3 space-y-2 hover:glass-strong transition-all">
+                  <div className="flex items-center justify-between">
+                    <p className="text-xs font-medium text-foreground truncate">{goal.name}</p>
+                    {goal.autoReserve && <AlertCircle className="h-3 w-3 text-aurora-violet shrink-0" />}
+                  </div>
+                  <div className="h-1.5 bg-white/5 rounded-full overflow-hidden">
+                    <div className="h-full bg-gradient-to-r from-aurora-violet to-aurora-indigo rounded-full" style={{ width: `${pct}%` }} />
+                  </div>
+                  <div className="flex items-center justify-between text-2xs text-muted-foreground">
+                    <span>{goal.currentAmount.toFixed(2)} USDC</span>
+                    <span>{goal.targetAmount.toFixed(2)} USDC</span>
+                  </div>
+                </Link>
+              )
+            })}
+          </div>
+        </div>
+      )}
+
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 space-y-4">
           <div className="flex items-center justify-between">
