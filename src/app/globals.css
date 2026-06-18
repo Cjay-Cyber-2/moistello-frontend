@@ -100,6 +100,25 @@
   }
   html { @apply scroll-smooth; }
 
+  /* ── Font size scaling ── */
+  html { font-size: 16px; }
+  html[data-font-size="small"] { font-size: 14px; }
+  html[data-font-size="large"] { font-size: 18px; }
+
+  /* ── Density spacing variables ── */
+  :root {
+    --density-container: 2rem;
+    --density-card: 1.5rem;
+    --density-element: 1rem;
+    --density-gap: 1rem;
+  }
+  html[data-density="compact"] {
+    --density-container: 1rem;
+    --density-card: 1rem;
+    --density-element: 0.5rem;
+    --density-gap: 0.5rem;
+  }
+
   ::selection {
     background: rgb(var(--aurora-violet) / 0.25);
     color: rgb(var(--foreground));

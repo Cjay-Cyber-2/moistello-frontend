@@ -96,10 +96,10 @@ export default function RootLayout({
     <html lang="en" className="dark" suppressHydrationWarning>
 <head>
          <script
-           dangerouslySetInnerHTML={{
-             __html: `(function(){try{var t=localStorage.getItem('moistello_theme');if(t){var p=JSON.parse(t);if(p.state&&p.state.theme==='light'){document.documentElement.classList.remove('dark')}else if(p.state&&p.state.theme==='system'){if(!window.matchMedia('(prefers-color-scheme: dark)').matches){document.documentElement.classList.remove('dark')}}}}catch(e){}})()`,
-           }}
-         />
+            dangerouslySetInnerHTML={{
+              __html: `(function(){try{var t=localStorage.getItem('moistello_theme');if(t){var p=JSON.parse(t);if(p.state&&p.state.theme==='light'){document.documentElement.classList.remove('dark')}else if(p.state&&p.state.theme==='system'){if(!window.matchMedia('(prefers-color-scheme: dark)').matches){document.documentElement.classList.remove('dark')}}if(p.state&&p.state.density){document.documentElement.setAttribute('data-density',p.state.density)}if(p.state&&p.state.fontSize){document.documentElement.setAttribute('data-font-size',p.state.fontSize)}}else{document.documentElement.setAttribute('data-density','comfortable');document.documentElement.setAttribute('data-font-size','medium')}}catch(e){}})()`,
+            }}
+          />
          <script
            type="application/ld+json"
            dangerouslySetInnerHTML={{

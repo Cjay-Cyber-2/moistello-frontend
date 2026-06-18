@@ -4,6 +4,8 @@ import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
 type Theme = "light" | "dark" | "system";
+type Density = "comfortable" | "compact";
+type FontSize = "small" | "medium" | "large";
 type ToastType = "success" | "error" | "warning" | "info";
 
 export interface Toast {
@@ -16,6 +18,8 @@ export interface Toast {
 
 interface UIState {
   theme: Theme;
+  density: Density;
+  fontSize: FontSize;
   sidebarOpen: boolean;
   activeModal: string | null;
   toasts: Toast[];
@@ -24,6 +28,8 @@ interface UIState {
 interface UIActions {
   toggleTheme: () => void;
   setTheme: (theme: Theme) => void;
+  setDensity: (density: Density) => void;
+  setFontSize: (fontSize: FontSize) => void;
   toggleSidebar: () => void;
   setSidebarOpen: (open: boolean) => void;
   openModal: (id: string) => void;
@@ -38,6 +44,8 @@ export const useUIStore = create<UIStore>()(
   persist(
     (set, get) => ({
       theme: "system",
+      density: "comfortable",
+      fontSize: "medium",
       sidebarOpen: false,
       activeModal: null,
       toasts: [],
@@ -48,6 +56,8 @@ export const useUIStore = create<UIStore>()(
       },
 
       setTheme: (theme: Theme) => set({ theme }),
+      setDensity: (density: Density) => set({ density }),
+      setFontSize: (fontSize: FontSize) => set({ fontSize }),
 
       toggleSidebar: () =>
         set((state) => ({ sidebarOpen: !state.sidebarOpen })),
@@ -74,7 +84,7 @@ export const useUIStore = create<UIStore>()(
     }),
     {
       name: "moistello_theme",
-      partialize: (state) => ({ theme: state.theme }),
+      partialize: (state) => ({ theme: state.theme, density: state.density, fontSize: state.fontSize }),
     }
   )
 );

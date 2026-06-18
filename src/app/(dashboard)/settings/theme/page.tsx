@@ -1,6 +1,5 @@
 "use client"
 
-import { useState } from "react"
 import Link from "next/link"
 import { ArrowLeft, Sun, Moon, Monitor, Check } from "lucide-react"
 import { useUIStore } from "@/stores/ui-store"
@@ -8,7 +7,6 @@ import { useTranslate } from "@/lib/locale/context"
 import { cn } from "@/lib/cn"
 
 type ThemeOption = "light" | "dark" | "system"
-type DensityOption = "comfortable" | "compact"
 
 function getThemeOptions(t: (key: string) => string) {
   return [
@@ -20,9 +18,7 @@ function getThemeOptions(t: (key: string) => string) {
 
 export default function ThemeSettingsPage() {
   const { t } = useTranslate()
-  const { theme, setTheme } = useUIStore()
-  const [density, setDensity] = useState<DensityOption>("comfortable")
-  const [fontSize, setFontSize] = useState("medium")
+  const { theme, setTheme, density, setDensity, fontSize, setFontSize } = useUIStore()
 
   return (
     <div className="max-w-lg mx-auto space-y-6">
@@ -77,7 +73,7 @@ export default function ThemeSettingsPage() {
       <div className="glass-premium rounded-2xl p-6 space-y-4">
         <h3 className="font-heading text-sm font-semibold text-foreground">{t("theme.density")}</h3>
         <div className="space-y-2">
-          {(["comfortable", "compact"] as DensityOption[]).map((d) => (
+          {(["comfortable", "compact"] as const).map((d) => (
             <label
               key={d}
               className={cn(
@@ -106,7 +102,7 @@ export default function ThemeSettingsPage() {
       <div className="glass-premium rounded-2xl p-6 space-y-4">
         <h3 className="font-heading text-sm font-semibold text-foreground">{t("theme.fontSize")}</h3>
         <div className="flex gap-2">
-          {["small", "medium", "large"].map((size) => (
+          {(["small", "medium", "large"] as const).map((size) => (
             <button
               key={size}
               onClick={() => setFontSize(size)}

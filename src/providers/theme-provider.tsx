@@ -9,6 +9,8 @@ interface ThemeProviderProps {
 
 export function ThemeProvider({ children }: ThemeProviderProps) {
   const theme = useUIStore((s) => s.theme);
+  const density = useUIStore((s) => s.density);
+  const fontSize = useUIStore((s) => s.fontSize);
 
   useEffect(() => {
     const root = document.documentElement;
@@ -62,6 +64,14 @@ export function ThemeProvider({ children }: ThemeProviderProps) {
       }
     }
   }, [theme]);
+
+  useEffect(() => {
+    document.documentElement.setAttribute("data-density", density);
+  }, [density]);
+
+  useEffect(() => {
+    document.documentElement.setAttribute("data-font-size", fontSize);
+  }, [fontSize]);
 
   return <>{children}</>;
 }
