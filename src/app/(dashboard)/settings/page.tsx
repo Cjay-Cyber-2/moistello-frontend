@@ -1,188 +1,86 @@
 "use client"
 
 import Link from "next/link"
-import {
-  User,
-  Bell,
-  Shield,
-  Clock,
-  Palette,
-  CreditCard,
-  Globe,
-  PiggyBank,
-  ChevronRight,
-} from "lucide-react"
 import { useAuth } from "@/hooks/use-auth"
-import { cn } from "@/lib/cn"
+import { useTranslate } from "@/lib/locale/context"
+import { Skeleton } from "@/components/ui/skeleton"
+import { Settings, Bell, EyeOff, Sun, CreditCard, PiggyBank, Monitor, Globe } from "lucide-react"
 import { formatAddress } from "@/lib/formatters"
 
-interface SettingSection {
-  id: string
-  label: string
-  icon: React.ReactNode
-  href: string
-  description: string
-  badge?: string
-}
-
-const sections: SettingSection[] = [
-  {
-    id: "profile",
-    label: "Profile",
-    icon: <User className="h-5 w-5" />,
-    href: "/profile",
-    description: "Display name, avatar, public profile",
-  },
-  {
-    id: "account",
-    label: "Account",
-    icon: <Shield className="h-5 w-5" />,
-    href: "/settings/account",
-    description: "Username, email, language, timezone",
-  },
-  {
-    id: "notifications",
-    label: "Notifications",
-    icon: <Bell className="h-5 w-5" />,
-    href: "/settings/notifications",
-    description: "Push, in-app alerts, frequency",
-  },
-  {
-    id: "privacy",
-    label: "Privacy",
-    icon: <Shield className="h-5 w-5" />,
-    href: "/settings/privacy",
-    description: "Profile visibility, leaderboard, friend requests",
-  },
-  {
-    id: "sessions",
-    label: "Sessions",
-    icon: <Clock className="h-5 w-5" />,
-    href: "/settings/sessions",
-    description: "Active sessions, device management",
-  },
-  {
-    id: "theme",
-    label: "Appearance",
-    icon: <Palette className="h-5 w-5" />,
-    href: "/settings/theme",
-    description: "Theme, density, font size",
-  },
-  {
-    id: "payment",
-    label: "Payment",
-    icon: <CreditCard className="h-5 w-5" />,
-    href: "/settings/payment",
-    description: "Saved banks, withdrawal method, currency",
-  },
-  {
-    id: "language",
-    label: "Language & Region",
-    icon: <Globe className="h-5 w-5" />,
-    href: "/settings/language",
-    description: "Language, date format, number format",
-  },
-  {
-    id: "savings",
-    label: "Savings Goals",
-    icon: <PiggyBank className="h-5 w-5" />,
-    href: "/settings/savings",
-    description: "Goals, auto-contribute, round-ups",
-  },
+const SETTINGS_SECTIONS = [
+  { titleKey: "settings.account", href: "/settings/account", icon: Settings, descKey: "settings.accountDesc" },
+  { titleKey: "settings.notifications", href: "/settings/notifications", icon: Bell, descKey: "settings.notificationsDesc" },
+  { titleKey: "settings.privacy", href: "/settings/privacy", icon: EyeOff, descKey: "settings.privacyDesc" },
+  { titleKey: "settings.theme", href: "/settings/theme", icon: Sun, descKey: "settings.themeDesc" },
+  { titleKey: "settings.language", href: "/settings/language", icon: Globe, descKey: "settings.languageDesc" },
+  { titleKey: "settings.payment", href: "/settings/payment", icon: CreditCard, descKey: "settings.paymentDesc" },
+  { titleKey: "settings.savings", href: "/settings/savings", icon: PiggyBank, descKey: "settings.savingsDesc" },
+  { titleKey: "settings.sessions", href: "/settings/sessions", icon: Monitor, descKey: "settings.sessionsDesc" },
 ]
 
 export default function SettingsHubPage() {
-  const { user } = useAuth()
+  const { user, isLoading } = useAuth()
+  const { t } = useTranslate()
+
+  if (isLoading) {
+    return (
+      <div className="max-w-2xl mx-auto space-y-4">
+        <Skeleton variant="card" className="h-36 rounded-2xl" />
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          {[1, 2, 3, 4].map((n) => <Skeleton key={n} variant="card" className="h-28 rounded-2xl" />)}
+        </div>
+      </div>
+    )
+  }
 
   return (
-    <div className="flex gap-6">
-      {/* Settings Sidebar */}
-      <aside className="hidden md:block w-64 shrink-0">
-        <nav className="space-y-1 sticky top-24">
-          <div className="px-3 pb-3 mb-2 border-b border-white/[0.06]">
-            <h2 className="font-heading text-sm font-bold text-foreground">Settings</h2>
-            <p className="text-2xs text-muted-foreground mt-0.5">Manage your account</p>
+    <div className="max-w-2xl mx-auto space-y-6">
+      {/* Profile Summary */}
+      <div className="glass-premium rounded-2xl p-6 holo-border">
+        <div className="flex items-center gap-4">
+          <div className="flex h-14 w-14 items-center justify-center rounded-full gradient-bg text-white font-mono text-lg font-bold shrink-0">
+            {user?.displayName?.charAt(0)?.toUpperCase() ?? user?.walletAddress?.slice(0, 2)?.toUpperCase() ?? "U"}
           </div>
-          {sections.map((s) => (
-            <Link
-              key={s.id}
-              href={s.href}
-              className={cn(
-                "flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-all",
-                "hover:glass-whisper text-muted-foreground hover:text-foreground",
-              )}
-            >
-              <span className="shrink-0 text-muted-foreground">{s.icon}</span>
-              <span className="flex-1 truncate">{s.label}</span>
-              <ChevronRight className="h-3.5 w-3.5 shrink-0 text-muted-foreground/50" />
+          <div className="min-w-0 flex-1">
+            <p className="font-heading text-lg font-semibold text-foreground truncate">
+              {user?.displayName ?? "User"}
+            </p>
+            <p className="text-xs text-muted-foreground font-mono truncate">
+              {user?.walletAddress ? formatAddress(user.walletAddress, 8, 6) : "No wallet"}
+            </p>
+            <Link href="/profile" className="text-xs text-aurora-violet hover:underline mt-1 inline-block">
+              {t("settings.viewProfile")}
             </Link>
-          ))}
-        </nav>
-      </aside>
-
-      {/* Main Content */}
-      <div className="flex-1 min-w-0">
-        {/* Header */}
-        <div className="mb-6">
-          <h1 className="font-heading text-2xl font-bold text-foreground">Settings</h1>
-          <p className="text-sm text-muted-foreground mt-1">
-            Manage your account, preferences, and connected wallets.
-          </p>
-        </div>
-
-        {/* Account Summary Card */}
-        <div className="glass-premium rounded-2xl p-5 mb-6">
-          <div className="flex items-center gap-4">
-            <div className="flex h-14 w-14 items-center justify-center rounded-full gradient-bg text-white font-mono text-lg font-bold shrink-0">
-              {user?.displayName?.charAt(0)?.toUpperCase() ?? user?.walletAddress?.slice(0, 2)?.toUpperCase() ?? "U"}
-            </div>
-            <div className="min-w-0 flex-1">
-              <p className="font-heading text-lg font-semibold text-foreground truncate">
-                {user?.displayName ?? "User"}
-              </p>
-              <p className="text-xs text-muted-foreground font-mono truncate">
-                {user?.walletAddress ? formatAddress(user.walletAddress, 8, 6) : "No wallet"}
-              </p>
-              <Link href="/profile" className="text-xs text-aurora-violet hover:underline mt-1 inline-block">
-                View profile
-              </Link>
-            </div>
-            <div className="text-right shrink-0">
-              <p className="text-xs text-muted-foreground">MoiScore</p>
-              <p className="font-heading text-lg font-bold gradient-text">{user?.moiScore ?? 0}</p>
-            </div>
+          </div>
+          <div className="text-right shrink-0">
+            <p className="text-xs text-muted-foreground">MoiScore</p>
+            <p className="font-heading text-lg font-bold gradient-text">{user?.moiScore ?? 0}</p>
           </div>
         </div>
+      </div>
 
-        {/* Settings Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {sections.map((s) => (
-            <Link key={s.id} href={s.href}>
-              <div
-                className={cn(
-                  "glass rounded-2xl p-5 h-full transition-all duration-200",
-                  "hover:glass-strong hover:-translate-y-0.5 cursor-pointer",
-                )}
-              >
-                <div
-                  className={cn(
-                    "flex h-10 w-10 items-center justify-center rounded-xl mb-3",
-                    "bg-gradient-to-br from-aurora-violet/20 to-aurora-indigo/20 text-aurora-violet",
-                  )}
-                >
-                  {s.icon}
+      {/* Settings Grid */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        {SETTINGS_SECTIONS.map((section) => {
+          const Icon = section.icon
+          return (
+            <Link key={section.href} href={section.href}>
+              <div className="glass-whisper rounded-2xl p-5 hover:glass-strong transition-all duration-300 h-full">
+                <div className="flex items-center gap-3 mb-2">
+                  <div className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-aurora-violet/20 to-aurora-cyan/20">
+                    <Icon className="h-4 w-4 gradient-text" />
+                  </div>
+                  <h3 className="font-heading text-sm font-semibold text-foreground">
+                    {t(section.titleKey)}
+                  </h3>
                 </div>
-                <h3
-                  className="font-heading text-sm font-semibold mb-1 text-foreground"
-                >
-                  {s.label}
-                </h3>
-                <p className="text-xs text-muted-foreground leading-relaxed">{s.description}</p>
+                <p className="text-xs text-muted-foreground ml-12">
+                  {t(section.descKey)}
+                </p>
               </div>
             </Link>
-          ))}
-        </div>
-
+          )
+        })}
       </div>
     </div>
   )
