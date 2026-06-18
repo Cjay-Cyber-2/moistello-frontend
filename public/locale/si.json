@@ -1,4 +1,5 @@
 {
+  "account.anonymous": "නිර්නාමික",
   "auth.login.biometricText": "ඔබගේ උපාංග ජෛවමිතික සමගින් සත්‍යාපනය කරන්න.",
   "auth.login.connecting": "ඔබේ මුදල් පසුම්බිය සම්බන්ධ කරමින්...",
   "auth.login.createAccount": "ගිණුමක් සාදන්න",

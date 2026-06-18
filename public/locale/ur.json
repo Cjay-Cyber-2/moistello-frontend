@@ -1,4 +1,5 @@
 {
+  "account.anonymous": "گمنام",
   "auth.login.biometricText": "اپنے آلے کے بائیو میٹرکس کے ساتھ تصدیق کریں۔",
   "auth.login.connecting": "آپ کے بٹوے کو جوڑ رہا ہے...",
   "auth.login.createAccount": "ایک اکاؤنٹ بنائیں",

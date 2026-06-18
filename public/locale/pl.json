@@ -1,4 +1,5 @@
 {
+  "account.anonymous": "Anonimowy",
   "auth.login.biometricText": "Uwierzytelnij się za pomocą danych biometrycznych urządzenia.",
   "auth.login.connecting": "Podłączanie portfela...",
   "auth.login.createAccount": "Utwórz konto",

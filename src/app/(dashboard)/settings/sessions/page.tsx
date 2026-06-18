@@ -99,16 +99,16 @@ export default function SessionsSettingsPage() {
       <div className="glass-premium rounded-2xl p-6 space-y-4">
         <div className="flex items-center gap-2">
           <Clock className="h-4 w-4 text-aurora-violet" />
-          <h3 className="font-heading text-sm font-semibold text-foreground">Session Duration</h3>
+          <h3 className="font-heading text-sm font-semibold text-foreground">{t("session.duration")}</h3>
         </div>
         <p className="text-xs text-muted-foreground">
-          Automatically log out after this time. Longer sessions mean fewer logins but higher risk if your device is compromised.
+          {t("session.durationHint")}
         </p>
         <div className="space-y-3">
           <div className="flex items-center justify-between text-sm">
-            <span className="text-muted-foreground">1 hour</span>
+            <span className="text-muted-foreground">{t("session.oneHour")}</span>
             <span className="font-heading font-semibold text-foreground">{Math.round(sessionTTL / 60)}h {sessionTTL % 60}m</span>
-            <span className="text-muted-foreground">24 hours</span>
+            <span className="text-muted-foreground">{t("session.twentyFourHours")}</span>
           </div>
           <input type="range" min={60} max={1440} step={30} value={sessionTTL}
             onChange={(e) => setSessionTTL(Number(e.target.value))}
@@ -122,8 +122,8 @@ export default function SessionsSettingsPage() {
           </div>
         </div>
         <div className="flex items-center justify-end gap-3 pt-2">
-          {saved && <span className="text-xs text-emerald-400">Saved</span>}
-          <Button variant="primary" size="sm" onClick={handleSaveTTL} isLoading={saving}>Save Duration</Button>
+          {saved && <span className="text-xs text-emerald-400">{t("common.saved")}</span>}
+          <Button variant="primary" size="sm" onClick={handleSaveTTL} isLoading={saving}>{t("session.saveDuration")}</Button>
         </div>
       </div>
 
@@ -131,12 +131,12 @@ export default function SessionsSettingsPage() {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Shield className="h-4 w-4 text-aurora-violet" />
-            <h3 className="font-heading text-sm font-semibold text-foreground">Active Sessions</h3>
+            <h3 className="font-heading text-sm font-semibold text-foreground">{t("session.activeSessions")}</h3>
           </div>
           {sessions.length > 1 && (
             <Button variant="outline" size="xs" onClick={handleRevokeAll}
               className="text-red-400 border-red-500/20 hover:bg-red-500/10 text-xs h-7">
-              Revoke All Others
+              {t("session.revokeAllOthers")}
             </Button>
           )}
         </div>
@@ -146,7 +146,7 @@ export default function SessionsSettingsPage() {
             {[1, 2].map((n) => <div key={n} className="h-16 bg-white/5 rounded-xl animate-pulse" />)}
           </div>
         ) : sessions.length === 0 ? (
-          <p className="text-sm text-muted-foreground text-center py-4">No active sessions found.</p>
+          <p className="text-sm text-muted-foreground text-center py-4">{t("session.noSessions")}</p>
         ) : (
           <div className="space-y-2">
             {sessions.map((session) => {
@@ -162,7 +162,7 @@ export default function SessionsSettingsPage() {
                       <div className="flex items-center gap-2">
                         <p className="text-sm font-medium text-foreground truncate">{info.device}</p>
                         {session.isCurrent && (
-                          <span className="text-[10px] font-medium text-emerald-400 bg-emerald-500/15 px-2 py-0.5 rounded-full shrink-0">Current</span>
+                          <span className="text-[10px] font-medium text-emerald-400 bg-emerald-500/15 px-2 py-0.5 rounded-full shrink-0">{t("session.current")}</span>
                         )}
                       </div>
                       {info.ip && <p className="text-xs text-muted-foreground font-mono">{info.ip}</p>}
@@ -170,14 +170,14 @@ export default function SessionsSettingsPage() {
                     </div>
                     <div className="shrink-0">
                       {session.isCurrent ? (
-                        <span className="text-2xs text-muted-foreground px-2">This device</span>
+                        <span className="text-2xs text-muted-foreground px-2">{t("session.thisDevice")}</span>
                       ) : confirmRevoke === session.id ? (
                         <div className="flex gap-1">
-                          <Button variant="destructive" size="xs" onClick={() => handleRevoke(session.id)} className="h-7 text-xs">Confirm</Button>
-                          <Button variant="outline" size="xs" onClick={() => setConfirmRevoke(null)} className="h-7 text-xs">Keep</Button>
+                          <Button variant="destructive" size="xs" onClick={() => handleRevoke(session.id)} className="h-7 text-xs">{t("session.confirm")}</Button>
+                          <Button variant="outline" size="xs" onClick={() => setConfirmRevoke(null)} className="h-7 text-xs">{t("session.keep")}</Button>
                         </div>
                       ) : (
-                        <Button variant="outline" size="xs" onClick={() => setConfirmRevoke(session.id)} className="h-7 text-xs text-red-400">Revoke</Button>
+                        <Button variant="outline" size="xs" onClick={() => setConfirmRevoke(session.id)} className="h-7 text-xs text-red-400">{t("session.revoke")}</Button>
                       )}
                     </div>
                   </div>

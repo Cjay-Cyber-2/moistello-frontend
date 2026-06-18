@@ -1,4 +1,5 @@
 {
+  "account.anonymous": "مجهول",
   "auth.login.biometricText": "المصادقة باستخدام القياسات الحيوية لجهازك.",
   "auth.login.connecting": "جارٍ ربط محفظتك...",
   "auth.login.createAccount": "إنشاء حساب",

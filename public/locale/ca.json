@@ -1,4 +1,5 @@
 {
+  "account.anonymous": "Anònim",
   "auth.login.biometricText": "Autentiqueu-vos amb la biometria del vostre dispositiu.",
   "auth.login.connecting": "S'està connectant la teva cartera...",
   "auth.login.createAccount": "Creeu un compte",

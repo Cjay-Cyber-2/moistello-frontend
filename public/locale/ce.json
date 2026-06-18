@@ -1,4 +1,5 @@
 {
+  "account.anonymous": "Анониман",
   "auth.login.biometricText": "Аутентификаци ян хьайн аппаратан биометрица.",
   "auth.login.connecting": "Хьайн кошелек вовшахтохар...",
   "auth.login.createAccount": "Аккаунт кхолла .",

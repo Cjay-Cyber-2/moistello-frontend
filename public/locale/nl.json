@@ -1,4 +1,5 @@
 {
+  "account.anonymous": "Anoniem",
   "auth.login.biometricText": "Authenticeer met de biometrie van uw apparaat.",
   "auth.login.connecting": "Uw portemonnee verbinden...",
   "auth.login.createAccount": "Maak een account aan",

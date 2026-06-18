@@ -1,4 +1,5 @@
 {
+  "account.anonymous": "ବେନାମୀ |",
   "auth.login.biometricText": "ଆପଣଙ୍କର ଡିଭାଇସ୍ ବାୟୋମେଟ୍ରିକ୍ସ ସହିତ ପ୍ରାମାଣିକରଣ କରନ୍ତୁ |",
   "auth.login.connecting": "ତୁମର ୱାଲେଟ୍ ସଂଯୋଗ କରୁଛି ...",
   "auth.login.createAccount": "ଏକ ଖାତା ସୃଷ୍ଟି କରନ୍ତୁ |",

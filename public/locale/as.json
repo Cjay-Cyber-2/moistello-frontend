@@ -1,4 +1,5 @@
 {
+  "account.anonymous": "বেনামী",
   "auth.login.biometricText": "আপোনাৰ ডিভাইচ বায়মেট্ৰিক্সৰ সৈতে প্ৰমাণীকৰণ কৰক।",
   "auth.login.connecting": "আপোনাৰ মানিবেগ সংযোগ...",
   "auth.login.createAccount": "এটা একাউণ্ট তৈয়াৰ কৰক",

@@ -1,4 +1,5 @@
 {
+  "account.anonymous": "Anonymous",
   "auth.login.biometricText": "Ferifiearje mei jo apparaat biometrics.",
   "auth.login.connecting": "Jo wallet ferbine ...",
   "auth.login.createAccount": "Meitsje in akkount",

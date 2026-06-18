@@ -1,4 +1,5 @@
 {
+  "account.anonymous": "Анонимді",
   "auth.login.biometricText": "Құрылғыңыздың биометрикасымен аутентификациялаңыз.",
   "auth.login.connecting": "Әмиян қосылуда...",
   "auth.login.createAccount": "Тіркелгі жасау",

@@ -18,11 +18,11 @@ export default function NotificationsSettingsPage() {
 
   const CATEGORIES = [
     { key: "contributions", label: t("notif.circleUpdates"), hint: t("notif.contributionsHint"), enabled: true },
-    { key: "payouts", label: "Payouts", hint: "When you receive or send a payout", enabled: true },
+    { key: "payouts", label: t("notif.categoryPayouts"), hint: t("notif.payoutsHint"), enabled: true },
     { key: "invitations", label: t("nav.invitations"), hint: t("notif.invitationsHint"), enabled: true },
-    { key: "disputes", label: "Disputes", hint: "When a dispute is raised or resolved", enabled: true },
-    { key: "announcements", label: "Announcements", hint: "Platform-wide updates and notices", enabled: true },
-    { key: "circleActivity", label: "Circle Activity", hint: "Member joins, exits, and status changes", enabled: false },
+    { key: "disputes", label: t("notif.categoryDisputes"), hint: t("notif.disputesHint"), enabled: true },
+    { key: "announcements", label: t("notif.categoryAnnouncements"), hint: t("notif.announcementsHint"), enabled: true },
+    { key: "circleActivity", label: t("notif.categoryCircleActivity"), hint: t("notif.circleActivityHint"), enabled: false },
     { key: "marketing", label: t("notif.marketing"), hint: t("notif.marketingHint"), enabled: false },
   ]
 
@@ -70,7 +70,7 @@ export default function NotificationsSettingsPage() {
       <div className="glass-premium rounded-2xl p-6 space-y-5">
         <h3 className="font-heading text-sm font-semibold text-foreground flex items-center gap-2">
           <Bell className="h-4 w-4 text-aurora-violet" />
-          Notification Categories
+          {t("notif.notificationCategories")}
         </h3>
 
         <div className="space-y-1">
@@ -101,7 +101,7 @@ export default function NotificationsSettingsPage() {
       </div>
 
       <div className="glass-premium rounded-2xl p-6 space-y-4">
-        <h3 className="font-heading text-sm font-semibold text-foreground">Frequency</h3>
+        <h3 className="font-heading text-sm font-semibold text-foreground">{t("notif.frequency")}</h3>
         <div className="space-y-2">
           {FREQUENCIES.map((f) => (
             <label key={f.value} className="flex items-center gap-3 cursor-pointer py-1">
@@ -121,15 +121,15 @@ export default function NotificationsSettingsPage() {
 
       <div className="flex items-center justify-end gap-3">
         <Link href="/settings">
-          <Button variant="outline" size="md">Cancel</Button>
+          <Button variant="outline" size="md">{t("common.cancel")}</Button>
         </Link>
         {saved && (
           <span className="inline-flex items-center gap-1 text-sm text-emerald-400">
-            <Check className="h-4 w-4" /> Saved
+            <Check className="h-4 w-4" /> {t("common.saved")}
           </span>
         )}
         <Button variant="primary" size="md" onClick={handleSave} isLoading={saving}>
-          Save Preferences
+          {t("notif.savePreferences")}
         </Button>
       </div>
     </div>

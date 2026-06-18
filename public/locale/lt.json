@@ -1,4 +1,5 @@
 {
+  "account.anonymous": "Anonimas",
   "auth.login.biometricText": "Autentifikuokite naudodami įrenginio biometrinius duomenis.",
   "auth.login.connecting": "Prijungiama piniginė...",
   "auth.login.createAccount": "Susikurti paskyrą",

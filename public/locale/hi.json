@@ -1,4 +1,5 @@
 {
+  "account.anonymous": "गुमनाम",
   "auth.login.biometricText": "Authenticate with your device biometrics.",
   "auth.login.connecting": "Connecting your wallet...",
   "auth.login.createAccount": "Create an account",

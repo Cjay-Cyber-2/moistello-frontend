@@ -1,4 +1,5 @@
 {
+  "account.anonymous": "Нэргүй",
   "auth.login.biometricText": "Төхөөрөмжийнхөө биометрийн тусламжтайгаар баталгаажуулна уу.",
   "auth.login.connecting": "Таны түрийвчийг холбож байна...",
   "auth.login.createAccount": "Бүртгэл үүсгэх",

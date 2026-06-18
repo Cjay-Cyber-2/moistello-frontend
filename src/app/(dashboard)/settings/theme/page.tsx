@@ -38,7 +38,7 @@ export default function ThemeSettingsPage() {
 
       {/* Theme */}
       <div className="glass-premium rounded-2xl p-6 space-y-4">
-        <h3 className="font-heading text-sm font-semibold text-foreground">Theme</h3>
+        <h3 className="font-heading text-sm font-semibold text-foreground">{t("theme.section")}</h3>
         <div className="grid grid-cols-3 gap-3">
           {getThemeOptions(t).map((opt) => (
             <button
@@ -75,7 +75,7 @@ export default function ThemeSettingsPage() {
 
       {/* Density */}
       <div className="glass-premium rounded-2xl p-6 space-y-4">
-        <h3 className="font-heading text-sm font-semibold text-foreground">Density</h3>
+        <h3 className="font-heading text-sm font-semibold text-foreground">{t("theme.density")}</h3>
         <div className="space-y-2">
           {(["comfortable", "compact"] as DensityOption[]).map((d) => (
             <label
@@ -93,9 +93,9 @@ export default function ThemeSettingsPage() {
                 onChange={() => setDensity(d)}
                 className="h-4 w-4 accent-aurora-violet"
               />
-              <span className="text-sm font-medium text-foreground capitalize">{d}</span>
+              <span className="text-sm font-medium text-foreground">{d === "comfortable" ? t("theme.densityComfortable") : t("theme.densityCompact")}</span>
               <span className="text-xs text-muted-foreground">
-                {d === "comfortable" ? "More spacing, relaxed view" : "Tighter spacing, more content"}
+                {d === "comfortable" ? t("theme.densityComfortableDesc") : t("theme.densityCompactDesc")}
               </span>
             </label>
           ))}
@@ -104,7 +104,7 @@ export default function ThemeSettingsPage() {
 
       {/* Font Size */}
       <div className="glass-premium rounded-2xl p-6 space-y-4">
-        <h3 className="font-heading text-sm font-semibold text-foreground">Font Size</h3>
+        <h3 className="font-heading text-sm font-semibold text-foreground">{t("theme.fontSize")}</h3>
         <div className="flex gap-2">
           {["small", "medium", "large"].map((size) => (
             <button

@@ -1,4 +1,5 @@
 {
+  "account.anonymous": "അജ്ഞാതൻ",
   "auth.login.biometricText": "നിങ്ങളുടെ ഉപകരണ ബയോമെട്രിക്‌സ് ഉപയോഗിച്ച് പ്രാമാണീകരിക്കുക.",
   "auth.login.connecting": "നിങ്ങളുടെ വാലറ്റ് ബന്ധിപ്പിക്കുന്നു...",
   "auth.login.createAccount": "ഒരു അക്കൗണ്ട് സൃഷ്ടിക്കുക",

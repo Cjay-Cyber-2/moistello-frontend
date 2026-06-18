@@ -1,4 +1,5 @@
 {
+  "account.anonymous": "Maqaa hin beekamne",
   "auth.login.biometricText": "Baayomeetirikii meeshaa keetiin mirkaneessi.",
   "auth.login.connecting": "Wallet keessan wal qunnamsiisuudhaan...",
   "auth.login.createAccount": "Akkaawuntii uumuu",

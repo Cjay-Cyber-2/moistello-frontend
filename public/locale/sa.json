@@ -1,4 +1,5 @@
 {
+  "account.anonymous": "अनामिका",
   "auth.login.biometricText": "स्वस्य उपकरणस्य बायोमेट्रिकेन प्रमाणीकरणं कुर्वन्तु।",
   "auth.login.connecting": "भवतः बटुकं संयोजयन्...",
   "auth.login.createAccount": "खातं रचयन्तु",

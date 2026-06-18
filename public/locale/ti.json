@@ -1,4 +1,5 @@
 {
+  "account.anonymous": "ስሙ ዘይተገልጸ",
   "auth.login.biometricText": "ብናይ መሳርሒኻ ባዮሜትሪክስ ምርግጋጽ።",
   "auth.login.connecting": "ቦርሳኻ ምትእስሳር...",
   "auth.login.createAccount": "ኣካውንት ምፍጣር",

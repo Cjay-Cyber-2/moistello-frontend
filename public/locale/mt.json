@@ -1,4 +1,5 @@
 {
+  "account.anonymous": "Anonimu",
   "auth.login.biometricText": "Awtentika bil-bijometriċi tat-tagħmir tiegħek.",
   "auth.login.connecting": "Tqabbad il-kartiera tiegħek...",
   "auth.login.createAccount": "Oħloq kont",

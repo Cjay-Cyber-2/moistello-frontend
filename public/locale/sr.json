@@ -1,4 +1,5 @@
 {
+  "account.anonymous": "Анонимоус",
   "auth.login.biometricText": "Потврдите аутентичност биометријским подацима уређаја.",
   "auth.login.connecting": "Повезивање новчаника...",
   "auth.login.createAccount": "Креирајте налог",

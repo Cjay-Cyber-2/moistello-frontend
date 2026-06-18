@@ -1,4 +1,5 @@
 {
+  "account.anonymous": "匿名",
   "auth.login.biometricText": "使用您的设备生物识别进行身份验证。",
   "auth.login.connecting": "正在连接您的钱包...",
   "auth.login.createAccount": "创建帐户",

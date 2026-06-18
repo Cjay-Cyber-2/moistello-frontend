@@ -1,4 +1,5 @@
 {
+  "account.anonymous": "Neu-ennym;",
   "auth.login.biometricText": "Ta'n 'biometrics' 'sy 'instrument'.",
   "auth.login.connecting": "Ceangley dty wallet...",
   "auth.login.createAccount": "Cree coontey",

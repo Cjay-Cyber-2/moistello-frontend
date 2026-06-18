@@ -1,4 +1,5 @@
 {
+  "account.anonymous": "Gun urra",
   "auth.login.biometricText": "Dèan cinnteach le biometrics an inneal agad.",
   "auth.login.connecting": "A’ ceangal do wallet...",
   "auth.login.createAccount": "Cruthaich cunntas",

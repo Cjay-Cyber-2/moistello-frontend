@@ -1,4 +1,5 @@
 {
+  "account.anonymous": "Anonymní",
   "auth.login.biometricText": "Ověřte pomocí biometrických údajů svého zařízení.",
   "auth.login.connecting": "Připojování peněženky...",
   "auth.login.createAccount": "Vytvořte si účet",

@@ -1,4 +1,5 @@
 {
+  "account.anonymous": "Ятсӑр",
   "auth.login.biometricText": "Хӑвӑрӑн устройствӑн биометрийӗпе аутентификацилӗр.",
   "auth.login.connecting": "Хӑвӑн енчӗкне ҫыхӑнтаратӑп...",
   "auth.login.createAccount": "Аккаунт йӗркелӗр",

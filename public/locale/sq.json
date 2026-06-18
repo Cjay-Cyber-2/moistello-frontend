@@ -1,4 +1,5 @@
 {
+  "account.anonymous": "Anonim",
   "auth.login.biometricText": "Vërtetoni me biometrikën e pajisjes tuaj.",
   "auth.login.connecting": "Po lidh portofolin tuaj...",
   "auth.login.createAccount": "Krijo një llogari",

@@ -1,4 +1,5 @@
 {
+  "account.anonymous": "Анонимен",
   "auth.login.biometricText": "Удостоверете се с биометричните данни на вашето устройство.",
   "auth.login.connecting": "Портфейлът ви се свързва...",
   "auth.login.createAccount": "Създайте акаунт",

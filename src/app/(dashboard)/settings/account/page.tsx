@@ -131,7 +131,7 @@ const LANG_NAMES: Record<string, string> = {
 
 export default function AccountSettingsPage() {
   const { user, isLoading: authLoading } = useAuth()
-  const { setLocale } = useTranslate()
+  const { t, setLocale } = useTranslate()
 
   const [email, setEmail] = useState("")
   const [phone, setPhone] = useState("")
@@ -206,52 +206,52 @@ export default function AccountSettingsPage() {
           <ArrowLeft className="h-5 w-5" />
         </Link>
         <div>
-          <h1 className="font-heading text-xl font-bold text-foreground">Account</h1>
-          <p className="text-sm text-muted-foreground">Manage your account details and preferences</p>
+          <h1 className="font-heading text-xl font-bold text-foreground">{t("account.title")}</h1>
+          <p className="text-sm text-muted-foreground">{t("account.desc")}</p>
         </div>
       </div>
 
       <div className="glass-premium rounded-2xl p-6 space-y-5">
         <div>
           <label className="mb-1.5 block text-xs font-heading tracking-wider uppercase text-muted-foreground">
-            Display Name
+            {t("account.displayName")}
           </label>
-          <p className="font-heading text-lg font-semibold text-foreground">{user?.displayName || "Anonymous"}</p>
-          <p className="text-2xs text-muted-foreground mt-1">Your unique anonymous name. Cannot be changed.</p>
+          <p className="font-heading text-lg font-semibold text-foreground">{user?.displayName || t("account.anonymous")}</p>
+          <p className="text-2xs text-muted-foreground mt-1">{t("account.displayNameHint")}</p>
         </div>
 
         <Input
-          label="Email"
+          label={t("account.email")}
           type="email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          placeholder="your@email.com"
-          hint="Optional. Used for account recovery."
+          placeholder={t("account.emailPlaceholder")}
+          hint={t("account.emailHint")}
         />
 
         <Input
-          label="Phone"
+          label={t("account.phone")}
           type="tel"
           value={phone}
           onChange={(e) => setPhone(e.target.value)}
-          placeholder="+1234567890"
-          hint="Optional. Used for notifications."
+          placeholder={t("account.phonePlaceholder")}
+          hint={t("account.phoneHint")}
         />
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <Select
-            label="Country"
+            label={t("account.country")}
             options={COUNTRIES}
             value={country}
             onChange={setCountry}
-            placeholder="Select country"
+            placeholder={t("account.selectCountry")}
           />
           <Select
-            label="Language"
+            label={t("account.language")}
             options={langOptions}
             value={language}
             onChange={handleLanguageChange}
-            placeholder="Select language"
+            placeholder={t("account.selectLanguage")}
           />
         </div>
       </div>
@@ -262,18 +262,18 @@ export default function AccountSettingsPage() {
           <div className="flex h-8 w-8 items-center justify-center rounded-full bg-red-500/20">
             <Trash2 className="h-4 w-4 text-red-400" />
           </div>
-          <h3 className="font-heading text-base font-semibold text-red-400">Delete Account</h3>
+          <h3 className="font-heading text-base font-semibold text-red-400">{t("account.deleteAccount")}</h3>
         </div>
         <p className="text-sm text-muted-foreground">
-          Permanently delete your account and all associated data. Circles you organize will be orphaned. This action cannot be undone.
+          {t("account.deleteAccountHint")}
         </p>
         <div>
           <label className="block text-xs font-medium text-muted-foreground mb-1.5">
-            Type your username to confirm
+            {t("account.confirmDelete")}
           </label>
           <div className="flex gap-2">
             <Input
-              placeholder={user?.displayName ?? "Type your name"}
+              placeholder={user?.displayName ?? t("account.displayName")}
               value={deleteConfirm}
               onChange={(e) => setDeleteConfirm(e.target.value)}
               className="flex-1"
@@ -285,7 +285,7 @@ export default function AccountSettingsPage() {
               isLoading={deleting}
               disabled={deleteConfirm !== (user?.displayName ?? "")}
             >
-              Delete Account
+              {t("account.deleteAccount")}
             </Button>
           </div>
         </div>
@@ -293,15 +293,15 @@ export default function AccountSettingsPage() {
 
       <div className="flex items-center justify-end gap-3">
         <Link href="/settings">
-          <Button variant="outline" size="md">Cancel</Button>
+          <Button variant="outline" size="md">{t("common.cancel")}</Button>
         </Link>
         {saved && (
           <span className="inline-flex items-center gap-1 text-sm text-emerald-400">
-            <Check className="h-4 w-4" /> Saved
+            <Check className="h-4 w-4" /> {t("common.saved")}
           </span>
         )}
         <Button variant="primary" size="md" onClick={handleSave} isLoading={saving} leftIcon={<Save className="h-4 w-4" />}>
-          Save Changes
+          {t("common.saveChanges")}
         </Button>
       </div>
 
@@ -309,9 +309,9 @@ export default function AccountSettingsPage() {
         isOpen={showDeleteModal}
         onClose={() => setShowDeleteModal(false)}
         onConfirm={handleDeleteAccount}
-        title="Delete Account"
-        message={`This will permanently delete your account "${user?.displayName ?? ""}" and all associated data. Circles you organize will be orphaned. This cannot be undone.`}
-        confirmLabel="Delete My Account"
+        title={t("account.deleteAccount")}
+        message={t("account.deleteAccountHint")}
+        confirmLabel={t("account.deleteMyAccount")}
         variant="danger"
         isLoading={deleting}
       />

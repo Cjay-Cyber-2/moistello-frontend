@@ -1,4 +1,5 @@
 {
+  "account.anonymous": "Anonymous",
   "auth.login.biometricText": "I-authenticate gamit ang biometrics ng iyong device.",
   "auth.login.connecting": "Kinokonekta ang iyong wallet...",
   "auth.login.createAccount": "Gumawa ng account",

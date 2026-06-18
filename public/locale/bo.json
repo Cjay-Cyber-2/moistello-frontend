@@ -1,4 +1,5 @@
 {
+  "account.anonymous": "མིང་མེད་པ།",
   "auth.login.biometricText": "ཁྱེད་རང་གི་འཕྲུལ་ཆས་ཀྱི་སྐྱེ་ལྡན་ཚད་འཇལ་ཆས་སྤྱད་དེ་བདེན་དཔང་བྱོས།",
   "auth.login.connecting": "ཁྱེད་རང་གི་དངུལ་ཁུག་སྦྲེལ་བ།",
   "auth.login.createAccount": "རྩིས་ཁྲ་གསར་འཛུགས།",

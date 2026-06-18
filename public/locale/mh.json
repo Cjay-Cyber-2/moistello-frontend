@@ -1,4 +1,5 @@
 {
+  "account.anonymous": "Ejelok etan",
   "auth.login.biometricText": "Kalikar kin biometrics in device eo am.",
   "auth.login.connecting": "Kobaik wallet eo am...",
   "auth.login.createAccount": "Kōmmane juon am account",

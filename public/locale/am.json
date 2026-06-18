@@ -1,4 +1,5 @@
 {
+  "account.anonymous": "ስም የለሽ",
   "auth.login.biometricText": "በመሳሪያዎ ባዮሜትሪክስ ያረጋግጡ።",
   "auth.login.connecting": "የኪስ ቦርሳዎን በማገናኘት ላይ...",
   "auth.login.createAccount": "መለያ ፍጠር",

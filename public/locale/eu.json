@@ -1,4 +1,5 @@
 {
+  "account.anonymous": "Anonimoa",
   "auth.login.biometricText": "Egiaztatu zure gailuaren biometrikoekin.",
   "auth.login.connecting": "Zure zorroa konektatzen...",
   "auth.login.createAccount": "Sortu kontu bat",

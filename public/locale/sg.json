@@ -1,4 +1,5 @@
 {
+  "account.anonymous": "Anonyme",
   "auth.login.biometricText": "Authentification na lege ti biométrie ti appareil ti mo.",
   "auth.login.connecting": "Connecté porte-monnaie ti mo...",
   "auth.login.createAccount": "Sara mbeni compte .",

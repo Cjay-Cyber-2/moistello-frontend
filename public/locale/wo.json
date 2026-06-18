@@ -1,4 +1,5 @@
 {
+  "account.anonymous": "Ku nëbbu",
   "auth.login.biometricText": "Xaarandil sa biometrik aparey.",
   "auth.login.connecting": "Konekte sa portefeuille...",
   "auth.login.createAccount": "Sosal kontu",

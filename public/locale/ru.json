@@ -1,4 +1,5 @@
 {
+  "account.anonymous": "Анонимный",
   "auth.login.biometricText": "Выполните аутентификацию с помощью биометрических данных вашего устройства.",
   "auth.login.connecting": "Подключение кошелька...",
   "auth.login.createAccount": "Создать учетную запись",

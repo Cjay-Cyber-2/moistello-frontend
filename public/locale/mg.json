@@ -1,4 +1,5 @@
 {
+  "account.anonymous": "Anonymous",
   "auth.login.biometricText": "Hamarino amin'ny biometrika ny fitaovanao.",
   "auth.login.connecting": "Mampifandray ny poketrao...",
   "auth.login.createAccount": "Mamorona kaonty",

@@ -1,4 +1,5 @@
 {
+  "account.anonymous": "Nafnlaus",
   "auth.login.biometricText": "Staðfestu með líffræðileg tölfræði tækisins þíns.",
   "auth.login.connecting": "Tengist veskið þitt...",
   "auth.login.createAccount": "Búðu til reikning",

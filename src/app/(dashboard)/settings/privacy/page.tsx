@@ -32,9 +32,9 @@ export default function PrivacySettingsPage() {
   }, [profileVisibility, showLeaderboard, allowFriendRequests])
 
   const VISIBILITY_OPTIONS = [
-    { value: "public", label: "Public", desc: "Anyone can see your profile and activity" },
-    { value: "members", label: "Members only", desc: "Only logged-in members can see your profile" },
-    { value: "private", label: "Private", desc: "Only friends can see your profile" },
+    { value: "public", label: t("privacy.public"), desc: t("privacy.publicDesc") },
+    { value: "members", label: t("privacy.members"), desc: t("privacy.membersDesc") },
+    { value: "private", label: t("privacy.private"), desc: t("privacy.privateDesc") },
   ]
 
   return (
@@ -53,7 +53,7 @@ export default function PrivacySettingsPage() {
       <div className="glass-premium rounded-2xl p-6 space-y-4">
         <h3 className="font-heading text-sm font-semibold text-foreground flex items-center gap-2">
           <Shield className="h-4 w-4 text-aurora-violet" />
-          Profile Visibility
+          {t("privacy.profileVisibility")}
         </h3>
         <div className="space-y-3">
           {VISIBILITY_OPTIONS.map((opt) => (
@@ -82,12 +82,12 @@ export default function PrivacySettingsPage() {
 
       {/* Toggles */}
       <div className="glass-premium rounded-2xl p-6 space-y-5">
-        <h3 className="font-heading text-sm font-semibold text-foreground">Preferences</h3>
+        <h3 className="font-heading text-sm font-semibold text-foreground">{t("privacy.preferences")}</h3>
 
         <div className="flex items-center justify-between py-2">
           <div>
-            <p className="text-sm font-medium text-foreground">Show on Leaderboard</p>
-            <p className="text-xs text-muted-foreground">Your stats appear on the public leaderboard</p>
+            <p className="text-sm font-medium text-foreground">{t("privacy.showLeaderboard")}</p>
+            <p className="text-xs text-muted-foreground">{t("privacy.leaderboardHint")}</p>
           </div>
           <button
             type="button"
@@ -108,8 +108,8 @@ export default function PrivacySettingsPage() {
 
         <div className="flex items-center justify-between py-2">
           <div>
-            <p className="text-sm font-medium text-foreground">Allow Friend Requests</p>
-            <p className="text-xs text-muted-foreground">Other members can send you friend requests</p>
+            <p className="text-sm font-medium text-foreground">{t("privacy.allowFriendRequests")}</p>
+            <p className="text-xs text-muted-foreground">{t("privacy.friendRequestsHint")}</p>
           </div>
           <button
             type="button"
@@ -131,15 +131,15 @@ export default function PrivacySettingsPage() {
 
       <div className="flex items-center justify-end gap-3">
         <Link href="/settings">
-          <Button variant="outline" size="md">Cancel</Button>
+          <Button variant="outline" size="md">{t("common.cancel")}</Button>
         </Link>
         {saved && (
           <span className="inline-flex items-center gap-1 text-sm text-emerald-400">
-            <Check className="h-4 w-4" /> Saved
+            <Check className="h-4 w-4" /> {t("common.saved")}
           </span>
         )}
         <Button variant="primary" size="md" onClick={handleSave} isLoading={saving}>
-          Save Preferences
+          {t("privacy.savePreferences")}
         </Button>
       </div>
     </div>

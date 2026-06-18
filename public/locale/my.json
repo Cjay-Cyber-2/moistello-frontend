@@ -1,4 +1,5 @@
 {
+  "account.anonymous": "အမည်မသိ",
   "auth.login.biometricText": "သင့်စက်ပစ္စည်း၏ ဇီဝဗေဒဆိုင်ရာ အချက်အလက်များဖြင့် စစ်မှန်ကြောင်း စစ်ဆေးပါ။",
   "auth.login.connecting": "သင့်ပိုက်ဆံအိတ်ကို ချိတ်ဆက်နေသည်...",
   "auth.login.createAccount": "အကောင့်တစ်ခုဖန်တီးပါ။",

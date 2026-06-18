@@ -1,4 +1,5 @@
 {
+  "account.anonymous": "İsimsiz",
   "auth.login.biometricText": "Cihazınızın biyometrisiyle kimlik doğrulaması yapın.",
   "auth.login.connecting": "Cüzdanınız bağlanıyor...",
   "auth.login.createAccount": "Hesap oluştur",

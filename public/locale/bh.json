@@ -1,4 +1,5 @@
 {
+  "account.anonymous": "बेनामी हो गइल बा",
   "auth.login.biometricText": "अपना डिवाइस बायोमेट्रिक से प्रमाणित करीं।",
   "auth.login.connecting": "आपन बटुआ के जोड़त बानी...",
   "auth.login.createAccount": "एगो खाता बनाईं",

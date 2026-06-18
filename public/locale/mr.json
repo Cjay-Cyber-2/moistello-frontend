@@ -1,4 +1,5 @@
 {
+  "account.anonymous": "अनामिक",
   "auth.login.biometricText": "तुमच्या डिव्हाइसच्या बायोमेट्रिक्ससह प्रमाणीकृत करा.",
   "auth.login.connecting": "तुमचे वॉलेट कनेक्ट करत आहे...",
   "auth.login.createAccount": "खाते तयार करा",

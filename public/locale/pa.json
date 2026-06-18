@@ -1,4 +1,5 @@
 {
+  "account.anonymous": "ਅਗਿਆਤ",
   "auth.login.biometricText": "ਆਪਣੀ ਡਿਵਾਈਸ ਬਾਇਓਮੈਟ੍ਰਿਕਸ ਨਾਲ ਪ੍ਰਮਾਣਿਤ ਕਰੋ।",
   "auth.login.connecting": "ਤੁਹਾਡੇ ਵਾਲਿਟ ਨੂੰ ਕਨੈਕਟ ਕੀਤਾ ਜਾ ਰਿਹਾ ਹੈ...",
   "auth.login.createAccount": "ਇੱਕ ਖਾਤਾ ਬਣਾਓ",

@@ -1,4 +1,5 @@
 {
+  "account.anonymous": "Անանուն",
   "auth.login.biometricText": "Ստուգեք ձեր սարքի կենսաչափական տվյալները:",
   "auth.login.connecting": "Ձեր դրամապանակը միանում է...",
   "auth.login.createAccount": "Ստեղծեք հաշիվ",

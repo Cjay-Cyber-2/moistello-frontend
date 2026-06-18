@@ -1,4 +1,5 @@
 {
+  "account.anonymous": "Tanpa Nama",
   "auth.login.biometricText": "Sahkan dengan biometrik peranti anda.",
   "auth.login.connecting": "Menyambungkan dompet anda...",
   "auth.login.createAccount": "Buat akaun",

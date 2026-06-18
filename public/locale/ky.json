@@ -1,4 +1,5 @@
 {
+  "account.anonymous": "Anonymous",
   "auth.login.biometricText": "Түзмөгүңүздүн биометрикалык маалыматтары менен аныктыгын текшериңиз.",
   "auth.login.connecting": "Капчыгыңыз туташтырылууда...",
   "auth.login.createAccount": "Каттоо эсебин түзүү",

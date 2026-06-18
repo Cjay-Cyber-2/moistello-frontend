@@ -1,4 +1,5 @@
 {
+  "account.anonymous": "Anonymous",
   "auth.login.biometricText": "Kwemeza hamwe nibikoresho byawe biometrics.",
   "auth.login.connecting": "Guhuza ikotomoni yawe ...",
   "auth.login.createAccount": "Kora konti",

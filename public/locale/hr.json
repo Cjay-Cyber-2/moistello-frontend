@@ -1,4 +1,5 @@
 {
+  "account.anonymous": "Anonimno",
   "auth.login.biometricText": "Autentificirajte se pomoću biometrije svog uređaja.",
   "auth.login.connecting": "Povezivanje vašeg novčanika...",
   "auth.login.createAccount": "Napravi račun",

@@ -1,4 +1,5 @@
 {
+  "account.anonymous": "Nimetön",
   "auth.login.biometricText": "Todenna laitteen biometrisilla tiedoilla.",
   "auth.login.connecting": "Yhdistetään lompakkoasi...",
   "auth.login.createAccount": "Luo tili",

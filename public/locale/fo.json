@@ -1,4 +1,5 @@
 {
+  "account.anonymous": "Dulnevndur",
   "auth.login.biometricText": "Autentisera við biometriini á tínari tól.",
   "auth.login.connecting": "Set pengapungið í samband...",
   "auth.login.createAccount": "Stovna eina kontu",

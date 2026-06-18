@@ -1,4 +1,5 @@
 {
+  "account.anonymous": "Anonim",
   "auth.login.biometricText": "Autentificatz amb las biometrias de vòstre periferic.",
   "auth.login.connecting": "En connectant vòstre portamoneda...",
   "auth.login.createAccount": "Crear un compte",

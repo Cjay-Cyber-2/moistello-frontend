@@ -1,4 +1,5 @@
 {
+  "account.anonymous": "אנונימי",
   "auth.login.biometricText": "בצע אימות באמצעות ביומטריה של המכשיר שלך.",
   "auth.login.connecting": "מחבר את הארנק שלך...",
   "auth.login.createAccount": "צור חשבון",

@@ -1,4 +1,5 @@
 {
+  "account.anonymous": "Ανώνυμος",
   "auth.login.biometricText": "Πραγματοποιήστε έλεγχο ταυτότητας με τα βιομετρικά στοιχεία της συσκευής σας.",
   "auth.login.connecting": "Σύνδεση του πορτοφολιού σας...",
   "auth.login.createAccount": "Δημιουργήστε έναν λογαριασμό",

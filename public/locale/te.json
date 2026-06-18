@@ -1,4 +1,5 @@
 {
+  "account.anonymous": "అనామకుడు",
   "auth.login.biometricText": "మీ పరికరం బయోమెట్రిక్‌లతో ప్రమాణీకరించండి.",
   "auth.login.connecting": "మీ వాలెట్‌ని కనెక్ట్ చేస్తోంది...",
   "auth.login.createAccount": "ఖాతాను సృష్టించండి",

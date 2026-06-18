@@ -1,4 +1,5 @@
 {
+  "account.anonymous": "Анонім",
   "auth.login.biometricText": "Пройдіть автентифікацію за допомогою біометричних даних свого пристрою.",
   "auth.login.connecting": "Підключення гаманця...",
   "auth.login.createAccount": "Створіть обліковий запис",

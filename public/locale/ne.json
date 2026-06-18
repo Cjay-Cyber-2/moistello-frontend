@@ -1,4 +1,5 @@
 {
+  "account.anonymous": "बेनामी",
   "auth.login.biometricText": "आफ्नो उपकरण बायोमेट्रिक्स संग प्रमाणीकरण।",
   "auth.login.connecting": "तपाईंको वालेट जडान गर्दै...",
   "auth.login.createAccount": "एउटा खाता सिर्जना गर्नुहोस्",

@@ -1,4 +1,5 @@
 {
+  "account.anonymous": "Anonīms",
   "auth.login.biometricText": "Autentificējieties, izmantojot ierīces biometriskos datus.",
   "auth.login.connecting": "Notiek maka pievienošana...",
   "auth.login.createAccount": "Izveidojiet kontu",

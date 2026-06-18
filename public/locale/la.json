@@ -1,4 +1,5 @@
 {
+  "account.anonymous": "Anonymous",
   "auth.login.biometricText": "Authenticitate cum fabrica biometrics.",
   "auth.login.connecting": "Coniungens crumenam tuam...",
   "auth.login.createAccount": "Create an account",

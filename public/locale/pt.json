@@ -1,4 +1,5 @@
 {
+  "account.anonymous": "Anônimo",
   "auth.login.biometricText": "Autentique com a biometria do seu dispositivo.",
   "auth.login.connecting": "Conectando sua carteira...",
   "auth.login.createAccount": "Crie uma conta",

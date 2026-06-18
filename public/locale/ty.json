@@ -1,4 +1,5 @@
 {
+  "account.anonymous": "Anonymous",
   "auth.login.biometricText": "A haapapû e, e ta outou mau rave'a biometrics.",
   "auth.login.connecting": "Te taatiraa i ta outou pute moni...",
   "auth.login.createAccount": "A hamani i te hoê moni",

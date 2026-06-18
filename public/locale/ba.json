@@ -1,4 +1,5 @@
 {
+  "account.anonymous": "Аноним",
   "auth.login.biometricText": "Һеҙҙең ҡоролма менән аутентификация биометрия.",
   "auth.login.connecting": "Һеҙҙең янсыҡты тоташтырыу...",
   "auth.login.createAccount": "Иҫәп яҙмаһы булдырыу .",

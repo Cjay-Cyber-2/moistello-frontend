@@ -1,4 +1,5 @@
 {
+  "account.anonymous": "بې نومه",
   "auth.login.biometricText": "د خپل وسیله بایومیټریک سره تصدیق کړئ.",
   "auth.login.connecting": "ستاسو بټوه نښلول ...",
   "auth.login.createAccount": "یو حساب جوړ کړئ",

@@ -1,4 +1,5 @@
 {
+  "account.anonymous": "익명",
   "auth.login.biometricText": "장치 생체 인식으로 인증하십시오.",
   "auth.login.connecting": "지갑을 연결하는 중...",
   "auth.login.createAccount": "계정 만들기",

@@ -1,4 +1,5 @@
 {
+  "account.anonymous": "ບໍ່ເປີດເຜີຍຊື່",
   "auth.login.biometricText": "ພິສູດຢືນຢັນດ້ວຍ biometrics ອຸປະກອນຂອງທ່ານ.",
   "auth.login.connecting": "ກຳລັງເຊື່ອມຕໍ່ກະເປົາເງິນຂອງທ່ານ...",
   "auth.login.createAccount": "ສ້າງບັນຊີ",

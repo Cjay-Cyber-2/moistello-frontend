@@ -1,4 +1,5 @@
 {
+  "account.anonymous": "Anonyma",
   "auth.login.biometricText": "Duođaš iežat rusttegiid biometriijain.",
   "auth.login.connecting": "Ovttastahttit du logahaga...",
   "auth.login.createAccount": "Ráhkat konto",

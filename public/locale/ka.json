@@ -1,4 +1,5 @@
 {
+  "account.anonymous": "ანონიმური",
   "auth.login.biometricText": "ავთენტიფიკაცია თქვენი მოწყობილობის ბიომეტრიით.",
   "auth.login.connecting": "მიმდინარეობს თქვენი საფულის დაკავშირება...",
   "auth.login.createAccount": "შექმენით ანგარიში",

@@ -1,4 +1,5 @@
 {
+  "account.anonymous": "Anonüümne",
   "auth.login.biometricText": "Autentige oma seadme biomeetria abil.",
   "auth.login.connecting": "Rahakoti ühendamine...",
   "auth.login.createAccount": "Loo konto",

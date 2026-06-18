@@ -1,4 +1,5 @@
 {
+  "account.anonymous": "Osadziwika",
   "auth.login.biometricText": "Tsimikizirani ndi ma biometric a chipangizo chanu.",
   "auth.login.connecting": "Kulumikiza chikwama chanu...",
   "auth.login.createAccount": "Pangani akaunti",

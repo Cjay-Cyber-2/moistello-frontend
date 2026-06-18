@@ -1,4 +1,5 @@
 {
+  "account.anonymous": "અનામી",
   "auth.login.biometricText": "તમારા ઉપકરણ બાયોમેટ્રિક્સ સાથે પ્રમાણિત કરો.",
   "auth.login.connecting": "તમારું વૉલેટ કનેક્ટ કરી રહ્યાં છીએ...",
   "auth.login.createAccount": "એકાઉન્ટ બનાવો",

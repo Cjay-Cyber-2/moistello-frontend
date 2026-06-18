@@ -1,4 +1,5 @@
 {
+  "account.anonymous": "Anonym",
   "auth.login.biometricText": "Autentiser med enhetens biometri.",
   "auth.login.connecting": "Kobler til lommeboken ...",
   "auth.login.createAccount": "Opprett en konto",

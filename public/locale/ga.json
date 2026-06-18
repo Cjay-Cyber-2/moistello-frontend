@@ -1,4 +1,5 @@
 {
+  "account.anonymous": "Gan ainm",
   "auth.login.biometricText": "Fíordheimhnigh le bithmhéadracht do ghléis.",
   "auth.login.connecting": "Ag nascadh do sparán...",
   "auth.login.createAccount": "Cruthaigh cuntas",

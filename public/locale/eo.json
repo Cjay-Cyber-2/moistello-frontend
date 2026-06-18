@@ -1,4 +1,5 @@
 {
+  "account.anonymous": "Anonima",
   "auth.login.biometricText": "Aŭtentikigu per via aparato biometriko.",
   "auth.login.connecting": "Konektante vian monujon...",
   "auth.login.createAccount": "Kreu konton",

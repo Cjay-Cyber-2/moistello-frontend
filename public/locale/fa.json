@@ -1,4 +1,5 @@
 {
+  "account.anonymous": "ناشناس",
   "auth.login.biometricText": "با بیومتریک دستگاه خود احراز هویت کنید.",
   "auth.login.connecting": "در حال اتصال کیف پول ...",
   "auth.login.createAccount": "یک حساب کاربری ایجاد کنید",

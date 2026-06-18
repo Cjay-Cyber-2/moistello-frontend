@@ -1,4 +1,5 @@
 {
+  "account.anonymous": "匿名",
   "auth.login.biometricText": "デバイスの生体認証を使用して認証します。",
   "auth.login.connecting": "ウォレットを接続しています...",
   "auth.login.createAccount": "アカウントを作成する",

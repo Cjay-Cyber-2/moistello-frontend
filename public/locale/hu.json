@@ -1,4 +1,5 @@
 {
+  "account.anonymous": "Névtelen",
   "auth.login.biometricText": "Hitelesítés az eszköz biometrikus adataival.",
   "auth.login.connecting": "Pénztárca csatlakoztatása...",
   "auth.login.createAccount": "Hozzon létre egy fiókot",

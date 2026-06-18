@@ -1,4 +1,5 @@
 {
+  "account.anonymous": "Ẩn danh",
   "auth.login.biometricText": "Xác thực bằng sinh trắc học thiết bị của bạn.",
   "auth.login.connecting": "Đang kết nối ví của bạn...",
   "auth.login.createAccount": "Tạo một tài khoản",

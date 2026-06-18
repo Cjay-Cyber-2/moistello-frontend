@@ -1,4 +1,5 @@
 {
+  "account.anonymous": "அநாமதேய",
   "auth.login.biometricText": "உங்கள் சாதன பயோமெட்ரிக்ஸ் மூலம் அங்கீகரிக்கவும்.",
   "auth.login.connecting": "உங்கள் பணப்பையை இணைக்கிறது...",
   "auth.login.createAccount": "ஒரு கணக்கை உருவாக்கவும்",

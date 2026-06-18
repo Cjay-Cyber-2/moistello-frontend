@@ -1,4 +1,5 @@
 {
+  "account.anonymous": "ไม่ระบุชื่อ",
   "auth.login.biometricText": "ตรวจสอบสิทธิ์กับอุปกรณ์ไบโอเมตริกซ์ของคุณ",
   "auth.login.connecting": "กำลังเชื่อมต่อกระเป๋าเงินของคุณ...",
   "auth.login.createAccount": "สร้างบัญชี",

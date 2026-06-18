@@ -1,4 +1,5 @@
 {
+  "account.anonymous": "Anonymous",
   "auth.login.biometricText": "Simbisa neako mudziyo biometrics.",
   "auth.login.connecting": "Kubatanidza chikwama chako...",
   "auth.login.createAccount": "Gadzira account",

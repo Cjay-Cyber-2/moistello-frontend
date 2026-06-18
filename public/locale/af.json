@@ -1,4 +1,5 @@
 {
+  "account.anonymous": "Anoniem",
   "auth.login.biometricText": "Verifieer met jou toestelbiometrie.",
   "auth.login.connecting": "Koppel tans jou beursie …",
   "auth.login.createAccount": "Skep 'n rekening",

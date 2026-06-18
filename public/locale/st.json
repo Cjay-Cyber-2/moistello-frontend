@@ -1,4 +1,5 @@
 {
+  "account.anonymous": "Motho ea sa tsejoeng",
   "auth.login.biometricText": "Netefatsa ka biometrics ea sesebelisoa sa hau.",
   "auth.login.connecting": "E hokela sepache sa hau...",
   "auth.login.createAccount": "Etsa akhaonto",

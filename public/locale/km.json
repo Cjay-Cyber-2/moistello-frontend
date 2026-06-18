@@ -1,4 +1,5 @@
 {
+  "account.anonymous": "អនាមិក",
   "auth.login.biometricText": "ផ្ទៀងផ្ទាត់ភាពត្រឹមត្រូវដោយប្រើជីវមាត្រឧបករណ៍របស់អ្នក។",
   "auth.login.connecting": "កំពុងភ្ជាប់កាបូបរបស់អ្នក...",
   "auth.login.createAccount": "បង្កើតគណនីមួយ។",
