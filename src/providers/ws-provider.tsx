@@ -1,6 +1,6 @@
 "use client";
 
-import { type ReactNode, useEffect, useRef } from "react";
+import { type ReactNode, useEffect, useRef, useCallback } from "react";
 import { useWebSocket, type WebSocketMessage } from "@/hooks/use-websocket";
 import { useNotificationStore } from "@/stores/notification-store";
 import { useQueryClient } from "@tanstack/react-query";
@@ -16,7 +16,9 @@ export function WsProvider({ children }: WsProviderProps) {
   const fetchNotifications = useNotificationStore((s) => s.fetchNotifications);
   const mountedRef = useRef(true);
 
-  const handleEvent = (msg: WebSocketMessage) => {
+  const handleEventRef = useRef<(msg: WebSocketMessage) => void>(() => {});
+
+  handleEventRef.current = (msg: WebSocketMessage) => {
     if (!mountedRef.current) return;
 
     const payload = msg.payload as Record<string, unknown> | undefined;
@@ -82,11 +84,17 @@ export function WsProvider({ children }: WsProviderProps) {
     }
   };
 
+  const handleEvent = useCallback((msg: WebSocketMessage) => {
+    handleEventRef.current(msg);
+  }, []);
+
   useWebSocket({ onEvent: handleEvent });
 
   useEffect(() => {
     mountedRef.current = true;
-    return () => { mountedRef.current = false; };
+    return () => {
+      mountedRef.current = false;
+    };
   }, []);
 
   return <>{children}</>;
