@@ -10,6 +10,7 @@ import {
   ExternalLink,
   ArrowUpCircle,
   AlertCircle,
+  Search,
 } from "lucide-react"
 import { useQuery } from "@tanstack/react-query"
 import { get } from "@/lib/api-client"
@@ -19,6 +20,7 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Select } from "@/components/ui/select"
 import { Skeleton } from "@/components/ui/skeleton"
+import { Input } from "@/components/ui/input"
 import { formatCurrency, formatDate, formatAddress } from "@/lib/formatters"
 import type {
   ApiResponse,
@@ -54,7 +56,11 @@ const rowVariants = {
 }
 
 export default function ContributionsPage() {
+  const [searchQuery, setSearchQuery] = useState("")
   const [circleFilter, setCircleFilter] = useState("")
+  const [amountFilter, setAmountFilter] = useState("")
+  const [dateFilter, setDateFilter] = useState("")
+  const [sortOption, setSortOption] = useState("date-desc")
   const [page, setPage] = useState(1)
   const limit = 20
 
@@ -73,26 +79,53 @@ export default function ContributionsPage() {
   ]
 
   const { data, isLoading, isError } = useQuery({
-    queryKey: ["contributions", circleFilter, page, limit],
+    queryKey: ["contributions", searchQuery, circleFilter, amountFilter, dateFilter, sortOption, page, limit],
     queryFn: async () => {
       const params = new URLSearchParams()
+      if (searchQuery) params.set("search", searchQuery)
       if (circleFilter) params.set("circleId", circleFilter)
+      if (amountFilter) params.set("amount", amountFilter)
+      if (dateFilter) params.set("date", dateFilter)
+      if (sortOption) params.set("sort", sortOption)
       params.set("page", String(page))
       params.set("limit", String(limit))
       const query = params.toString()
       const url = `/contributions?${query}`
-      const response = await get<ApiResponse<{ contributions: ContributionType[] }>>(url)
+      const response = await get<ApiResponse<{ contributions: ContributionType[], summary?: { totalContributed: number, average: number, count: number } }>>(url)
       return {
         contributions: response.data?.contributions ?? [],
+        summary: response.data?.summary ?? null,
         meta: response.meta ?? { page, limit, total: 0, totalPages: 0 },
       }
     },
   })
 
   const contributions = data?.contributions ?? []
+  const summary = data?.summary
   const meta = data?.meta
   const hasNext = meta ? meta.page < meta.totalPages : false
   const hasPrev = page > 1
+
+  const amountOptions = [
+    { label: "All Amounts", value: "" },
+    { label: "Under $100", value: "<100" },
+    { label: "$100 - $500", value: "100-500" },
+    { label: "Over $500", value: ">500" },
+  ]
+
+  const dateOptions = [
+    { label: "All Time", value: "" },
+    { label: "Past 7 Days", value: "7d" },
+    { label: "Past 30 Days", value: "30d" },
+    { label: "This Year", value: "1y" },
+  ]
+
+  const sortOptions = [
+    { label: "Newest First", value: "date-desc" },
+    { label: "Oldest First", value: "date-asc" },
+    { label: "Amount: High to Low", value: "amount-desc" },
+    { label: "Amount: Low to High", value: "amount-asc" },
+  ]
 
   const getCircleName = (circleId: string): string =>
     circles.find((c) => c.id === circleId)?.name ?? "Unknown"
@@ -104,18 +137,85 @@ export default function ContributionsPage() {
         description="Track all your circle contributions and their status."
       />
 
-      <div className="flex items-center gap-3">
-        <Filter className="h-4 w-4 text-muted-foreground" />
-        <div className="w-64">
-          <Select
-            options={circleOptions}
-            value={circleFilter}
-            onChange={(value) => {
-              setCircleFilter(value)
+      {summary && (
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+          <div className="glass-premium rounded-2xl p-5 relative overflow-hidden group">
+            <div className="absolute inset-0 bg-gradient-to-br from-aurora-teal/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+            <p className="text-sm font-medium text-muted-foreground font-heading uppercase tracking-wider mb-1">Total Contributed</p>
+            <p className="font-heading text-2xl font-bold gradient-text">{formatCurrency(summary.totalContributed)}</p>
+          </div>
+          <div className="glass-premium rounded-2xl p-5 relative overflow-hidden group">
+            <div className="absolute inset-0 bg-gradient-to-br from-aurora-purple/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+            <p className="text-sm font-medium text-muted-foreground font-heading uppercase tracking-wider mb-1">Average Amount</p>
+            <p className="font-heading text-2xl font-bold text-foreground">{formatCurrency(summary.average)}</p>
+          </div>
+          <div className="glass-premium rounded-2xl p-5 relative overflow-hidden group">
+            <div className="absolute inset-0 bg-gradient-to-br from-aurora-cyan/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+            <p className="text-sm font-medium text-muted-foreground font-heading uppercase tracking-wider mb-1">Total Count</p>
+            <p className="font-heading text-2xl font-bold text-foreground">{summary.count}</p>
+          </div>
+        </div>
+      )}
+
+      <div className="flex flex-col md:flex-row items-center gap-3 bg-background/40 p-3 rounded-xl border border-border/50">
+        <div className="relative flex-1 w-full">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Search contributions..."
+            value={searchQuery}
+            onChange={(e) => {
+              setSearchQuery(e.target.value)
               setPage(1)
             }}
-            placeholder="Filter by circle..."
+            className="pl-9 bg-background/50 border-border/50 w-full"
           />
+        </div>
+        <div className="flex items-center gap-2 w-full md:w-auto overflow-x-auto pb-1 md:pb-0">
+          <Filter className="h-4 w-4 text-muted-foreground hidden md:block ml-2 shrink-0" />
+          <div className="w-32 shrink-0">
+            <Select
+              options={circleOptions}
+              value={circleFilter}
+              onChange={(value) => {
+                setCircleFilter(value)
+                setPage(1)
+              }}
+              placeholder="Circle"
+            />
+          </div>
+          <div className="w-32 shrink-0">
+            <Select
+              options={amountOptions}
+              value={amountFilter}
+              onChange={(value) => {
+                setAmountFilter(value)
+                setPage(1)
+              }}
+              placeholder="Amount"
+            />
+          </div>
+          <div className="w-32 shrink-0">
+            <Select
+              options={dateOptions}
+              value={dateFilter}
+              onChange={(value) => {
+                setDateFilter(value)
+                setPage(1)
+              }}
+              placeholder="Date"
+            />
+          </div>
+          <div className="w-40 shrink-0">
+            <Select
+              options={sortOptions}
+              value={sortOption}
+              onChange={(value) => {
+                setSortOption(value)
+                setPage(1)
+              }}
+              placeholder="Sort by"
+            />
+          </div>
         </div>
       </div>
 
