@@ -1,12 +1,13 @@
 "use client"
 
 import { useState } from "react"
-import { Wallet, X, Loader2, AlertCircle, QrCode, Shield, Usb } from "lucide-react"
+import { Wallet, X, Loader2, AlertCircle, QrCode, Shield, Usb, WifiOff } from "lucide-react"
 import { cn } from "@/lib/cn"
 import { useMultiWalletStore } from "@/stores/multi-wallet-store"
 import { formatAddress } from "@/lib/formatters"
 import dynamic from "next/dynamic"
 import type { WalletId } from "@/lib/wallet/types"
+import { useOnlineStatus } from "@/hooks/use-online-status"
 
 const LedgerPrompt = dynamic(() => import("@/components/wallet/ledger-prompt").then((m) => m.LedgerPrompt), { ssr: false })
 const WalletConnectQR = dynamic(() => import("@/components/wallet/walletconnect-qr").then((m) => m.WalletConnectQR), { ssr: false })
@@ -80,9 +81,10 @@ interface WalletItemProps {
   activeId: WalletId | null
   onSelect: (id: WalletId) => void
   description?: string
+  isOnline?: boolean
 }
 
-function WalletItem({ id, name, status, isConnecting, activeId, onSelect, description }: WalletItemProps) {
+function WalletItem({ id, name, status, isConnecting, activeId, onSelect, description, isOnline = true }: WalletItemProps) {
   const isWC = id === "walletconnect"
   const isPasskey = id === "passkey"
   const available = isWC || isPasskey || status === "detected"
@@ -91,7 +93,7 @@ function WalletItem({ id, name, status, isConnecting, activeId, onSelect, descri
   return (
     <button
       type="button"
-      disabled={!available || isConnecting}
+      disabled={!available || isConnecting || !isOnline}
       onClick={() => onSelect(id)}
       className={cn(
         "w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left transition-all",
@@ -177,6 +179,7 @@ interface WalletSelectorProps {
 }
 
 export function WalletSelector({ className, variant = "inline" }: WalletSelectorProps) {
+  const isOnline = useOnlineStatus()
   const [showLedgerPrompt, setShowLedgerPrompt] = useState(false)
   const detectedWallets = useMultiWalletStore((s) => s.detectedWallets)
   const isScanning = useMultiWalletStore((s) => s.isScanning)
@@ -215,6 +218,7 @@ export function WalletSelector({ className, variant = "inline" }: WalletSelector
   const isWc2Active = wc2PairingState !== "idle" && wc2PairingState !== "approved"
 
   const handleSelect = async (walletId: WalletId) => {
+    if (!isOnline) return
     const wallet = detectedWallets.find((w) => w.id === walletId)
     if (wallet?.category === "hardware") {
       setShowLedgerPrompt(true)
@@ -310,6 +314,16 @@ export function WalletSelector({ className, variant = "inline" }: WalletSelector
               Choose a wallet to sign in securely
             </p>
 
+            {!isOnline && (
+              <div className="flex items-center gap-2.5 rounded-xl bg-amber-500/10 border border-amber-500/20 px-4 py-3 mb-4">
+                <WifiOff className="h-4 w-4 text-amber-400 shrink-0" />
+                <div>
+                  <p className="text-sm font-medium text-amber-400">You&apos;re offline</p>
+                  <p className="text-xs text-amber-400/70 mt-0.5">Check your internet connection to connect a wallet</p>
+                </div>
+              </div>
+            )}
+
             <div className="space-y-2">
               {isScanning && (
                 <div className="flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl bg-aurora-violet/10 border border-aurora-violet/20 text-xs text-aurora-violet font-medium animate-pulse mb-2">
@@ -327,6 +341,7 @@ export function WalletSelector({ className, variant = "inline" }: WalletSelector
                   isConnecting={isConnecting}
                   activeId={activeWalletId}
                   onSelect={handleSelect}
+                  isOnline={isOnline}
                 />
               ))}
               {hardwareWallets.map((w) => (
@@ -426,6 +441,15 @@ export function WalletSelector({ className, variant = "inline" }: WalletSelector
           </div>
         ) : isSelectorOpen ? (
           <div className="space-y-2">
+            {!isOnline && (
+              <div className="flex items-center gap-2.5 rounded-xl bg-amber-500/10 border border-amber-500/20 px-3 py-2.5 mb-2">
+                <WifiOff className="h-3.5 w-3.5 text-amber-400 shrink-0" />
+                <div>
+                  <p className="text-xs font-medium text-amber-400">You&apos;re offline</p>
+                  <p className="text-2xs text-amber-400/70 mt-0.5">Connect when you&apos;re back online</p>
+                </div>
+              </div>
+            )}
             {isScanning && (
               <div className="flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl bg-aurora-violet/10 border border-aurora-violet/20 text-xs text-aurora-violet font-medium animate-pulse mb-2">
                 <Loader2 className="h-3.5 w-3.5 animate-spin shrink-0" />
@@ -442,6 +466,7 @@ export function WalletSelector({ className, variant = "inline" }: WalletSelector
                 isConnecting={isConnecting}
                 activeId={activeWalletId}
                 onSelect={handleSelect}
+                isOnline={isOnline}
               />
               ))}
             {hardwareWallets.map((w) => (

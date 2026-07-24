@@ -243,7 +243,40 @@ export const useMultiWalletStore = create<MultiWalletState>()((set, get) => ({
   },
 
   connect: async (walletId: WalletId) => {
-    if (get().connectingWalletId === walletId) return;
+    /* ── Offline guard ─────────────────────────────────────────── */
+    if (typeof navigator !== "undefined" && !navigator.onLine) {
+      const offlineError: WalletError = {
+        adapter: walletId,
+        code: "network_offline",
+        message:
+          "You appear to be offline. Please check your internet connection and try again.",
+      };
+      set((state) => {
+        const existing = state.wallets[walletId];
+        const next = {
+          wallets: {
+            ...state.wallets,
+            [walletId]: existing
+              ? { ...existing, status: "error" as const, error: offlineError }
+              : {
+                  adapter: null as unknown as WalletAdapter,
+                  publicKey: "",
+                  network: "testnet" as NetworkType,
+                  balance: null,
+                  lastConnected: Date.now(),
+                  error: offlineError,
+                  status: "error" as const,
+                },
+          },
+          activeWalletId: state.activeWalletId,
+        };
+        return {
+          ...next,
+          ...syncConvenienceState(next),
+        };
+      });
+      throw offlineError;
+    }
 
     const adapter = getWalletRegistry().getAdapter(walletId);
     if (!adapter) return;
