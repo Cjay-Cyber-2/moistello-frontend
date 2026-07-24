@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import { Button } from "@/components/ui/button"
 
 interface TicketStatus {
   id: string
@@ -67,17 +68,15 @@ export function TicketLookup() {
           placeholder="Ticket ID"
           className="flex-1 h-11 rounded-xl bg-white/5 border border-white/10 px-4 text-sm text-foreground placeholder:text-muted-foreground/40 focus:outline-none"
         />
-        <button
+        <Button
           type="submit"
+          variant="ghost"
+          className="w-auto bg-aurora-cyan/15 text-aurora-cyan hover:bg-aurora-cyan/25"
+          isLoading={ticketLookupState === "loading"}
           disabled={!ticketId.trim() || ticketLookupState === "loading"}
-          className="h-11 px-4 rounded-xl bg-aurora-cyan/15 text-aurora-cyan text-sm font-medium disabled:opacity-50 flex items-center gap-1"
         >
-          {ticketLookupState === "loading" ? (
-            <LoaderIcon />
-          ) : (
-            "Search"
-          )}
-        </button>
+          Search
+        </Button>
       </form>
 
       {ticketLookupState === "not_found" && (
@@ -104,8 +103,4 @@ export function TicketLookup() {
       )}
     </div>
   )
-}
-
-function LoaderIcon() {
-  return <svg className="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 2v4"/><path d="M12 20v-4"/><path d="M4.93 4.93l2.83 2.83"/><path d="M16.24 16.24l2.83 2.83"/><path d="M2 12h4"/><path d="M18 12h4"/><path d="M4.93 19.07l2.83-2.83"/><path d="M16.24 7.76l2.83-2.83"/></svg>
 }
