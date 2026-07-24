@@ -4,6 +4,7 @@ import { useState } from "react"
 import { Wallet, X, Loader2, AlertCircle, QrCode, Shield, Usb } from "lucide-react"
 import { cn } from "@/lib/cn"
 import { useMultiWalletStore } from "@/stores/multi-wallet-store"
+import { formatAddress } from "@/lib/formatters"
 import dynamic from "next/dynamic"
 import type { WalletId } from "@/lib/wallet/types"
 
@@ -362,7 +363,7 @@ export function WalletSelector({ className, variant = "inline" }: WalletSelector
                 Connected &#x2713; {activeAdapter?.meta.name ?? "Wallet"}
               </p>
               <p className="text-xs text-muted-foreground font-mono truncate">
-                {address ? `${address.slice(0, 6)}...${address.slice(-4)}` : ""}
+                {address ? formatAddress(address) : ""}
               </p>
             </div>
             <button
@@ -511,7 +512,7 @@ export function WalletSelector({ className, variant = "inline" }: WalletSelector
           {activeAdapter?.meta.name ?? "Wallet"}
         </p>
         <p className="text-xs text-muted-foreground font-mono truncate">
-          {address ? `${address.slice(0, 6)}...${address.slice(-4)}` : ""}
+          {address ? formatAddress(address) : ""}
         </p>
       </div>
       <button

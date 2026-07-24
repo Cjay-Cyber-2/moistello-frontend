@@ -112,7 +112,7 @@ export default function WalletPage() {
                 </span>
               </div>
               <div className="flex items-center gap-2 mt-2">
-                <CopyButton text={walletId} label={formatAddress(walletId, 8, 6)} />
+                <CopyButton text={walletId} label={formatAddress(walletId)} />
               </div>
               <p className="text-xs text-muted-foreground mt-1.5">
                 {t("auth.register.securityNote")}

@@ -108,7 +108,7 @@ export default function WalletSettingsPage() {
                 )}
               </div>
               <div className="flex items-center gap-2">
-                <code className="text-sm font-mono text-foreground bg-white/5 px-2 py-1 rounded">{formatAddress(wallet.publicKey, 12, 8)}</code>
+                <code className="text-sm font-mono text-foreground bg-white/5 px-2 py-1 rounded">{formatAddress(wallet.publicKey)}</code>
                 <button onClick={copyKey} className="text-muted-foreground hover:text-foreground transition-colors">
                   {copied ? <Check className="h-4 w-4 text-emerald-400" /> : <Copy className="h-4 w-4" />}
                 </button>

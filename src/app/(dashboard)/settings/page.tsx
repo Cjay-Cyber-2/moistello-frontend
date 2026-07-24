@@ -46,7 +46,7 @@ export default function SettingsHubPage() {
               {user?.displayName ?? "User"}
             </p>
             <p className="text-xs text-muted-foreground font-mono truncate">
-              {user?.walletAddress ? formatAddress(user.walletAddress, 8, 6) : "No wallet"}
+              {user?.walletAddress ? formatAddress(user.walletAddress) : "No wallet"}
             </p>
             <Link href="/profile" className="text-xs text-aurora-violet hover:underline mt-1 inline-block">
               {t("settings.viewProfile")}

@@ -157,7 +157,7 @@ export default function TransactionsPage() {
                     {tx.type === "received" ? "+" : "-"}${tx.amount.toFixed(2)}
                   </span>
                   {tx.txnHash && (
-                    <span className="hidden sm:inline text-xs font-mono text-muted-foreground">{formatAddress(tx.txnHash, 4, 4)}</span>
+                    <span className="hidden sm:inline text-xs font-mono text-muted-foreground">{formatAddress(tx.txnHash)}</span>
                   )}
                 </div>
               </Link>
