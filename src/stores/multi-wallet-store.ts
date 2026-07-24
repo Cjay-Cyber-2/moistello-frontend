@@ -4,6 +4,7 @@ import { create } from "zustand";
 import { getWalletRegistry } from "@/lib/wallet/registry";
 import { getSessionManager } from "@/lib/wallet/session-manager";
 import { WC2_QR_EXPIRATION_MS } from "@/lib/constants";
+import { fetchBalanceWithBackoff } from "@/lib/wallet/balance-cache";
 import type {
   WalletAdapter,
   WalletId,
@@ -412,37 +413,26 @@ export const useMultiWalletStore = create<MultiWalletState>()((set, get) => ({
     });
   },
 
-  refreshBalance: async (walletId: WalletId) => {
+  refreshBalance: async (walletId: WalletId, forceRefresh = false) => {
     const entry = get().wallets[walletId];
-    if (!entry) return;
+    if (!entry || !entry.publicKey) return;
     try {
-      const response = await fetch(
-        `https://horizon-testnet.stellar.org/accounts/${entry.publicKey}`
-      );
-      if (response.ok) {
-        const data = await response.json();
-        let xlm = "0";
-        let usdc = "0";
-        for (const b of data.balances || []) {
-          if (b.asset_type === "native") xlm = b.balance;
-          else if (b.asset_code === "USDC") usdc = b.balance;
+      const balance = await fetchBalanceWithBackoff(entry.publicKey, { forceRefresh });
+      set((state) => {
+        const existing = state.wallets[walletId];
+        if (existing) {
+          return {
+            wallets: {
+              ...state.wallets,
+              [walletId]: { ...existing, balance },
+            },
+          };
         }
-        set((state) => {
-          const existing = state.wallets[walletId];
-          if (existing) {
-            return {
-              wallets: {
-                ...state.wallets,
-                [walletId]: { ...existing, balance: { xlm, usdc } },
-              },
-            };
-          }
-          return state;
-        });
-      }
-      } catch (e) {
-        console.warn("[multi-wallet] Failed to refresh balance:", e)
-      }
+        return state;
+      });
+    } catch {
+      // non-critical
+    }
   },
 
   clearError: (walletId: WalletId) => {
