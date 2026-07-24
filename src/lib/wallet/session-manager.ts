@@ -1,12 +1,9 @@
 import type { WalletAdapter, WalletSession, EncryptedSessionStore, WalletId } from "./types"
-import { hmac } from "@noble/hashes/hmac.js"
-import { sha256 } from "@noble/hashes/sha2.js"
-import { bytesToHex } from "@noble/hashes/utils.js"
+import { computeHmacSha256 } from "./hmac"
 
 const STORAGE_KEY = "moistello_wallet_sessions"
 const SESSION_TTL = 7 * 24 * 60 * 60 * 1000
 const CHANNEL_NAME = "moistello-wallet"
-const HMAC_KEY = new TextEncoder().encode("moistello-hmac-v1")
 
 export class WalletSessionManager {
   private sessions: WalletSession[] = []
@@ -19,7 +16,7 @@ export class WalletSessionManager {
 
     if (typeof BroadcastChannel !== "undefined") {
       this.channel = new BroadcastChannel(CHANNEL_NAME)
-      this.channel.onmessage = (event) => this.handleChannelMessage(event)
+      this.channel.onmessage = event => this.handleChannelMessage(event)
     } else {
       this.setupStorageFallback()
     }
@@ -37,7 +34,12 @@ export class WalletSessionManager {
     this.addOrUpdateSession(session)
     this.activeWalletId = adapter.meta.id
     this.persist()
-    this.broadcast({ type: "wallet_connected", walletId: adapter.meta.id, publicKey, lastConnected: Date.now() })
+    this.broadcast({
+      type: "wallet_connected",
+      walletId: adapter.meta.id,
+      publicKey,
+      lastConnected: Date.now(),
+    })
   }
 
   disconnect(walletId: WalletId): void {
@@ -81,7 +83,7 @@ export class WalletSessionManager {
   private persist(): void {
     if (typeof window === "undefined") return
     try {
-      const hmac = this.computeHMAC(JSON.stringify(this.sessions))
+      const hmac = computeHmacSha256(JSON.stringify(this.sessions))
       const store: EncryptedSessionStore = {
         sessions: this.sessions,
         hmac,
@@ -106,7 +108,7 @@ export class WalletSessionManager {
       const store: EncryptedSessionStore = JSON.parse(raw)
       if (!store.hmac || !store.sessions) return
 
-      const expectedHMAC = this.computeHMAC(JSON.stringify(store.sessions))
+      const expectedHMAC = computeHmacSha256(JSON.stringify(store.sessions))
       if (store.hmac !== expectedHMAC) {
         console.warn("[SessionManager] HMAC mismatch — session store may be tampered")
         localStorage.removeItem(STORAGE_KEY)
@@ -120,10 +122,6 @@ export class WalletSessionManager {
       console.warn("[session-manager] Failed to restore sessions from storage:", e)
       localStorage.removeItem(STORAGE_KEY)
     }
-  }
-
-  private computeHMAC(data: string): string {
-    return bytesToHex(hmac(sha256 as never, HMAC_KEY, new TextEncoder().encode(data)))
   }
 
   private broadcast(message: Record<string, unknown>): void {
@@ -146,7 +144,7 @@ export class WalletSessionManager {
   }
 
   private setupStorageFallback(): void {
-    window.addEventListener("storage", (event) => {
+    window.addEventListener("storage", event => {
       if (event.key === STORAGE_KEY) {
         this.restore()
       }
@@ -167,7 +165,9 @@ let _sessionManager: WalletSessionManager | null = null
 export function getSessionManager(): WalletSessionManager {
   if (typeof window === "undefined") {
     return new Proxy({} as WalletSessionManager, {
-      get() { return undefined },
+      get() {
+        return undefined
+      },
     })
   }
   if (!_sessionManager) {

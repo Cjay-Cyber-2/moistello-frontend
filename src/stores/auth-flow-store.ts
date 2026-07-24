@@ -16,7 +16,11 @@ export type AuthFlowStatus =
   | { status: "idle" }
   | { status: "detecting_wallets" }
   | { status: "connecting"; walletId: string | null }
-  | { status: "awaiting_approval"; pairingUri: string | null; protocol: "qr" | "deeplink" | null }
+  | {
+      status: "awaiting_approval"
+      pairingUri: string | null
+      protocol: "qr" | "deeplink" | null
+    }
   | { status: "connected"; walletId: string; address: string }
   | { status: "signing"; address: string }
   | { status: "signed"; signature: string; nonce: string }
@@ -36,7 +40,7 @@ export type AuthErrorCode =
 const STEP_ORDER: AuthStep[] = ["choose", "profile", "sign"]
 
 function getStepsForMode(mode: AuthFlowMode): AuthStep[] {
-  return mode === "register" ? STEP_ORDER : STEP_ORDER.filter((s) => s !== "profile")
+  return mode === "register" ? STEP_ORDER : STEP_ORDER.filter(s => s !== "profile")
 }
 
 interface RateLimitState {
@@ -151,7 +155,10 @@ export async function verifyPasskeyRevocation(): Promise<void> {
       currentVersion: number
     }>("/auth/passkey/status", { passkeyVersion })
     if (!response.revoked) {
-      useAuthFlowStore.setState({ passkeyRevoked: false, passkeyVersion: response.currentVersion })
+      useAuthFlowStore.setState({
+        passkeyRevoked: false,
+        passkeyVersion: response.currentVersion,
+      })
     }
   } catch (e) {
     console.warn("[auth-flow] Passkey status check failed (server unreachable):", e)
@@ -187,7 +194,7 @@ export const useAuthFlowStore = create<AuthFlowStore>()(
 
         reset: () => set(createInitialState()),
 
-        setStep: (step) => set({ step }),
+        setStep: step => set({ step }),
 
         goBack: () => {
           const { step, mode } = get()
@@ -200,14 +207,19 @@ export const useAuthFlowStore = create<AuthFlowStore>()(
 
         setError: (code, message) =>
           set({
-            status: { status: "error", code, message, canRetry: code !== "validation_error" },
+            status: {
+              status: "error",
+              code,
+              message,
+              canRetry: code !== "validation_error",
+            },
             error: { code, message },
           }),
 
         clearError: () => set({ error: null, status: { status: "idle" } }),
 
         resetConnection: () =>
-          set((state) => ({
+          set(state => ({
             connection: {
               ...state.connection,
               walletId: null,
@@ -217,24 +229,24 @@ export const useAuthFlowStore = create<AuthFlowStore>()(
             },
           })),
 
-        connect: async (_walletId) => {
+        connect: async _walletId => {
           set({ status: { status: "connecting", walletId: _walletId } })
         },
 
-        connectStart: (walletId) =>
-          set((state) => ({
+        connectStart: walletId =>
+          set(state => ({
             status: { status: "connecting", walletId },
             connection: { ...state.connection, walletId },
           })),
 
         connectSuccess: (walletId, address) =>
-          set((state) => ({
+          set(state => ({
             status: { status: "connected", walletId, address },
             connection: { ...state.connection, walletId, address },
           })),
 
         awaitingApproval: (pairingUri, protocol) =>
-          set((state) => ({
+          set(state => ({
             status: { status: "awaiting_approval", pairingUri, protocol },
             connection: { ...state.connection, pairingUri, protocol },
           })),
@@ -242,7 +254,12 @@ export const useAuthFlowStore = create<AuthFlowStore>()(
         onConnectionTimeout: () => {
           const msg = "Connection timed out. Please try again."
           set({
-            status: { status: "error", code: "connection_timeout", message: msg, canRetry: true },
+            status: {
+              status: "error",
+              code: "connection_timeout",
+              message: msg,
+              canRetry: true,
+            },
             error: { code: "connection_timeout", message: msg },
           })
         },
@@ -250,29 +267,34 @@ export const useAuthFlowStore = create<AuthFlowStore>()(
         onConnectionRejected: () => {
           const msg = "Connection was rejected."
           set({
-            status: { status: "error", code: "connection_rejected", message: msg, canRetry: true },
+            status: {
+              status: "error",
+              code: "connection_rejected",
+              message: msg,
+              canRetry: true,
+            },
             error: { code: "connection_rejected", message: msg },
           })
         },
 
-        setPairingUri: (uri) =>
-          set((state) => ({
+        setPairingUri: uri =>
+          set(state => ({
             connection: { ...state.connection, pairingUri: uri },
           })),
 
-        setRelayStatus: (status) =>
-          set((state) => ({
+        setRelayStatus: status =>
+          set(state => ({
             connection: { ...state.connection, relayStatus: status },
           })),
 
         updateProfileField: (field, value) =>
-          set((state) => ({
+          set(state => ({
             profile: { ...state.profile, [field]: value },
             error: null,
           })),
 
         setFieldError: (field, error) =>
-          set((state) => {
+          set(state => {
             const next = { ...state.profile.fieldErrors }
             if (error) {
               next[field] = error
@@ -287,22 +309,27 @@ export const useAuthFlowStore = create<AuthFlowStore>()(
           const errors: Record<string, string> = {}
           if (!profile.displayName.trim()) errors.displayName = "Display name is required"
           if (!profile.countryCode.trim()) errors.countryCode = "Country is required"
-          set((state) => ({
+          set(state => ({
             profile: { ...state.profile, fieldErrors: errors },
           }))
           return Object.keys(errors).length === 0
         },
 
         signAndSubmit: async () => {
-          const state = get()
-          const mode = state.mode
-          const address = state.connection.address
-          const walletId = state.connection.walletId
+          const initialState = get()
+          const mode = initialState.mode
+          const address = initialState.connection.address
+          const walletId = initialState.connection.walletId
 
           if (!address || !walletId) {
             const msg = "No wallet connected."
             set({
-              status: { status: "error", code: "internal_error", message: msg, canRetry: false },
+              status: {
+                status: "error",
+                code: "internal_error",
+                message: msg,
+                canRetry: false,
+              },
               error: { code: "internal_error", message: msg },
             })
             return
@@ -312,18 +339,35 @@ export const useAuthFlowStore = create<AuthFlowStore>()(
           set({ status: { status: "signing", address } })
 
           try {
-            recordMetric("wallet.sign.attempt", 1, { phase: "nonce_fetch", mode })
+            recordMetric("wallet.sign.attempt", 1, {
+              phase: "nonce_fetch",
+              mode,
+            })
             const nonceResponse = await post<{
               success: boolean
               data: { nonce: { nonce: string } }
-            }>("/auth/nonce", {
-              walletAddress: address,
-            }, { _retry: true } as Record<string, unknown>)
+            }>(
+              "/auth/nonce",
+              {
+                walletAddress: address,
+              },
+              { _retry: true } as Record<string, unknown>,
+            )
             const nonce = nonceResponse.data.nonce.nonce
 
-            recordMetric("wallet.sign.attempt", 1, { phase: "signing", mode, walletId })
+            const signingState = get()
+            const signingMode = signingState.mode
+            const signingWalletId = signingState.connection.walletId
+            if (!signingWalletId) {
+              throw new Error("Wallet adapter not found")
+            }
+            recordMetric("wallet.sign.attempt", 1, {
+              phase: "signing",
+              mode: signingMode,
+              walletId: signingWalletId,
+            })
             const wallets = useMultiWalletStore.getState().wallets
-            const adapter = wallets[walletId]?.adapter
+            const adapter = wallets[signingWalletId]?.adapter
             if (!adapter) {
               throw new Error("Wallet adapter not found")
             }
@@ -331,23 +375,34 @@ export const useAuthFlowStore = create<AuthFlowStore>()(
             const signed = await adapter.signMessage(nonce)
             const signature = signed.signature
 
-            recordMetric("wallet.sign.success", 1, { mode, walletId })
+            const signedState = get()
+            recordMetric("wallet.sign.success", 1, {
+              mode: signedState.mode,
+              walletId: signedState.connection.walletId ?? "unknown",
+            })
             set({
               status: { status: "signed", signature, nonce },
               auth: { nonce, signature, nonceTimestamp: Date.now() },
             })
 
-            recordMetric("wallet.sign.attempt", 1, { phase: "submit", mode })
-            const endpoint = mode === "login" ? "/auth/verify" : "/auth/register"
+            const submitState = get()
+            const submitMode = submitState.mode
+            const submitAddress = submitState.connection.address
+            const submitPasskeyVersion = submitState.passkeyVersion
+            recordMetric("wallet.sign.attempt", 1, {
+              phase: "submit",
+              mode: submitMode,
+            })
+            const endpoint = submitMode === "login" ? "/auth/verify" : "/auth/register"
             const body: Record<string, unknown> = {
-              walletAddress: address,
+              walletAddress: submitAddress,
               signature,
               nonce,
-              passkeyVersion: state.passkeyVersion,
+              passkeyVersion: submitPasskeyVersion,
             }
 
-            if (mode === "register") {
-              const profile = state.profile
+            if (submitMode === "register") {
+              const profile = submitState.profile
               body.displayName = profile.displayName.trim()
               body.countryCode = profile.countryCode
               if (profile.language) body.preferredLanguage = profile.language
@@ -364,17 +419,20 @@ export const useAuthFlowStore = create<AuthFlowStore>()(
             }>(endpoint, body, { _retry: true } as Record<string, unknown>)
 
             const d = authResponse.data
-            if (
-              d.expectedPasskeyVersion !== undefined &&
-              d.expectedPasskeyVersion > state.passkeyVersion
-            ) {
+            const currentPasskeyVersion = get().passkeyVersion
+            if (d.expectedPasskeyVersion !== undefined && d.expectedPasskeyVersion > currentPasskeyVersion) {
               set({
                 passkeyVersion: d.expectedPasskeyVersion,
                 passkeyRevoked: true,
               })
               const msg = "Your passkey has been revoked. Please set up a new one."
               set({
-                status: { status: "error", code: "passkey_revoked", message: msg, canRetry: true },
+                status: {
+                  status: "error",
+                  code: "passkey_revoked",
+                  message: msg,
+                  canRetry: true,
+                },
                 error: { code: "passkey_revoked", message: msg },
               })
               return
@@ -385,33 +443,39 @@ export const useAuthFlowStore = create<AuthFlowStore>()(
 
             useAuthStore.getState().setTokens(token, refreshToken, d.user as unknown as User | undefined)
 
-            recordMetric("auth.sign.completed", 1, { mode })
+            recordMetric("auth.sign.completed", 1, { mode: get().mode })
 
             set({ status: { status: "authenticated" } })
           } catch (err: unknown) {
-            const axiosErr = err as { response?: { status?: number; data?: { error?: string } } }
+            const axiosErr = err as {
+              response?: { status?: number; data?: { error?: string } }
+            }
             const errorMessage =
-              axiosErr?.response?.data?.error ??
-              (err instanceof Error ? err.message : "Signing failed")
+              axiosErr?.response?.data?.error ?? (err instanceof Error ? err.message : "Signing failed")
 
+            const currentState = get()
             captureAuthError(err, {
               step: "sign",
-              mode: get().mode,
-              walletId,
-              address,
+              mode: currentState.mode,
+              walletId: currentState.connection.walletId,
+              address: currentState.connection.address,
               errorCode: "auth_server_error",
             })
 
             const msg = errorMessage
             set({
-              status: { status: "error", code: "auth_server_error", message: msg, canRetry: true },
+              status: {
+                status: "error",
+                code: "auth_server_error",
+                message: msg,
+                canRetry: true,
+              },
               error: { code: "auth_server_error", message: msg },
             })
           }
         },
 
-        signStart: (address) =>
-          set({ status: { status: "signing", address } }),
+        signStart: address => set({ status: { status: "signing", address } }),
 
         signSuccess: (signature, nonce) =>
           set({
@@ -449,13 +513,13 @@ export const useAuthFlowStore = create<AuthFlowStore>()(
 
         totalSteps: () => getStepsForMode(get().mode).length,
       }),
-      { name: "auth-flow-store" }
+      { name: "auth-flow-store" },
     ),
     {
       name: "moistello-auth-flow",
       version: 3,
       storage: createJSONStorage(() => sessionStorage),
-      partialize: (state) => ({
+      partialize: state => ({
         step: state.step,
         auth: state.auth,
         profile: state.profile,
@@ -466,6 +530,6 @@ export const useAuthFlowStore = create<AuthFlowStore>()(
           address: state.connection.address,
         },
       }),
-    }
-  )
+    },
+  ),
 )
