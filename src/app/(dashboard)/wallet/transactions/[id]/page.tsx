@@ -11,6 +11,7 @@ import { get } from "@/lib/api-client"
 import { useUIStore } from "@/stores/ui-store"
 import { formatAddress } from "@/lib/formatters"
 import { cn } from "@/lib/cn"
+import { copyToClipboard } from "@/lib/clipboard"
 
 interface TxDetail {
   id: string
@@ -79,12 +80,16 @@ export default function TransactionDetailPage() {
     load()
   }, [txId])
 
-  const copyHash = () => {
+  const copyHash = async () => {
     if (!tx?.txnHash) return
-    navigator.clipboard.writeText(tx.txnHash)
-    setCopied(true)
-    setTimeout(() => setCopied(false), 2000)
-    addToast({ type: "info", title: "Copied" })
+    const success = await copyToClipboard(tx.txnHash)
+    if (success) {
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+      addToast({ type: "info", title: "Copied" })
+    } else {
+      addToast({ type: "error", title: "Failed to copy transaction hash" })
+    }
   }
 
   if (loading) {

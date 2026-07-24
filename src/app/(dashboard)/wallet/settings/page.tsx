@@ -10,6 +10,7 @@ import { get, del } from "@/lib/api-client"
 import { useAuth } from "@/hooks/use-auth"
 import { useUIStore } from "@/stores/ui-store"
 import { formatAddress } from "@/lib/formatters"
+import { copyToClipboard } from "@/lib/clipboard"
 
 interface StoredWallet {
   id: string
@@ -41,12 +42,16 @@ export default function WalletSettingsPage() {
     }).catch(() => {}).finally(() => setLoading(false))
   }, [])
 
-  const copyKey = () => {
+  const copyKey = async () => {
     if (!wallet) return
-    navigator.clipboard.writeText(wallet.publicKey)
-    setCopied(true)
-    setTimeout(() => setCopied(false), 2000)
-    addToast({ type: "info", title: "Copied", description: "Public key copied to clipboard." })
+    const success = await copyToClipboard(wallet.publicKey)
+    if (success) {
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+      addToast({ type: "info", title: "Copied", description: "Public key copied to clipboard." })
+    } else {
+      addToast({ type: "error", title: "Failed to copy address" })
+    }
   }
 
   const saveNickname = () => {

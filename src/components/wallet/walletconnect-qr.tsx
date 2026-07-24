@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState, useCallback } from "react"
 import { Copy, Check, Loader2, XCircle, RefreshCw, AlertCircle } from "lucide-react"
 import { cn } from "@/lib/cn"
+import { copyToClipboard } from "@/lib/clipboard"
 
 interface WalletConnectQRProps {
   uri: string | null
@@ -67,12 +68,10 @@ export function WalletConnectQR({
 
   const handleCopy = async () => {
     if (!uri) return
-    try {
-      await navigator.clipboard.writeText(uri)
+    const success = await copyToClipboard(uri)
+    if (success) {
       setCopied(true)
       setTimeout(() => setCopied(false), 2000)
-    } catch {
-      // Clipboard API not available
     }
   }
 

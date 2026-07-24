@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback } from "react"
 import { ExternalLink, Copy, Check, Smartphone, Loader2, AlertCircle } from "lucide-react"
 import { cn } from "@/lib/cn"
+import { copyToClipboard } from "@/lib/clipboard"
 
 interface WalletConnectDeepLinkProps {
   uri: string | null
@@ -44,12 +45,10 @@ export function WalletConnectDeepLink({
 
   const handleCopy = async () => {
     if (!uri) return
-    try {
-      await navigator.clipboard.writeText(uri)
+    const success = await copyToClipboard(uri)
+    if (success) {
       setCopied(true)
       setTimeout(() => setCopied(false), 2000)
-    } catch {
-      // Clipboard API not available
     }
   }
 

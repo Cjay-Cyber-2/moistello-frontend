@@ -13,6 +13,7 @@ import { isValidStellarAddress } from "@/lib/stellar/validate-address"
 import { getDailySpending, isKnownAddress, markAddressKnown, detectSuspiciousAddress, DAILY_LIMIT_USDC, recordSpending } from "@/lib/stellar/security"
 import { SecurityWarning } from "@/components/wallet/security-warnings"
 import { AddressBookModal } from "@/components/wallet/address-book-modal"
+import { copyToClipboard } from "@/lib/clipboard"
 
 export default function WithdrawPage() {
   const searchParams = useSearchParams()
@@ -62,10 +63,12 @@ export default function WithdrawPage() {
     })
   }, [])
 
-  const copyDest = () => {
-    navigator.clipboard.writeText(destination)
-    setCopiedDest(true)
-    setTimeout(() => setCopiedDest(false), 2000)
+  const copyDest = async () => {
+    const success = await copyToClipboard(destination)
+    if (success) {
+      setCopiedDest(true)
+      setTimeout(() => setCopiedDest(false), 2000)
+    }
   }
 
   // ── SECURITY: Validate form before preview ──

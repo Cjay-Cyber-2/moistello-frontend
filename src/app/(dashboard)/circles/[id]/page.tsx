@@ -30,6 +30,8 @@ import { Modal } from "@/components/ui/modal"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Badge } from "@/components/ui/badge"
 import { formatCurrency } from "@/lib/formatters"
+import { Routes } from "@/lib/constants"
+import { copyToClipboard } from "@/lib/clipboard"
 import { cn } from "@/lib/cn"
 
 const container = {
@@ -158,9 +160,11 @@ export default function CircleDetailPage() {
   }
 
   const handleCopyInvite = async () => {
-    await navigator.clipboard.writeText(inviteCode)
-    setInviteCopied(true)
-    setTimeout(() => setInviteCopied(false), 2000)
+    const success = await copyToClipboard(inviteCode)
+    if (success) {
+      setInviteCopied(true)
+      setTimeout(() => setInviteCopied(false), 2000)
+    }
   }
 
   const freqLabel = circle

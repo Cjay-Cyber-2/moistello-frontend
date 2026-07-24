@@ -1,8 +1,6 @@
 "use client"
 
-import React, { useState } from "react"
-import { Button } from "@/components/ui/button"
-import { Download, Copy, Check, AlertTriangle } from "lucide-react"
+import { copyToClipboard } from "@/lib/clipboard"
 
 interface BackupCodesProps {
   codes: string[]
@@ -11,12 +9,19 @@ interface BackupCodesProps {
 
 export function BackupCodes({ codes, onAcknowledged }: BackupCodesProps) {
   const [copied, setCopied] = useState(false)
+  const [copyError, setCopyError] = useState(false)
   const [downloaded, setDownloaded] = useState(false)
 
   const handleCopy = async () => {
-    await navigator.clipboard.writeText(codes.join("\n"))
-    setCopied(true)
-    setTimeout(() => setCopied(false), 2000)
+    const success = await copyToClipboard(codes.join("\n"))
+    if (success) {
+      setCopied(true)
+      setCopyError(false)
+      setTimeout(() => setCopied(false), 2000)
+    } else {
+      setCopyError(true)
+      setTimeout(() => setCopyError(false), 2000)
+    }
   }
 
   const handleDownload = () => {
@@ -55,7 +60,7 @@ export function BackupCodes({ codes, onAcknowledged }: BackupCodesProps) {
 
       <div className="flex gap-3">
         <Button variant="outline" size="md" className="flex-1" onClick={handleCopy} leftIcon={copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}>
-          {copied ? "Copied!" : "Copy"}
+          {copied ? "Copied!" : copyError ? "Failed to Copy" : "Copy"}
         </Button>
         <Button variant="outline" size="md" className="flex-1" onClick={handleDownload} leftIcon={<Download className="h-4 w-4" />}>
           {downloaded ? "Downloaded" : "Download"}

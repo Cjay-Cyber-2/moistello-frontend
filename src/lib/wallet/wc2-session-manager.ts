@@ -1,6 +1,7 @@
 import type { NetworkType } from "./types"
 import { getRelayMonitor } from "./wc2-relay"
 import { getWC2SessionStore } from "./wc2-session-store"
+import { WC2_QR_EXPIRATION_MS } from "@/lib/constants"
 
 const PROJECT_ID = process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID || ""
 const RELAY_URL = "wss://relay.walletconnect.com"
@@ -11,7 +12,7 @@ const METADATA = {
   icons: ["https://moistello.com/logo.jpg"],
 }
 
-const CONNECT_TIMEOUT = 120_000
+const CONNECT_TIMEOUT = WC2_QR_EXPIRATION_MS
 
 type WC2EventMap = {
   pairing_uri: (uri: string) => void

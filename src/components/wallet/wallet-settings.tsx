@@ -7,6 +7,7 @@ import { cn } from "@/lib/cn"
 import { formatAddress } from "@/lib/formatters"
 import { Button } from "@/components/ui/button"
 import { useMultiWallet } from "@/hooks/use-multi-wallet"
+import { copyToClipboard } from "@/lib/clipboard"
 
 export function WalletSettings() {
   const { wallets, detectedWallets, disconnect, refreshBalance, switchWallet, activeWalletId } = useMultiWallet()
@@ -40,10 +41,12 @@ export function WalletSettings() {
     setConfirmDisconnectAll(false)
   }
 
-  const copyKey = (key: string) => {
-    navigator.clipboard.writeText(key)
-    setCopiedKey(key)
-    setTimeout(() => setCopiedKey(null), 2000)
+  const copyKey = async (key: string) => {
+    const success = await copyToClipboard(key)
+    if (success) {
+      setCopiedKey(key)
+      setTimeout(() => setCopiedKey(null), 2000)
+    }
   }
 
   const getWalletName = (id: string) => {

@@ -26,6 +26,7 @@ import { Badge } from "@/components/ui/badge"
 import { formatCurrency } from "@/lib/formatters"
 import { cn } from "@/lib/cn"
 import { useTranslate } from "@/lib/locale/context"
+import { Routes, MOI_SCORE_HIGH_THRESHOLD } from "@/lib/constants"
 import type { ApiResponse, Circle, Contribution, Payout } from "@/types"
 
 function StatCard({ label, value, icon, gradient, pulseGlow }: { label: string; value: string; icon: React.ReactNode; gradient: string; pulseGlow?: boolean }) {
@@ -50,7 +51,7 @@ function CircleCard({ circle }: { circle: Circle }) {
   const memberCount = circle.memberCount ?? 0
   const progressPct = Math.min(100, Math.round((circle.currentRound / (circle.maxMembers || 1)) * 100))
   return (
-    <Link href={`/circles/${circle.id}`}>
+    <Link href={Routes.CIRCLE_DETAIL(circle.id)}>
       <div className="glass rounded-2xl p-5 holo-border">
         <div className="flex items-start justify-between mb-3">
           <h4 className="font-heading text-lg font-semibold text-foreground truncate">{circle.name}</h4>
@@ -81,7 +82,7 @@ function CircleCard({ circle }: { circle: Circle }) {
 function CreateCircleCard() {
   const { t } = useTranslate()
   return (
-    <Link href="/circles/create">
+    <Link href={Routes.CREATE_CIRCLE}>
       <div className="glass-whisper rounded-2xl p-5 flex flex-col items-center justify-center text-center min-h-[160px] holo-border border-dashed">
         <div className="flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br from-aurora-violet/20 to-aurora-cyan/20 text-aurora-violet mb-3">
           <Plus className="h-6 w-6" />
@@ -141,7 +142,7 @@ export default function DashboardContent() {
     },
   })
 
-  const { data: savingsObligations = [] } = useQuery({
+  const { data: savingsObligations = [], isLoading: savingsObligationsLoading } = useQuery({
     queryKey: ["savings-obligations"],
     queryFn: async () => {
       const res = await get<Record<string, unknown>>("/savings/goals/obligations")
@@ -174,7 +175,7 @@ export default function DashboardContent() {
     }
   }, [circles, contributions, payouts, user])
 
-  const moiHighScore = (user?.moiScore ?? 0) >= 600
+  const moiHighScore = (user?.moiScore ?? 0) >= MOI_SCORE_HIGH_THRESHOLD
 
   const recentActivity = useMemo(() => {
     const items: { id: string; description: string; amount: string; date: string; type: "contribution" | "payout" }[] = []
@@ -221,21 +222,28 @@ export default function DashboardContent() {
         <StatCard label={t("dash.moiScore")} value={stats.moiScore} icon={<Award className="h-5 w-5" />} gradient="from-aurora-amber to-aurora-violet" pulseGlow={moiHighScore} />
       </div>
 
-      {/* Upcoming Savings Obligations */}
-      {savingsObligations.length > 0 && (
-        <div className="glass-premium rounded-2xl p-5 space-y-3">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <PiggyBank className="h-4 w-4 text-aurora-violet" />
-              <h3 className="font-heading text-sm font-semibold text-foreground">{t("dash.upcomingSavings")}</h3>
-            </div>
-            <Link href="/savings" className="text-xs text-aurora-violet hover:underline">{t("dash.createSavingsGoal")}</Link>
+      {/* Upcoming Savings Obligations with explicit Empty & Loading states */}
+      <div className="glass-premium rounded-2xl p-5 space-y-3">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <PiggyBank className="h-4 w-4 text-aurora-violet" />
+            <h3 className="font-heading text-sm font-semibold text-foreground">{t("dash.upcomingSavings")}</h3>
           </div>
+          <Link href={Routes.SAVINGS} className="text-xs text-aurora-violet hover:underline">{t("dash.createSavingsGoal")}</Link>
+        </div>
+
+        {savingsObligationsLoading ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <Skeleton key={i} className="h-20 rounded-xl" />
+            ))}
+          </div>
+        ) : savingsObligations.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
             {savingsObligations.slice(0, 4).map((goal: { id: string; name: string; targetAmount: number; currentAmount: number; autoReserve: boolean; targetDate: string | null }) => {
               const pct = goal.targetAmount > 0 ? Math.min(100, Math.round((goal.currentAmount / goal.targetAmount) * 100)) : 0
               return (
-                <Link key={goal.id} href="/savings" className="glass-whisper rounded-xl p-3 space-y-2 hover:glass-strong transition-all">
+                <Link key={goal.id} href={Routes.SAVINGS} className="glass-whisper rounded-xl p-3 space-y-2 hover:glass-strong transition-all">
                   <div className="flex items-center justify-between">
                     <p className="text-xs font-medium text-foreground truncate">{goal.name}</p>
                     {goal.autoReserve && <AlertCircle className="h-3 w-3 text-aurora-violet shrink-0" />}
@@ -251,14 +259,19 @@ export default function DashboardContent() {
               )
             })}
           </div>
-        </div>
-      )}
+        ) : (
+          <div className="glass-whisper rounded-xl p-4 text-center space-y-1">
+            <p className="text-xs font-medium text-foreground">No upcoming savings goals</p>
+            <p className="text-2xs text-muted-foreground">Set up auto-reserves or custom savings targets to stay on track.</p>
+          </div>
+        )}
+      </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 space-y-4">
           <div className="flex items-center justify-between">
             <h3 className="font-heading text-lg font-semibold text-foreground">{t("dash.yourCircles")}</h3>
-            <Link href="/circles" className="text-sm text-muted-foreground hover:text-foreground transition-colors font-body">{t("dash.browseAll")} &rarr;</Link>
+            <Link href={Routes.CIRCLES} className="text-sm text-muted-foreground hover:text-foreground transition-colors font-body">{t("dash.browseAll")} &rarr;</Link>
           </div>
           {circles.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -266,7 +279,7 @@ export default function DashboardContent() {
               <CreateCircleCard />
             </div>
           ) : (
-            <EmptyState icon={<Users className="h-6 w-6" />} title={t("dash.noCircles")} description={t("dash.noCirclesDesc")} action={{ label: t("dash.createCircle"), onClick: () => { window.location.href = "/circles/create" } }} />
+            <EmptyState icon={<Users className="h-6 w-6" />} title={t("dash.noCircles")} description={t("dash.noCirclesDesc")} action={{ label: t("dash.createCircle"), onClick: () => { window.location.href = Routes.CREATE_CIRCLE } }} />
           )}
         </div>
         <div className="space-y-4">

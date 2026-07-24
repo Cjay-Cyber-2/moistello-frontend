@@ -19,7 +19,7 @@ export function MobileNav() {
 
   const navItems: MobileNavItem[] = [
     { label: t("nav.dashboard"), href: Routes.DASHBOARD, icon: <LayoutDashboard className="h-5 w-5" /> },
-    { label: t("nav.savings"), href: "/savings", icon: <PiggyBank className="h-5 w-5" /> },
+    { label: t("nav.savings"), href: Routes.SAVINGS, icon: <PiggyBank className="h-5 w-5" /> },
     { label: t("nav.circles"), href: Routes.CIRCLES, icon: <CircleDot className="h-5 w-5" /> },
     { label: t("nav.communities"), href: Routes.COMMUNITIES, icon: <Users className="h-5 w-5" /> },
     { label: t("nav.profile"), href: Routes.PROFILE, icon: <User className="h-5 w-5" /> },

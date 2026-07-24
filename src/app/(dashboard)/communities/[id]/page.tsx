@@ -19,6 +19,7 @@ import { useUIStore } from "@/stores/ui-store"
 import { cn } from "@/lib/cn"
 import { formatDate } from "@/lib/formatters"
 import { Routes } from "@/lib/constants"
+import { copyToClipboard } from "@/lib/clipboard"
 
 interface Community {
   id: string
@@ -328,7 +329,14 @@ export default function CommunityDetailPage() {
                     </span>
                   )}
                   <button
-                    onClick={() => { navigator.clipboard.writeText(window.location.href); addToast({ type: "info", title: "Link copied!" }) }}
+                    onClick={async () => {
+                      const ok = await copyToClipboard(window.location.href)
+                      if (ok) {
+                        addToast({ type: "info", title: "Link copied!" })
+                      } else {
+                        addToast({ type: "error", title: "Failed to copy link" })
+                      }
+                    }}
                     className="flex h-8 w-8 items-center justify-center rounded-lg bg-white/5 text-muted-foreground hover:text-foreground transition-colors"
                   >
                     <Share2 className="h-4 w-4" />

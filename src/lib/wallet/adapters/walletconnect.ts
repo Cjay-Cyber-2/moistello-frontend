@@ -1,6 +1,7 @@
 import type { WalletAdapter, WalletMeta, NetworkType, SignOptions } from "../types"
 import { getRelayMonitor, type RelayStatus } from "../wc2-relay"
 import { getWC2SessionStore } from "../wc2-session-store"
+import { WC2_QR_EXPIRATION_MS } from "@/lib/constants"
 
 const PROJECT_ID = process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID || ""
 const RELAY_URL = "wss://relay.walletconnect.com"
@@ -12,7 +13,7 @@ const METADATA = {
 }
 
 const SIGN_TIMEOUT = 60_000
-const CONNECT_TIMEOUT = 120_000
+const CONNECT_TIMEOUT = WC2_QR_EXPIRATION_MS
 const CONNECT_INIT_TIMEOUT = 60_000
 
 let _onPairingUri: ((uri: string) => void) | null = null

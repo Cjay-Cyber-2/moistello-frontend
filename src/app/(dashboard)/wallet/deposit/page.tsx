@@ -8,6 +8,7 @@ import { PageHeader } from "@/components/shared/page-header"
 import { Button } from "@/components/ui/button"
 import { get } from "@/lib/api-client"
 import { useUIStore } from "@/stores/ui-store"
+import { copyToClipboard } from "@/lib/clipboard"
 
 interface WalletInfo {
   id: string
@@ -20,9 +21,9 @@ export default function DepositPage() {
   const addToast = useUIStore((s) => s.addToast)
   const [wallet, setWallet] = useState<WalletInfo | null>(null)
   const [loading, setLoading] = useState(true)
-  const [selectedAsset, setSelectedAsset] = useState<string | null>(null)
+  const [selectedAsset, setSelectedAsset] = useState<string>("USDC")
   const [copied, setCopied] = useState(false)
-  const [showSheet, setShowSheet] = useState(true)
+  const [showSheet, setShowSheet] = useState(false)
 
   useEffect(() => {
     get("/wallets").then((res) => {
@@ -32,12 +33,16 @@ export default function DepositPage() {
     }).catch(() => {}).finally(() => setLoading(false))
   }, [])
 
-  const copyKey = () => {
+  const copyKey = async () => {
     if (!wallet) return
-    navigator.clipboard.writeText(wallet.publicKey)
-    setCopied(true)
-    setTimeout(() => setCopied(false), 2000)
-    addToast({ type: "info", title: "Copied" })
+    const success = await copyToClipboard(wallet.publicKey)
+    if (success) {
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+      addToast({ type: "info", title: "Copied" })
+    } else {
+      addToast({ type: "error", title: "Failed to copy address" })
+    }
   }
 
   const selectAsset = (asset: string) => {

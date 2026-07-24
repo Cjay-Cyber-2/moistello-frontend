@@ -56,7 +56,7 @@ export function Sidebar() {
       title: t("nav.platform"),
       items: [
         { label: t("nav.dashboard"), href: Routes.DASHBOARD, icon: <LayoutDashboard className="h-[18px] w-[18px]" /> },
-        { label: t("nav.savings"), href: "/savings", icon: <PiggyBank className="h-[18px] w-[18px]" /> },
+        { label: t("nav.savings"), href: Routes.SAVINGS, icon: <PiggyBank className="h-[18px] w-[18px]" /> },
         { label: t("nav.circles"), href: Routes.CIRCLES, icon: <CircleDot className="h-[18px] w-[18px]" /> },
       ],
     },
@@ -64,8 +64,8 @@ export function Sidebar() {
       title: t("nav.community"),
       items: [
         { label: t("nav.communities"), href: Routes.COMMUNITIES, icon: <Users className="h-[18px] w-[18px]" /> },
-        { label: t("nav.contributions"), href: "/contributions", icon: <ArrowUpCircle className="h-[18px] w-[18px]" /> },
-        { label: t("nav.payouts"), href: "/payouts", icon: <ArrowDownCircle className="h-[18px] w-[18px]" /> },
+        { label: t("nav.contributions"), href: Routes.CONTRIBUTIONS, icon: <ArrowUpCircle className="h-[18px] w-[18px]" /> },
+        { label: t("nav.payouts"), href: Routes.PAYOUTS, icon: <ArrowDownCircle className="h-[18px] w-[18px]" /> },
       ],
     },
     {
@@ -79,9 +79,9 @@ export function Sidebar() {
     {
       title: t("nav.docs"),
       items: [
-        { label: t("nav.documentation"), href: "/docs", icon: <BookOpen className="h-[18px] w-[18px]" /> },
-        { label: t("nav.faqs"), href: "/faq", icon: <HelpCircle className="h-[18px] w-[18px]" /> },
-        { label: t("nav.support"), href: "/support", icon: <LifeBuoy className="h-[18px] w-[18px]" /> },
+        { label: t("nav.documentation"), href: Routes.DOCS, icon: <BookOpen className="h-[18px] w-[18px]" /> },
+        { label: t("nav.faqs"), href: Routes.FAQ, icon: <HelpCircle className="h-[18px] w-[18px]" /> },
+        { label: t("nav.support"), href: Routes.SUPPORT, icon: <LifeBuoy className="h-[18px] w-[18px]" /> },
       ],
     },
   ];
