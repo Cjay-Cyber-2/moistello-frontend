@@ -1,11 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import { Wallet } from "lucide-react";
+import { Wallet, WifiOff } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { formatAddress } from "@/lib/formatters";
 import { Button } from "@/components/ui/button";
 import { useMultiWalletStore } from "@/stores/multi-wallet-store";
+import { useOnlineStatus } from "@/hooks/use-online-status";
 
 interface WalletConnectProps {
   className?: string;
@@ -18,6 +19,7 @@ export function WalletConnect({
   variant = "outline",
   size = "sm",
 }: WalletConnectProps) {
+  const isOnline = useOnlineStatus();
   const isConnected = useMultiWalletStore((s) => s.isConnected);
   const address = useMultiWalletStore((s) => s.address);
   const isConnecting = useMultiWalletStore((s) => s.isConnecting);
@@ -27,6 +29,14 @@ export function WalletConnect({
 
   const handleConnect = async () => {
     setLocalError(null);
+
+    if (!isOnline) {
+      setLocalError(
+        "You are offline. Please check your internet connection and try again.",
+      );
+      return;
+    }
+
     try {
       await connect("freighter");
     } catch (err) {
@@ -38,6 +48,15 @@ export function WalletConnect({
         } else {
           setLocalError(err.message || "Failed to connect wallet.");
         }
+      } else if (
+        err &&
+        typeof err === "object" &&
+        "code" in err &&
+        (err as { code: string }).code === "network_offline"
+      ) {
+        setLocalError(
+          "You are offline. Please check your internet connection and try again.",
+        );
       } else {
         setLocalError("Failed to connect wallet.");
       }
@@ -65,14 +84,21 @@ export function WalletConnect({
 
   return (
     <div className={cn("flex flex-col gap-2", className)}>
+      {!isOnline && (
+        <div className="flex items-center gap-2 rounded-lg bg-amber-500/10 border border-amber-500/20 px-3 py-2 text-xs text-amber-400">
+          <WifiOff className="h-3.5 w-3.5 shrink-0" />
+          <span>You&apos;re offline — connect when you&apos;re back online</span>
+        </div>
+      )}
       <Button
         variant={variant}
         size={size}
         leftIcon={<Wallet className="h-4 w-4" />}
         isLoading={isConnecting}
+        disabled={!isOnline}
         onClick={handleConnect}
       >
-        {isConnecting ? "Connecting..." : "Connect Wallet"}
+        {isConnecting ? "Connecting..." : !isOnline ? "Offline" : "Connect Wallet"}
       </Button>
       {displayError && (
         <p className="text-xs text-red-600 dark:text-red-400 max-w-[240px]">
@@ -82,3 +108,4 @@ export function WalletConnect({
     </div>
   );
 }
+
