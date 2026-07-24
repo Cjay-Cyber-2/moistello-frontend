@@ -8,6 +8,7 @@ import { PageHeader } from "@/components/shared/page-header"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/cn"
 import { ArrowLeft, Download, FileText, Table, Check, AlertCircle } from "lucide-react"
+import { copyToClipboard } from "@/lib/clipboard"
 
 type ExportScope = "all" | "members" | "contributions" | "payouts"
 type ExportFormat = "csv" | "json"
@@ -57,12 +58,13 @@ export default function ExportPage() {
     return JSON.stringify(data, null, 2)
   }, [circle, members, rounds, scope])
 
-  const handleCopy = () => {
+  const handleCopy = async () => {
     const content = format === "csv" ? generateCSV() : generateJSON()
-    navigator.clipboard.writeText(content).then(() => {
+    const success = await copyToClipboard(content)
+    if (success) {
       setCopied(true)
       setTimeout(() => setCopied(false), 2000)
-    })
+    }
   }
 
   const handleDownload = () => {

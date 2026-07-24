@@ -2,28 +2,42 @@
 
 import { useState, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Copy, Check } from "lucide-react";
+import { Copy, Check, AlertCircle } from "lucide-react";
 import { cn } from "@/lib/cn";
+import { copyToClipboard } from "@/lib/clipboard";
 
 interface CopyButtonProps {
   text: string;
   label?: string;
   className?: string;
+  onError?: (err: Error) => void;
 }
 
-export function CopyButton({ text, label, className }: CopyButtonProps) {
+export function CopyButton({ text, label, className, onError }: CopyButtonProps) {
   const [copied, setCopied] = useState(false);
+  const [hasError, setHasError] = useState(false);
 
   const handleCopy = useCallback(async () => {
     try {
-      await navigator.clipboard.writeText(text);
-      setCopied(true);
-      const timer = setTimeout(() => setCopied(false), 2000);
+      const success = await copyToClipboard(text);
+      if (success) {
+        setCopied(true);
+        setHasError(false);
+        const timer = setTimeout(() => setCopied(false), 2000);
+        return () => clearTimeout(timer);
+      } else {
+        setHasError(true);
+        onError?.(new Error("Failed to copy text to clipboard"));
+        const timer = setTimeout(() => setHasError(false), 2000);
+        return () => clearTimeout(timer);
+      }
+    } catch (err) {
+      setHasError(true);
+      onError?.(err instanceof Error ? err : new Error("Failed to copy"));
+      const timer = setTimeout(() => setHasError(false), 2000);
       return () => clearTimeout(timer);
-    } catch {
-      // Clipboard not available
     }
-  }, [text]);
+  }, [text, onError]);
 
   return (
     <motion.button
@@ -37,10 +51,12 @@ export function CopyButton({ text, label, className }: CopyButtonProps) {
         "transition-all duration-300",
         copied
           ? "glass-strong bg-success/10 text-success border border-success/20 shadow-[0_0_24px_rgba(16,185,129,0.15)]"
+          : hasError
+          ? "glass-strong bg-red-500/10 text-red-400 border border-red-500/20"
           : "glass-whisper text-muted-foreground hover:text-foreground hover:glass-strong",
         className,
       )}
-      aria-label={copied ? "Copied" : label ?? "Copy to clipboard"}
+      aria-label={copied ? "Copied" : hasError ? "Failed to copy" : label ?? "Copy to clipboard"}
     >
       <AnimatePresence mode="wait">
         {copied ? (
@@ -54,6 +70,17 @@ export function CopyButton({ text, label, className }: CopyButtonProps) {
           >
             <Check className="h-3.5 w-3.5" />
           </motion.span>
+        ) : hasError ? (
+          <motion.span
+            key="error"
+            initial={{ scale: 0 }}
+            animate={{ scale: 1 }}
+            exit={{ scale: 0 }}
+            transition={{ type: "spring", stiffness: 400, damping: 18 }}
+            className="text-red-400"
+          >
+            <AlertCircle className="h-3.5 w-3.5" />
+          </motion.span>
         ) : (
           <motion.span
             key="copy"
@@ -66,8 +93,16 @@ export function CopyButton({ text, label, className }: CopyButtonProps) {
           </motion.span>
         )}
       </AnimatePresence>
-      <span className={cn(copied && "text-success")}>
-        {label ? (copied ? "Copied!" : label) : copied ? "Copied!" : text}
+      <span className={cn(copied && "text-success", hasError && "text-red-400")}>
+        {hasError
+          ? "Failed"
+          : label
+          ? copied
+            ? "Copied!"
+            : label
+          : copied
+          ? "Copied!"
+          : text}
       </span>
     </motion.button>
   );

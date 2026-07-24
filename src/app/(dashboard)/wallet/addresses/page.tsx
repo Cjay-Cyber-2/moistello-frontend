@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input"
 import { get } from "@/lib/api-client"
 import { useUIStore } from "@/stores/ui-store"
 import { formatAddress } from "@/lib/formatters"
+import { copyToClipboard } from "@/lib/clipboard"
 
 interface StoredWallet {
   id: string
@@ -64,11 +65,15 @@ export default function AddressesPage() {
     addToast({ type: "info", title: "Removed" })
   }
 
-  const copyAddr = (key: string) => {
-    navigator.clipboard.writeText(key)
-    setCopiedKey(key)
-    setTimeout(() => setCopiedKey(null), 2000)
-    addToast({ type: "info", title: "Copied" })
+  const copyAddr = async (key: string) => {
+    const success = await copyToClipboard(key)
+    if (success) {
+      setCopiedKey(key)
+      setTimeout(() => setCopiedKey(null), 2000)
+      addToast({ type: "info", title: "Copied" })
+    } else {
+      addToast({ type: "error", title: "Failed to copy address" })
+    }
   }
 
   const autoWallet = wallets.find((w) => w.walletType === "auto" || w.walletType === "passkey")

@@ -41,10 +41,10 @@ export function MobileMenu({ isOpen, onClose }: MobileMenuProps) {
 
   const navLinks = [
     { label: t("nav.dashboard"), href: Routes.DASHBOARD, icon: <Home className="h-4 w-4" /> },
-    { label: t("nav.savings"), href: "/savings", icon: <PiggyBank className="h-4 w-4" /> },
+    { label: t("nav.savings"), href: Routes.SAVINGS, icon: <PiggyBank className="h-4 w-4" /> },
     { label: t("nav.circles"), href: Routes.CIRCLES, icon: <CircleDot className="h-4 w-4" /> },
-    { label: t("nav.contributions"), href: "/contributions", icon: <ArrowUpCircle className="h-4 w-4" /> },
-    { label: t("nav.payouts"), href: "/payouts", icon: <ArrowDownCircle className="h-4 w-4" /> },
+    { label: t("nav.contributions"), href: Routes.CONTRIBUTIONS, icon: <ArrowUpCircle className="h-4 w-4" /> },
+    { label: t("nav.payouts"), href: Routes.PAYOUTS, icon: <ArrowDownCircle className="h-4 w-4" /> },
     { label: t("nav.communities"), href: Routes.COMMUNITIES, icon: <Award className="h-4 w-4" /> },
   ];
 
@@ -62,7 +62,7 @@ export function MobileMenu({ isOpen, onClose }: MobileMenuProps) {
   const handleLogout = () => {
     logout();
     onClose();
-    router.push("/login");
+    router.push(Routes.LOGIN);
   };
 
   if (!isOpen) return null;
@@ -144,9 +144,9 @@ export function MobileMenu({ isOpen, onClose }: MobileMenuProps) {
               {t("nav.docs")}
             </p>
             {[
-              { label: t("nav.documentation"), href: "/docs", icon: <BookOpen className="h-4 w-4" /> },
-              { label: t("nav.faqs"), href: "/faq", icon: <HelpCircle className="h-4 w-4" /> },
-              { label: t("nav.support"), href: "/support", icon: <LifeBuoy className="h-4 w-4" /> },
+              { label: t("nav.documentation"), href: Routes.DOCS, icon: <BookOpen className="h-4 w-4" /> },
+              { label: t("nav.faqs"), href: Routes.FAQ, icon: <HelpCircle className="h-4 w-4" /> },
+              { label: t("nav.support"), href: Routes.SUPPORT, icon: <LifeBuoy className="h-4 w-4" /> },
             ].map((link) => {
               const active = isActive(link.href);
               return (

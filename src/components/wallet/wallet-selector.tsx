@@ -178,6 +178,7 @@ interface WalletSelectorProps {
 export function WalletSelector({ className, variant = "inline" }: WalletSelectorProps) {
   const [showLedgerPrompt, setShowLedgerPrompt] = useState(false)
   const detectedWallets = useMultiWalletStore((s) => s.detectedWallets)
+  const isScanning = useMultiWalletStore((s) => s.isScanning)
   const isConnected = useMultiWalletStore((s) => s.isConnected)
   const isConnecting = useMultiWalletStore((s) => s.isConnecting)
   const error = useMultiWalletStore((s) => s.error)
@@ -308,6 +309,12 @@ export function WalletSelector({ className, variant = "inline" }: WalletSelector
             </p>
 
             <div className="space-y-2">
+              {isScanning && (
+                <div className="flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl bg-aurora-violet/10 border border-aurora-violet/20 text-xs text-aurora-violet font-medium animate-pulse mb-2">
+                  <Loader2 className="h-3.5 w-3.5 animate-spin shrink-0" />
+                  <span>Scanning for available wallets...</span>
+                </div>
+              )}
               {standardWallets.map((w) => (
                 <WalletItem
                   key={w.id}
@@ -417,6 +424,12 @@ export function WalletSelector({ className, variant = "inline" }: WalletSelector
           </div>
         ) : isSelectorOpen ? (
           <div className="space-y-2">
+            {isScanning && (
+              <div className="flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl bg-aurora-violet/10 border border-aurora-violet/20 text-xs text-aurora-violet font-medium animate-pulse mb-2">
+                <Loader2 className="h-3.5 w-3.5 animate-spin shrink-0" />
+                <span>Scanning for available wallets...</span>
+              </div>
+            )}
             {standardWallets.map((w) => (
               <WalletItem
                 key={w.id}

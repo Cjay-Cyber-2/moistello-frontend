@@ -1,6 +1,7 @@
 import { WalletAdapter, WalletMeta, SignOptions, NetworkType } from "../types"
 import { detectAvailableTransport, LedgerTransportManager } from "./ledger-transport"
 import type { ConnectionState } from "./ledger-transport"
+import { LEDGER_BUFFER_SIZE_BYTES } from "@/lib/constants"
 
 interface StellarApp {
   getPublicKey: (path: string, opts?: { display?: boolean; chainCode?: boolean }) => Promise<{ publicKey: string }>
@@ -191,8 +192,8 @@ export function createLedgerAdapter(
       if (!message || message.length === 0) {
         throw makeError("ledger", "ledger_xdr_invalid", "Message cannot be empty.")
       }
-      if (message.length > 8192) {
-        throw makeError("ledger", "ledger_xdr_invalid", "Message too long (max 8192 bytes).")
+      if (message.length > LEDGER_BUFFER_SIZE_BYTES) {
+        throw makeError("ledger", "ledger_xdr_invalid", `Message too long (max ${LEDGER_BUFFER_SIZE_BYTES} bytes).`)
       }
 
       try {

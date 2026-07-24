@@ -1,12 +1,14 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { Clock, Users, Link2 } from "lucide-react";
+import { useState, useEffect, useCallback } from "react";
+import { Clock, Users, Link2, AlertCircle, RefreshCw } from "lucide-react";
 import { Modal } from "@/components/ui/modal";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
 import { CopyButton } from "@/components/shared/copy-button";
+import { DEFAULT_MAX_INVITE_USES, MAX_INVITE_USES_LIMIT, Routes } from "@/lib/constants";
 
 interface InviteCode {
   id: string;
@@ -29,32 +31,41 @@ export function CircleInviteModal({
   circleId,
 }: CircleInviteModalProps) {
   const [inviteCode, setInviteCode] = useState<string>("");
-  const [maxUses, setMaxUses] = useState(5);
+  const [maxUses, setMaxUses] = useState(DEFAULT_MAX_INVITE_USES);
   const [expiration, setExpiration] = useState<string>("");
   const [existingInvites, setExistingInvites] = useState<InviteCode[]>([]);
+  const [isLoadingInvites, setIsLoadingInvites] = useState(false);
+  const [fetchError, setFetchError] = useState<string | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
 
   const inviteUrl =
     typeof window !== "undefined"
-      ? `${window.location.origin}/invite/${inviteCode}`
-      : `/invite/${inviteCode}`;
+      ? `${window.location.origin}${Routes.INVITE(inviteCode)}`
+      : Routes.INVITE(inviteCode);
+
+  const fetchInvites = useCallback(async () => {
+    if (!circleId) return;
+    setIsLoadingInvites(true);
+    setFetchError(null);
+    try {
+      const { get } = await import("@/lib/api-client");
+      const response = await get<{ data: InviteCode[] }>(
+        `/api/circles/${circleId}/invites`,
+      );
+      setExistingInvites(response.data ?? []);
+    } catch {
+      setFetchError("Failed to load existing invites. Please try again.");
+      setExistingInvites([]);
+    } finally {
+      setIsLoadingInvites(false);
+    }
+  }, [circleId]);
 
   useEffect(() => {
     if (isOpen && circleId) {
-      const fetchInvites = async () => {
-        try {
-          const { get } = await import("@/lib/api-client");
-          const response = await get<{ data: InviteCode[] }>(
-            `/api/circles/${circleId}/invites`,
-          );
-          setExistingInvites(response.data ?? []);
-        } catch {
-          setExistingInvites([]);
-        }
-      };
       fetchInvites();
     }
-  }, [isOpen, circleId]);
+  }, [isOpen, circleId, fetchInvites]);
 
   const handleGenerate = async () => {
     setIsGenerating(true);
@@ -76,7 +87,7 @@ export function CircleInviteModal({
         setExistingInvites((prev) => [newInvite, ...prev]);
       }
     } catch {
-      // Silent fail - user can retry
+      // User can retry
     } finally {
       setIsGenerating(false);
     }
@@ -140,7 +151,7 @@ export function CircleInviteModal({
               label="Max Uses"
               type="number"
               min={1}
-              max={100}
+              max={MAX_INVITE_USES_LIMIT}
               value={String(maxUses)}
               onChange={(e) => setMaxUses(Number(e.target.value))}
               leftIcon={<Users className="h-4 w-4" />}
@@ -165,11 +176,29 @@ export function CircleInviteModal({
           </Button>
         </div>
 
-        {existingInvites.length > 0 && (
-          <div className="space-y-3">
-            <h4 className="text-sm font-semibold text-gray-900">
-              Existing Invites ({existingInvites.length})
-            </h4>
+        {/* Existing Invites Section */}
+        <div className="space-y-3">
+          <h4 className="text-sm font-semibold text-gray-900">
+            Existing Invites {!isLoadingInvites && `(${existingInvites.length})`}
+          </h4>
+
+          {isLoadingInvites ? (
+            <div className="space-y-2">
+              <Skeleton className="h-14 w-full rounded-lg" />
+              <Skeleton className="h-14 w-full rounded-lg" />
+            </div>
+          ) : fetchError ? (
+            <div className="flex items-center justify-between rounded-lg border border-red-200 bg-red-50 p-4 text-xs text-red-700">
+              <div className="flex items-center gap-2">
+                <AlertCircle className="h-4 w-4 shrink-0 text-red-500" />
+                <span>{fetchError}</span>
+              </div>
+              <Button variant="ghost" size="sm" onClick={fetchInvites} className="text-xs text-red-700 hover:text-red-900">
+                <RefreshCw className="mr-1 h-3 w-3" />
+                Retry
+              </Button>
+            </div>
+          ) : existingInvites.length > 0 ? (
             <div className="divide-y divide-gray-200 rounded-lg border border-gray-200">
               {existingInvites.map((invite) => (
                 <div
@@ -193,14 +222,12 @@ export function CircleInviteModal({
                 </div>
               ))}
             </div>
-          </div>
-        )}
-
-        {existingInvites.length === 0 && !inviteCode && (
-          <p className="text-center text-sm text-gray-500 py-4">
-            No invites yet. Generate one above to get started.
-          </p>
-        )}
+          ) : !inviteCode ? (
+            <p className="py-4 text-center text-sm text-gray-500">
+              No invites yet. Generate one above to get started.
+            </p>
+          ) : null}
+        </div>
       </div>
     </Modal>
   );

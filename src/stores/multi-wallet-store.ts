@@ -3,6 +3,7 @@
 import { create } from "zustand";
 import { getWalletRegistry } from "@/lib/wallet/registry";
 import { getSessionManager } from "@/lib/wallet/session-manager";
+import { WC2_QR_EXPIRATION_MS } from "@/lib/constants";
 import type {
   WalletAdapter,
   WalletId,
@@ -452,7 +453,7 @@ export const useMultiWalletStore = create<MultiWalletState>()((set, get) => ({
     set({
       wc2PairingUri: uri,
       wc2PairingState: uri ? "pairing" : "idle",
-      wc2QrExpiresAt: uri ? Date.now() + 120_000 : null,
+      wc2QrExpiresAt: uri ? Date.now() + WC2_QR_EXPIRATION_MS : null,
     });
   },
 

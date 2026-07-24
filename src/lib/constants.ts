@@ -50,14 +50,37 @@ export const PAYOUT_TYPES = [
 export const CIRCLE_TYPES = [
   { value: "public", label: "Public" },
   { value: "private", label: "Private" },
-
   { value: "community", label: "Community" },
   { value: "premium", label: "Premium" },
 ] as const
 
 export const MOI_SCORE_MAX = 1000
 
+/** High score threshold for MOI reputation badges */
+export const MOI_SCORE_HIGH_THRESHOLD = 600
+
 export const MAX_PENDING_APPLICATIONS = 10
+
+/** Expiration duration for WalletConnect QR codes in milliseconds (2 minutes) */
+export const WC2_QR_EXPIRATION_MS = 120_000
+
+/** Timeout duration for Passkey assertion / WebAuthn options in milliseconds (2 minutes) */
+export const PASSKEY_TIMEOUT_MS = 120_000
+
+/** Maximum buffer size for Ledger transport frame payloads in bytes (8KB) */
+export const LEDGER_BUFFER_SIZE_BYTES = 8192
+
+/** Inactivity warning countdown threshold before session timeout in seconds (5 minutes) */
+export const SESSION_TIMEOUT_WARN_SECONDS = 300
+
+/** Default usage limit for newly generated circle invite codes */
+export const DEFAULT_MAX_INVITE_USES = 5
+
+/** Maximum allowed usages for a single invite code */
+export const MAX_INVITE_USES_LIMIT = 100
+
+/** Default delay for UI feedback animations and toasts in milliseconds */
+export const UI_FEEDBACK_DELAY_MS = 300
 
 export const PAGINATION = {
   DEFAULT_PAGE: 1,
@@ -73,14 +96,46 @@ export const Routes = {
   CIRCLES: "/circles",
   CIRCLE_DETAIL: (id: string) => `/circles/${id}`,
   CREATE_CIRCLE: "/circles/create",
+  CIRCLE_EXPORT: (id: string) => `/circles/${id}/export`,
+  CIRCLE_SETTINGS: (id: string) => `/circles/${id}/settings`,
+  CIRCLE_COMMENTS: (id: string) => `/circles/${id}/comments`,
+  SAVINGS: "/savings",
+  CONTRIBUTIONS: "/contributions",
+  PAYOUTS: "/payouts",
+  PEOPLE: "/people",
   PROFILE: "/profile",
   COMMUNITIES: "/communities",
+  CREATE_COMMUNITY: "/communities/create",
   COMMUNITY_DETAIL: (id: string) => `/communities/${id}`,
+  COMMUNITY_CIRCLES: (id: string) => `/communities/${id}/circles`,
   PROFILE_SETTINGS: "/settings",
+  SETTINGS_SAVINGS: "/settings/savings",
+  SETTINGS_NOTIFICATIONS: "/settings/notifications",
+  SETTINGS_ACCOUNT: "/settings/account",
+  SETTINGS_PRIVACY: "/settings/privacy",
+  SETTINGS_SESSIONS: "/settings/sessions",
   WALLET: "/wallet",
+  WALLET_DEPOSIT: "/wallet/deposit",
+  WALLET_WITHDRAW: "/wallet/withdraw",
+  WALLET_TRANSFER: "/wallet/transfer",
+  WALLET_TRANSACTIONS: "/wallet/transactions",
+  WALLET_TRANSACTION_DETAIL: (id: string) => `/wallet/transactions/${id}`,
+  WALLET_ADDRESSES: "/wallet/addresses",
+  WALLET_SETTINGS: "/wallet/settings",
   NOTIFICATIONS: "/notifications",
   INVITE: (code: string) => `/invite/${code}`,
   TERMS: "/terms",
   PRIVACY: "/privacy",
   ABOUT: "/about",
+  HOW_IT_WORKS: "/how-it-works",
+  FAQ: "/faq",
+  DOCS: "/docs",
+  SUPPORT: "/support",
+  BECOME_CONTRIBUTOR: "/become-a-contributor",
+  DEVELOPERS: "/developers",
+  STATUS: "/status",
+  ACCESS_DENIED: "/access-denied",
+  AUTH_REQUIRED: "/auth-required",
+  BAD_REQUEST: "/bad-request",
+  INTERNAL_ERROR: "/internal-error",
 } as const
