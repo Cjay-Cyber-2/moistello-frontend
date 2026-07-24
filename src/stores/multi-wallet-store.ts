@@ -35,6 +35,7 @@ interface MultiWalletState {
     status: "detected" | "not_detected";
   }>;
   isScanning: boolean;
+  isInitializing: boolean;
 
   /* Convenience state for auth / UI pages */
   isConnected: boolean;
@@ -130,6 +131,7 @@ export const useMultiWalletStore = create<MultiWalletState>()((set, get) => ({
   wallets: {},
   detectedWallets: [],
   isScanning: false,
+  isInitializing: false,
 
   /* Convenience defaults */
   isConnected: false,
@@ -164,51 +166,58 @@ export const useMultiWalletStore = create<MultiWalletState>()((set, get) => ({
   ledgerConnectionError: null,
 
   init: async () => {
-    const sessionManager = getSessionManager();
-    const sessions = sessionManager.getAll();
-    if (sessions.length > 0) {
-      const active = sessionManager.getActive();
-      const wallets: Record<string, WalletEntry> = {};
-      for (const s of sessions) {
-        const adapter = getWalletRegistry().getAdapter(s.walletId);
-        if (adapter) {
-          wallets[s.walletId] = {
-            adapter,
-            publicKey: s.publicKey,
-            network: s.network,
-            balance: null,
-            lastConnected: s.lastConnected,
-            error: null,
-            status: "reconnecting",
-          };
-        }
-      }
-      const nextActiveId = active?.walletId ?? null;
-      set({
-        wallets,
-        activeWalletId: nextActiveId,
-        ...syncConvenienceState({ activeWalletId: nextActiveId, wallets }),
-      });
+    if (get().isInitializing) return;
+    set({ isInitializing: true });
 
-      for (const s of sessions) {
-        const adapter = getWalletRegistry().getAdapter(s.walletId);
-        if (adapter) {
-          adapter
-            .isConnected()
-            .then((connected) => {
-              get().updateWalletStatus(
-                s.walletId,
-                connected ? "connected" : "disconnected"
-              );
-            })
-            .catch(() => {
-              get().updateWalletStatus(s.walletId, "disconnected");
-            });
+    try {
+      const sessionManager = getSessionManager();
+      const sessions = sessionManager.getAll();
+      if (sessions.length > 0) {
+        const active = sessionManager.getActive();
+        const wallets: Record<string, WalletEntry> = {};
+        for (const s of sessions) {
+          const adapter = getWalletRegistry().getAdapter(s.walletId);
+          if (adapter) {
+            wallets[s.walletId] = {
+              adapter,
+              publicKey: s.publicKey,
+              network: s.network,
+              balance: null,
+              lastConnected: s.lastConnected,
+              error: null,
+              status: "reconnecting",
+            };
+          }
+        }
+        const nextActiveId = active?.walletId ?? null;
+        set({
+          wallets,
+          activeWalletId: nextActiveId,
+          ...syncConvenienceState({ activeWalletId: nextActiveId, wallets }),
+        });
+
+        for (const s of sessions) {
+          const adapter = getWalletRegistry().getAdapter(s.walletId);
+          if (adapter) {
+            adapter
+              .isConnected()
+              .then((connected) => {
+                get().updateWalletStatus(
+                  s.walletId,
+                  connected ? "connected" : "disconnected"
+                );
+              })
+              .catch(() => {
+                get().updateWalletStatus(s.walletId, "disconnected");
+              });
+          }
         }
       }
+
+      await get().scanWallets();
+    } finally {
+      set({ isInitializing: false });
     }
-
-    get().scanWallets();
   },
 
   scanWallets: async () => {
