@@ -82,7 +82,7 @@ export function LocaleProvider({ children }: { children: ReactNode }) {
             const s = store.getState()
             if (s.token) s.setTokens(s.token, s.refreshToken ?? "", updatedUser)
           })
-        }).catch(() => {})
+        }).catch((e) => { console.warn("[locale] Failed to persist language preference:", e) })
       })
     }
   }, [])

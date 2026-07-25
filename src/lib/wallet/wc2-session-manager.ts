@@ -97,7 +97,8 @@ class WCSessionOrchestrator {
       }
       this.signClient = sc
       return true
-    } catch {
+    } catch (e) {
+      console.warn("[wc-session] Failed to restore session:", e)
       return false
     }
   }
@@ -286,8 +287,8 @@ const prop = proposal as {
     if (sc?.disconnect && this.connectionState.sessionTopic) {
       try {
         await sc.disconnect({ topic: this.connectionState.sessionTopic })
-      } catch {
-        // best-effort
+      } catch (e) {
+        console.warn("[wc-session] Failed to disconnect:", e)
       }
     }
     this.reset()

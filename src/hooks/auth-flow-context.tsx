@@ -50,7 +50,7 @@ export function AuthFlowProvider({ children }: { children: ReactNode }) {
           useAuthFlowStore.getState().reset()
         }
       } catch {
-        // ignore parse errors from concurrent writes
+        // Storage event with invalid JSON from concurrent writes — ignore
       }
     }
 

@@ -46,8 +46,8 @@ function setAccessToken(token: string): void {
   document.cookie = `moistello_token=${token}; path=/; max-age=86400; SameSite=Lax`
   try {
     localStorage.setItem("moistello_token", token)
-  } catch {
-    // localStorage not available
+  } catch (e) {
+    console.warn("[api] localStorage unavailable for token storage:", e)
   }
 }
 
@@ -74,7 +74,7 @@ async function refreshAccessToken(): Promise<string> {
           try {
             refreshToken = localStorage.getItem("moistello_refresh")
           } catch {
-            // ignore
+            // localStorage unavailable — will throw below
           }
         }
       }
@@ -147,15 +147,15 @@ apiClient.interceptors.response.use(
           try {
             localStorage.removeItem("moistello_token")
             localStorage.removeItem("moistello_refresh")
-          } catch {
-            // ignore
+          } catch (e) {
+            console.warn("[api] Failed to clear tokens on refresh failure:", e)
           }
           // Also clear auth-store token keys so checkAuth doesn't loop
           try {
             localStorage.removeItem("moistello_access_token")
             localStorage.removeItem("moistello_refresh_token")
-          } catch {
-            // ignore
+          } catch (e) {
+            console.warn("[api] Failed to clear legacy tokens on refresh failure:", e)
           }
           window.location.href = "/login"
         }

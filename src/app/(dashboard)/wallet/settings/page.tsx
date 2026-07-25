@@ -39,7 +39,7 @@ export default function WalletSettingsPage() {
         const stored = localStorage.getItem("wallet_nickname") || ""
         setNickname(stored)
       }
-    }).catch(() => {}).finally(() => setLoading(false))
+    }).catch((e) => { console.warn("[wallet-settings] Failed to load wallet:", e) }).finally(() => setLoading(false))
   }, [])
 
   const copyKey = async () => {
@@ -67,7 +67,8 @@ export default function WalletSettingsPage() {
       await del(`/wallets/${wallet.id}`)
       addToast({ type: "success", title: "Deleted", description: "Wallet has been deleted." })
       setWallet(null)
-    } catch {
+    } catch (e) {
+      console.error("[wallet-settings] Failed to delete wallet:", e)
       addToast({ type: "error", title: "Failed", description: "Could not delete wallet." })
     } finally {
       setDeleting(false)

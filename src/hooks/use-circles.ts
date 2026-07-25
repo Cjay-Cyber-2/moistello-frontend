@@ -2,6 +2,7 @@
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { get, post } from "@/lib/api-client";
+import { useUIStore } from "@/stores/ui-store";
 import {
   ApiResponse,
   Circle,
@@ -10,6 +11,13 @@ import {
   Contribution,
 } from "@/types";
 
+function extractErrorMessage(err: unknown, fallback: string): string {
+  const apiErr = (err as { response?: { data?: { error?: string } } })?.response?.data?.error;
+  if (apiErr) return apiErr;
+  if (err instanceof Error) return err.message;
+  return fallback;
+}
+
 interface CircleFilters {
   search?: string;
   status?: string;
@@ -17,6 +25,9 @@ interface CircleFilters {
   page?: number;
   limit?: number;
   organizerId?: string;
+  sort?: string;
+  sortBy?: string;
+  sortOrder?: "asc" | "desc";
 }
 
 interface CreateCirclePayload {
@@ -74,6 +85,9 @@ export function useCircles(filters?: CircleFilters) {
       if (filters?.page) params.set("page", String(filters.page));
       if (filters?.limit) params.set("limit", String(filters.limit));
       if (filters?.organizerId) params.set("organizerId", filters.organizerId);
+      if (filters?.sort) params.set("sort", filters.sort);
+      if (filters?.sortBy) params.set("sortBy", filters.sortBy);
+      if (filters?.sortOrder) params.set("sortOrder", filters.sortOrder);
 
       const query = params.toString();
       const url = `/circles${query ? `?${query}` : ""}`;
@@ -106,6 +120,7 @@ export function useCircle(id: string) {
 
 export function useStartCircle() {
   const queryClient = useQueryClient();
+  const addToast = useUIStore((s) => s.addToast);
 
   return useMutation({
     mutationFn: (circleId: string) =>
@@ -114,11 +129,20 @@ export function useStartCircle() {
       queryClient.invalidateQueries({ queryKey: ["circle", circleId] });
       queryClient.invalidateQueries({ queryKey: ["circles"] });
     },
+    onError: (err) => {
+      console.error("[useStartCircle] Failed to start circle:", err);
+      addToast({
+        type: "error",
+        title: "Failed to start circle",
+        description: extractErrorMessage(err, "Could not start circle. Please try again."),
+      });
+    },
   });
 }
 
 export function useCreateCircle() {
   const queryClient = useQueryClient();
+  const addToast = useUIStore((s) => s.addToast);
 
   return useMutation({
     mutationFn: (payload: CreateCirclePayload) =>
@@ -126,11 +150,20 @@ export function useCreateCircle() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["circles"] });
     },
+    onError: (err) => {
+      console.error("[useCreateCircle] Failed to create circle:", err);
+      addToast({
+        type: "error",
+        title: "Failed to create circle",
+        description: extractErrorMessage(err, "Could not create circle. Please try again."),
+      });
+    },
   });
 }
 
 export function useJoinCircle() {
   const queryClient = useQueryClient();
+  const addToast = useUIStore((s) => s.addToast);
 
   return useMutation({
     mutationFn: ({
@@ -144,11 +177,20 @@ export function useJoinCircle() {
       queryClient.invalidateQueries({ queryKey: ["circle", variables.circleId] });
       queryClient.invalidateQueries({ queryKey: ["circle-members", variables.circleId] });
     },
+    onError: (err) => {
+      console.error("[useJoinCircle] Failed to join circle:", err);
+      addToast({
+        type: "error",
+        title: "Failed to join circle",
+        description: extractErrorMessage(err, "Could not join circle. Please try again."),
+      });
+    },
   });
 }
 
 export function useContribute(circleId: string) {
   const queryClient = useQueryClient();
+  const addToast = useUIStore((s) => s.addToast);
 
   return useMutation({
     mutationFn: (payload: ContributePayload) =>
@@ -156,9 +198,58 @@ export function useContribute(circleId: string) {
         `/circles/${circleId}/contribute`,
         payload
       ),
-    onSuccess: () => {
+    onMutate: async (newContribution) => {
+      await queryClient.cancelQueries({ queryKey: ["circle", circleId] });
+      await queryClient.cancelQueries({ queryKey: ["circle-rounds", circleId] });
+
+      const previousCircle = queryClient.getQueryData<Circle | null>(["circle", circleId]);
+      const previousRounds = queryClient.getQueryData<Contribution[]>(["circle-rounds", circleId]);
+
+      if (previousCircle) {
+        queryClient.setQueryData<Circle | null>(["circle", circleId], {
+          ...previousCircle,
+          totalContributions: (previousCircle.totalContributions ?? 0) + (newContribution.amount ?? 0),
+        });
+      }
+
+      if (previousRounds) {
+        const optimisticRound: Contribution = {
+          id: `temp-${Date.now()}`,
+          circleId,
+          userId: "current-user",
+          roundNumber: newContribution.roundNumber ?? previousCircle?.currentRound ?? 1,
+          amount: newContribution.amount,
+          status: "completed",
+          onTime: true,
+          submittedAt: new Date().toISOString(),
+        };
+        queryClient.setQueryData<Contribution[]>(
+          ["circle-rounds", circleId],
+          [...previousRounds, optimisticRound]
+        );
+      }
+
+      return { previousCircle, previousRounds };
+    },
+    onError: (_err, _newContribution, context) => {
+      if (context?.previousCircle) {
+        queryClient.setQueryData(["circle", circleId], context.previousCircle);
+      }
+      if (context?.previousRounds) {
+        queryClient.setQueryData(["circle-rounds", circleId], context.previousRounds);
+      }
+    },
+    onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ["circle", circleId] });
       queryClient.invalidateQueries({ queryKey: ["circle-rounds", circleId] });
+    },
+    onError: (err) => {
+      console.error("[useContribute] Failed to contribute:", err);
+      addToast({
+        type: "error",
+        title: "Failed to contribute",
+        description: extractErrorMessage(err, "Could not submit contribution. Please try again."),
+      });
     },
   });
 }

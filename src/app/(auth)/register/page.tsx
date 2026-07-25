@@ -94,7 +94,8 @@ export default function RegisterPage() {
       await patch("/users/me", { displayName: displayName || undefined, preferredLanguage: language })
       addToast({ type: "success", title: "Profile saved" })
       setStep("passkey")
-    } catch {
+    } catch (e) {
+      console.error("[register] Failed to save profile:", e)
       setError("Failed to save profile")
     } finally {
       setLoading(false)
@@ -125,7 +126,9 @@ export default function RegisterPage() {
           }
         }
       }
-    } catch { /* user cancelled */ }
+    } catch (e) {
+      console.warn("[register] Passkey setup skipped:", e)
+    }
     setLoading(false)
     skipPasskey()
   }, [addToast, skipPasskey])

@@ -158,7 +158,7 @@ export default function DashboardContent() {
 
   // Initialize wallet on first dashboard load (fires once per session)
   useEffect(() => {
-    post("/auth/wallet/init").catch(() => {})
+    post("/auth/wallet/init").catch(() => { /* best-effort wallet init */ })
   }, [])
 
   const isLoading = authLoading || circlesLoading || contribsLoading || payoutsLoading

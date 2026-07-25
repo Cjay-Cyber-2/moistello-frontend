@@ -40,6 +40,7 @@ interface MultiWalletState {
   isConnected: boolean;
   address: string | null;
   isConnecting: boolean;
+  connectingWalletId: WalletId | null;
   error: string | null;
   activeAdapter: WalletAdapter | null;
   isSelectorOpen: boolean;
@@ -135,6 +136,7 @@ export const useMultiWalletStore = create<MultiWalletState>()((set, get) => ({
   isConnected: false,
   address: null,
   isConnecting: false,
+  connectingWalletId: null,
   error: null,
   activeAdapter: null,
   isSelectorOpen: false,
@@ -232,6 +234,8 @@ export const useMultiWalletStore = create<MultiWalletState>()((set, get) => ({
   },
 
   connect: async (walletId: WalletId) => {
+    if (get().connectingWalletId === walletId) return;
+
     const adapter = getWalletRegistry().getAdapter(walletId);
     if (!adapter) return;
 
@@ -256,6 +260,7 @@ export const useMultiWalletStore = create<MultiWalletState>()((set, get) => ({
       };
       return {
         ...next,
+        connectingWalletId: walletId,
         ...syncConvenienceState(next),
       };
     });
@@ -324,6 +329,12 @@ export const useMultiWalletStore = create<MultiWalletState>()((set, get) => ({
         };
       });
       throw error;
+    } finally {
+      set((state) =>
+        state.connectingWalletId === walletId
+          ? { connectingWalletId: null }
+          : state
+      );
     }
   },
 
@@ -387,9 +398,9 @@ export const useMultiWalletStore = create<MultiWalletState>()((set, get) => ({
           return state;
         });
       }
-    } catch {
-      // non-critical
-    }
+      } catch (e) {
+        console.warn("[multi-wallet] Failed to refresh balance:", e)
+      }
   },
 
   clearError: (walletId: WalletId) => {

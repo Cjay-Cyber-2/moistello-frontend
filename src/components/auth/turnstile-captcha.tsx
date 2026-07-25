@@ -82,7 +82,7 @@ export function TurnstileCaptcha({ onVerify, onError, className }: TurnstileCapt
         if (cancelled || !window.turnstile || !containerRef.current) return
 
         if (widgetIdRef.current) {
-          try { window.turnstile.remove(widgetIdRef.current) } catch {}
+          try { window.turnstile.remove(widgetIdRef.current) } catch (e) { console.warn("[turnstile] Failed to remove widget:", e) }
           widgetIdRef.current = null
         }
 
@@ -123,7 +123,7 @@ export function TurnstileCaptcha({ onVerify, onError, className }: TurnstileCapt
     return () => {
       cancelled = true
       if (widgetIdRef.current && window.turnstile) {
-        try { window.turnstile.remove(widgetIdRef.current) } catch {}
+        try { window.turnstile.remove(widgetIdRef.current) } catch (e) { console.warn("[turnstile] Cleanup failed:", e) }
         widgetIdRef.current = null
       }
     }
@@ -131,7 +131,7 @@ export function TurnstileCaptcha({ onVerify, onError, className }: TurnstileCapt
 
   const handleRetry = useCallback(() => {
     if (widgetIdRef.current && window.turnstile) {
-      try { window.turnstile.remove(widgetIdRef.current) } catch {}
+      try { window.turnstile.remove(widgetIdRef.current) } catch (e) { console.warn("[turnstile] Failed to remove widget on retry:", e) }
       widgetIdRef.current = null
     }
     setState("loading")

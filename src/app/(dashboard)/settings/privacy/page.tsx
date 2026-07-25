@@ -25,7 +25,8 @@ export default function PrivacySettingsPage() {
       })
       setSaved(true)
       setTimeout(() => setSaved(false), 3000)
-    } catch {
+    } catch (e) {
+      console.error("[privacy] Failed to save privacy settings:", e)
     } finally {
       setSaving(false)
     }

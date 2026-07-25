@@ -49,7 +49,7 @@ export function useWebSocket(options?: UseWebSocketOptions) {
         setLastMessage(message);
         options?.onEvent?.(message);
       } catch {
-        // Ignore non-JSON messages
+        // Non-JSON WebSocket message — ignore
       }
     };
 

@@ -24,6 +24,7 @@ import { useUIStore } from "@/stores/ui-store";
 import { useAuthStore } from "@/stores/auth-store";
 import { useNotificationStore } from "@/stores/notification-store";
 import { useTranslate } from "@/lib/locale/context";
+import { useFocusTrap } from "@/hooks/use-focus-trap";
 
 interface MobileMenuProps {
   isOpen: boolean;
@@ -38,6 +39,7 @@ export function MobileMenu({ isOpen, onClose }: MobileMenuProps) {
   const { unreadCount } = useNotificationStore();
   const isDark = theme === "dark";
   const { t } = useTranslate();
+  const menuRef = useFocusTrap<HTMLDivElement>(isOpen, onClose);
 
   const navLinks = [
     { label: t("nav.dashboard"), href: Routes.DASHBOARD, icon: <Home className="h-4 w-4" /> },
@@ -71,6 +73,11 @@ export function MobileMenu({ isOpen, onClose }: MobileMenuProps) {
     <div className="fixed inset-0 z-[70]">
       <div className="absolute inset-0 bg-black/60 backdrop-blur-md" onClick={onClose} />
       <div
+        ref={menuRef}
+        role="dialog"
+        aria-modal="true"
+        aria-label={t("nav.navigation")}
+        tabIndex={-1}
         className={cn(
           "absolute right-0 top-0 bottom-0 w-80 max-w-[85vw]",
           "glass-premium backdrop-blur-2xl",

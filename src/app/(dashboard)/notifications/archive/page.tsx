@@ -62,7 +62,7 @@ export default function NotificationsArchivePage() {
         const d = (res as Record<string, unknown>)?.data as Record<string, unknown> ?? res as Record<string, unknown>
         setAll((d?.notifications ?? []) as Notification[])
       })
-      .catch(() => {})
+      .catch((e) => { console.warn("[notifications] Failed to load archived notifications:", e) })
       .finally(() => setLoading(false))
   }, [page])
 

@@ -46,7 +46,8 @@ function SetupForm() {
         setStep("form");
         setError(data.error || "Setup failed");
       }
-    } catch {
+    } catch (e) {
+      console.error("[setup] Setup failed:", e)
       setStep("form");
       setError("Network error — try again");
     }

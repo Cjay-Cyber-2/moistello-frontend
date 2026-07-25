@@ -68,7 +68,9 @@ export default function TransactionsPage() {
         }
         all.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
         setTxns(all)
-      } catch {}
+      } catch (e) {
+        console.error("[transactions] Failed to load transactions:", e)
+      }
       setLoading(false)
     }
     load()

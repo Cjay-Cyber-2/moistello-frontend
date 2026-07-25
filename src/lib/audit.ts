@@ -28,8 +28,8 @@ export function logAuditEvent(entry: Omit<AuditEntry, "id" | "timestamp">): void
     trail.unshift(full)
     if (trail.length > MAX_ENTRIES) trail.length = MAX_ENTRIES
     localStorage.setItem(AUDIT_STORAGE_KEY, JSON.stringify(trail))
-  } catch {
-    // QuotaExceeded or unavailable — silently degrade
+  } catch (e) {
+    console.warn("[audit] Failed to persist audit event:", e)
   }
 }
 
@@ -47,8 +47,8 @@ export function clearAuditTrail(): void {
   if (typeof window === "undefined") return
   try {
     localStorage.removeItem(AUDIT_STORAGE_KEY)
-  } catch {
-    // silently degrade
+  } catch (e) {
+    console.warn("[audit] Failed to clear audit trail:", e)
   }
 }
 

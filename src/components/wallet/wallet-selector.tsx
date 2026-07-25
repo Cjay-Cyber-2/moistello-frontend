@@ -234,7 +234,8 @@ export function WalletSelector({ className, variant = "inline" }: WalletSelector
       if (walletId === "walletconnect") {
         setWc2PairingState("approved")
       }
-    } catch {
+    } catch (e) {
+      console.error("[wallet-selector] Connection failed:", e)
       if (walletId === "walletconnect") {
         setWc2PairingError(address || "Connection failed or was cancelled.")
       }

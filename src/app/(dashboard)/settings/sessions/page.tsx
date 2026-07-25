@@ -56,7 +56,7 @@ export default function SessionsSettingsPage() {
       const body = (res as Record<string, unknown>)?.data as Record<string, unknown> ?? res
       setSessions((body?.sessions ?? []) as SessionInfo[])
       setLoadingSessions(false)
-    }).catch(() => setLoadingSessions(false))
+    }).catch((e) => { console.warn("[sessions] Failed to load sessions:", e); setLoadingSessions(false) })
   }, [])
 
   const handleSaveTTL = useCallback(async () => {
@@ -65,7 +65,9 @@ export default function SessionsSettingsPage() {
       await patch("/users/me", { sessionTtlMinutes: sessionTTL })
       setSaved(true)
       setTimeout(() => setSaved(false), 3000)
-    } catch {}
+    } catch (e) {
+      console.error("[sessions] Failed to save session TTL:", e)
+    }
     setSaving(false)
   }, [sessionTTL])
 
@@ -73,7 +75,9 @@ export default function SessionsSettingsPage() {
     try {
       await del(`/sessions/${sessionId}`)
       setSessions((prev) => prev.filter((s) => s.id !== sessionId))
-    } catch {}
+    } catch (e) {
+      console.error("[sessions] Failed to revoke session:", e)
+    }
     setConfirmRevoke(null)
   }, [])
 
@@ -81,7 +85,9 @@ export default function SessionsSettingsPage() {
     try {
       await del("/sessions")
       setSessions((prev) => prev.filter((s) => s.isCurrent))
-    } catch {}
+    } catch (e) {
+      console.error("[sessions] Failed to revoke all sessions:", e)
+    }
   }, [])
 
   return (

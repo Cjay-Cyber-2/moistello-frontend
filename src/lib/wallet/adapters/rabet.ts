@@ -39,7 +39,7 @@ export function createRabetAdapter(): WalletAdapter {
     },
     async disconnect() {
       const api = getRabetAPI()
-      if (api) { try { await api.disconnect() } catch {} }
+      if (api) { try { await api.disconnect() } catch (e) { console.warn("[rabet] Failed to disconnect:", e) } }
     },
     async isConnected() {
       const api = getRabetAPI()

@@ -58,7 +58,8 @@ export class WC2SessionStore {
       }
 
       return payload.data
-    } catch {
+    } catch (e) {
+      console.warn("[wc-session-store] Failed to read session, clearing:", e)
       this.clear()
       return null
     }
@@ -89,8 +90,8 @@ export class WC2SessionStore {
     if (!storage) return
     try {
       storage.removeItem(STORAGE_KEY)
-    } catch {
-      // non-critical
+    } catch (e) {
+      console.warn("[wc-session-store] Failed to clear session:", e)
     }
   }
 }

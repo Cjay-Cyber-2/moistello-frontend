@@ -114,7 +114,8 @@ export function createLedgerAdapter(
       if ((appParts[0] ?? 0) < MIN_STELLAR_APP_MAJOR || ((appParts[0] ?? 0) === MIN_STELLAR_APP_MAJOR && (appParts[1] ?? 0) < MIN_STELLAR_APP_MINOR)) {
         warnings.push(`Stellar app v${MIN_STELLAR_APP_MAJOR}.${MIN_STELLAR_APP_MINOR}.0+ recommended for full transaction detail display. Update via Ledger Live Manager.`)
       }
-    } catch {
+    } catch (e) {
+      console.warn("[ledger] Failed to read firmware version:", e)
     }
 
     cachedFirmware = { firmware: firmwareStr, stellarApp: appVersion, warnings }

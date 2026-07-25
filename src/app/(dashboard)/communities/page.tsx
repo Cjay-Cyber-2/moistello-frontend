@@ -65,7 +65,8 @@ export default function CommunitiesPage() {
         setCommunities((prev) => [...prev, ...list])
       }
       setHasNext(meta ? Number(meta.page) < Number(meta.totalPages) : false)
-    } catch {
+    } catch (e) {
+      console.error("[communities] Failed to load communities:", e)
       if (pageNum === 1) setCommunities([])
     } finally {
       setLoading(false)

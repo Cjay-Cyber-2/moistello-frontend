@@ -62,7 +62,8 @@ export default function PaymentSettingsPage() {
       setAccNumber("")
       setAccName("")
       setShowForm(false)
-    } catch {
+    } catch (e) {
+      console.error("[payment] Failed to add bank account:", e)
     } finally {
       setAdding(false)
     }
@@ -72,7 +73,8 @@ export default function PaymentSettingsPage() {
     try {
       await del(`/bank-accounts/${id}`)
       setAccounts((prev) => prev.filter((a) => a.id !== id))
-    } catch {
+    } catch (e) {
+      console.error("[payment] Failed to remove bank account:", e)
     }
   }, [])
 
