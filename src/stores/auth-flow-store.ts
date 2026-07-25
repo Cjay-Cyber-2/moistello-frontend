@@ -153,8 +153,8 @@ export async function verifyPasskeyRevocation(): Promise<void> {
     if (!response.revoked) {
       useAuthFlowStore.setState({ passkeyRevoked: false, passkeyVersion: response.currentVersion })
     }
-  } catch {
-    // Server unreachable — keep current state, don't block UI
+  } catch (e) {
+    console.warn("[auth-flow] Passkey status check failed (server unreachable):", e)
   }
 }
 
@@ -169,7 +169,9 @@ export const useAuthFlowStore = create<AuthFlowStore>()(
             import("@/lib/wallet/registry").then(({ getWalletRegistry }) => {
               try {
                 getWalletRegistry().getAdapter("passkey")?.reset?.()
-              } catch {}
+              } catch (e) {
+                console.warn("[auth-flow] Failed to reset passkey adapter:", e)
+              }
             })
           }
           set({

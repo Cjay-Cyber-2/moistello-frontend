@@ -97,7 +97,7 @@ export default function RootLayout({
 <head>
          <script
             dangerouslySetInnerHTML={{
-              __html: `(function(){try{var t=localStorage.getItem('moistello_theme');if(t){var p=JSON.parse(t);if(p.state&&p.state.theme==='light'){document.documentElement.classList.remove('dark')}else if(p.state&&p.state.theme==='system'){if(!window.matchMedia('(prefers-color-scheme: dark)').matches){document.documentElement.classList.remove('dark')}}if(p.state&&p.state.density){document.documentElement.setAttribute('data-density',p.state.density)}if(p.state&&p.state.fontSize){document.documentElement.setAttribute('data-font-size',p.state.fontSize)}}else{document.documentElement.setAttribute('data-density','comfortable');document.documentElement.setAttribute('data-font-size','medium')}}catch(e){}})()`,
+              __html: `(function(){try{var t=localStorage.getItem('moistello_theme');if(t){var p=JSON.parse(t);if(p.state&&p.state.theme==='light'){document.documentElement.classList.remove('dark')}else if(p.state&&p.state.theme==='system'){if(!window.matchMedia('(prefers-color-scheme: dark)').matches){document.documentElement.classList.remove('dark')}}if(p.state&&p.state.density){document.documentElement.setAttribute('data-density',p.state.density)}if(p.state&&p.state.fontSize){document.documentElement.setAttribute('data-font-size',p.state.fontSize)}}else{document.documentElement.setAttribute('data-density','comfortable');document.documentElement.setAttribute('data-font-size','medium')}}catch(e){console.warn('[layout] Failed to apply theme:',e)}})()`,
             }}
           />
          <script

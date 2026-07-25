@@ -25,7 +25,8 @@ function isAuthorized(request: NextRequest): boolean {
     const session = sessions.find((s: any) => s.token === cookie.value);
     if (!session) return false;
     return Date.now() - session.createdAt < 7 * 24 * 60 * 60 * 1000;
-  } catch {
+  } catch (e) {
+    console.error("[api:upload] Session check failed:", e)
     return false;
   }
 }

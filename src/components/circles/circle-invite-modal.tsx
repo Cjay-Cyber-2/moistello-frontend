@@ -53,7 +53,8 @@ export function CircleInviteModal({
         `/api/circles/${circleId}/invites`,
       );
       setExistingInvites(response.data ?? []);
-    } catch {
+    } catch (e) {
+      console.error("[circle-invite] Failed to load invites:", e)
       setFetchError("Failed to load existing invites. Please try again.");
       setExistingInvites([]);
     } finally {
@@ -86,8 +87,8 @@ export function CircleInviteModal({
         setInviteCode(newInvite.code);
         setExistingInvites((prev) => [newInvite, ...prev]);
       }
-    } catch {
-      // User can retry
+    } catch (e) {
+      console.error("[circle-invite] Failed to generate invite:", e)
     } finally {
       setIsGenerating(false);
     }

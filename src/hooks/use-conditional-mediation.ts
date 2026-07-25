@@ -53,7 +53,7 @@ export function useConditionalMediation() {
           captureAuthError(err, { step: "choose", mode: "login", errorCode: "internal_error" })
         })
       })
-      .catch(() => {})
+      .catch(() => { /* conditional mediation unavailable — fallback to standard auth */ })
 
     return () => {
       cancelled = true

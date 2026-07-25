@@ -103,7 +103,8 @@ export function SignStep({
     setIsSigning(true)
     try {
       await onSign()
-    } catch {
+    } catch (e) {
+      console.error("[sign-step] Sign failed:", e)
       setIsSigning(false)
     }
   }, [onSign])
@@ -112,7 +113,8 @@ export function SignStep({
     setIsSigning(true)
     try {
       await onSign()
-    } catch {
+    } catch (e) {
+      console.error("[sign-step] Sign retry failed:", e)
       setIsSigning(false)
     }
   }, [onSign])

@@ -208,7 +208,8 @@ export class LedgerTransportManager {
             this.handleDisconnect("usb_unplugged")
           }
         })
-      } catch {
+      } catch (e) {
+        console.warn("[ledger] Failed to register USB disconnect handler:", e)
       }
     }
 
@@ -285,7 +286,8 @@ export class LedgerTransportManager {
             await this.performReconnect()
           }
         }
-      } catch {
+      } catch (e) {
+        console.warn("[ledger] Reconnect poll failed:", e)
       }
     }, RECONNECT_POLL_MS)
 
@@ -334,7 +336,8 @@ export class LedgerTransportManager {
       const channel = new BroadcastChannel("moistello-wallet")
       channel.postMessage({ type, ...data })
       channel.close()
-    } catch {
+    } catch (e) {
+      console.warn("[ledger] BroadcastChannel unavailable:", e)
     }
   }
 
@@ -351,7 +354,8 @@ export class LedgerTransportManager {
         if (typeof transport.close === "function") {
           await transport.close()
         }
-      } catch {
+      } catch (e) {
+        console.warn("[ledger] Failed to close transport:", e)
       }
       this.transportInstance = null
     }

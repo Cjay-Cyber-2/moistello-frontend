@@ -39,8 +39,8 @@ export function ConfirmDialog({
       setInternalLoading(true);
       await onConfirm();
       onClose();
-    } catch {
-      // Error handled by parent
+    } catch (e) {
+      console.error("[confirm-dialog] Action failed:", e)
     } finally {
       setInternalLoading(false);
     }

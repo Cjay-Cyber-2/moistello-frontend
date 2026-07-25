@@ -38,12 +38,14 @@ export default function AddressesPage() {
     get("/wallets").then((res) => {
       const d = (res as Record<string, unknown>)?.data as Record<string, unknown> ?? res as Record<string, unknown>
       setWallets((d?.wallets ?? []) as StoredWallet[])
-    }).catch(() => {}).finally(() => setLoading(false))
+    }).catch((e) => { console.warn("[addresses] Failed to load wallets:", e) }).finally(() => setLoading(false))
 
     try {
       const stored = JSON.parse(localStorage.getItem("saved_addresses") || "[]") as SavedAddress[]
       setSavedAddresses(stored)
-    } catch {}
+    } catch (e) {
+      console.warn("[addresses] Failed to load saved addresses:", e)
+    }
   }, [])
 
   const saveAddresses = (list: SavedAddress[]) => {

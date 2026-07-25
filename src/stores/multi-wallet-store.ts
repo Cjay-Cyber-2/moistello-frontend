@@ -387,9 +387,9 @@ export const useMultiWalletStore = create<MultiWalletState>()((set, get) => ({
           return state;
         });
       }
-    } catch {
-      // non-critical
-    }
+      } catch (e) {
+        console.warn("[multi-wallet] Failed to refresh balance:", e)
+      }
   },
 
   clearError: (walletId: WalletId) => {

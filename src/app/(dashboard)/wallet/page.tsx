@@ -80,7 +80,8 @@ export default function WalletPage() {
 
         all.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
         setTransactions(all.slice(0, 10))
-      } catch {
+      } catch (e) {
+        console.error("[wallet] Failed to load wallet data:", e)
       } finally {
         setLoading(false)
       }

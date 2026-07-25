@@ -15,7 +15,9 @@ export function SwaggerUIPage() {
           const parsed = JSON.parse(stored);
           setIsAuthorized(!!parsed?.Authorization);
         }
-      } catch {}
+      } catch (e) {
+        console.warn("[swagger] Failed to read auth state:", e)
+      }
     };
     checkAuth();
     window.addEventListener("storage", checkAuth);

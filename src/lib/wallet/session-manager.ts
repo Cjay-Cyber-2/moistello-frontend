@@ -116,7 +116,8 @@ export class WalletSessionManager {
       const now = Date.now()
       this.sessions = store.sessions.filter(s => now - s.lastConnected < SESSION_TTL)
       this.activeWalletId = store.activeWalletId
-    } catch {
+    } catch (e) {
+      console.warn("[session-manager] Failed to restore sessions from storage:", e)
       localStorage.removeItem(STORAGE_KEY)
     }
   }

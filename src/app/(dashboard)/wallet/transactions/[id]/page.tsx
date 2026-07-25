@@ -52,9 +52,9 @@ export default function TransactionDetailPage() {
               source: "contribution",
             }
           }
-        } catch {}
-
-        if (!found) {
+        } catch (e) {
+          console.warn("[tx-detail] Contribution fetch failed, trying payout:", e)
+        }
           try {
             const pRes = await get(`/payouts/${txId}`)
             const d = (pRes as Record<string, unknown>)?.data as Record<string, unknown> ?? pRes as Record<string, unknown>
@@ -70,11 +70,15 @@ export default function TransactionDetailPage() {
                 source: "payout",
               }
             }
-          } catch {}
+        } catch (e) {
+          console.warn("[tx-detail] Payout not found:", e)
+        }
         }
 
         setTx(found)
-      } catch {}
+      } catch (e) {
+        console.error("[tx-detail] Failed to load transaction:", e)
+      }
       setLoading(false)
     }
     load()

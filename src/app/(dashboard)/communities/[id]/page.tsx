@@ -157,9 +157,12 @@ export default function CommunityDetailPage() {
           const raw = memCheck as Record<string, unknown>
           const data = (raw.data ?? raw) as Record<string, unknown>
           setIsMember(!!data.isMember)
-        } catch {}
+        } catch (e) {
+          console.warn("[community] Failed to check membership:", e)
+        }
       }
-    } catch {
+    } catch (e) {
+      console.error("[community] Failed to load community:", e)
       setCommunity(null)
     } finally {
       setLoading(false)
@@ -174,7 +177,8 @@ export default function CommunityDetailPage() {
       setIsMember(true)
       setCommunity((prev) => prev ? { ...prev, memberCount: prev.memberCount + 1 } : prev)
       addToast({ type: "success", title: "Joined!", description: "You are now a member of this community." })
-    } catch {
+    } catch (e) {
+      console.error("[community] Failed to join:", e)
       addToast({ type: "error", title: "Failed to join", description: "Please try again." })
     }
   }
@@ -185,7 +189,8 @@ export default function CommunityDetailPage() {
       await patch(`/communities/${communityId}/announcements/${a.id}/pin`, { pinned: !a.isPinned })
       setAnnouncements((prev) => prev.map((x) => x.id === a.id ? { ...x, isPinned: !x.isPinned } : x))
       addToast({ type: "success", title: a.isPinned ? "Unpinned" : "Pinned!" })
-    } catch {
+    } catch (e) {
+      console.error("[community] Failed to toggle pin:", e)
       addToast({ type: "error", title: "Failed" })
     }
   }
@@ -196,7 +201,8 @@ export default function CommunityDetailPage() {
       await del(`/communities/${communityId}/announcements/${id}`)
       setAnnouncements((prev) => prev.filter((a) => a.id !== id))
       addToast({ type: "success", title: "Deleted" })
-    } catch {
+    } catch (e) {
+      console.error("[community] Failed to delete announcement:", e)
       addToast({ type: "error", title: "Failed to delete" })
     }
   }
@@ -208,7 +214,8 @@ export default function CommunityDetailPage() {
       setMembers((prev) => prev.filter((m) => m.userId !== targetId))
       setCommunity((prev) => prev ? { ...prev, memberCount: prev.memberCount - 1 } : prev)
       addToast({ type: "success", title: `${name} removed` })
-    } catch {
+    } catch (e) {
+      console.error("[community] Failed to remove member:", e)
       addToast({ type: "error", title: "Failed to remove member" })
     }
   }
@@ -225,7 +232,8 @@ export default function CommunityDetailPage() {
       setShowTransfer(false)
       setTransferTarget("")
       load()
-    } catch {
+    } catch (e) {
+      console.error("[community] Failed to transfer ownership:", e)
       addToast({ type: "error", title: "Failed to transfer ownership" })
     }
   }
@@ -584,7 +592,8 @@ function CreateAnnouncementForm({ communityId, onCreated }: { communityId: strin
       setContent("")
       addToast({ type: "success", title: "Posted!" })
       onCreated()
-    } catch {
+    } catch (e) {
+      console.error("[community] Failed to post announcement:", e)
       addToast({ type: "error", title: "Failed to post" })
     } finally {
       setPosting(false)
