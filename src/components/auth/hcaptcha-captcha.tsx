@@ -101,7 +101,7 @@ export const HCaptchaCaptcha = forwardRef<HCaptchaCaptchaHandle, HCaptchaCaptcha
           if (!mounted || !window.hcaptcha || !invisibleContainerRef.current) return
 
           if (widgetIdRef.current) {
-            try { window.hcaptcha.remove(widgetIdRef.current) } catch {}
+            try { window.hcaptcha.remove(widgetIdRef.current) } catch (e) { console.warn("[hcaptcha] Failed to remove widget:", e) }
             widgetIdRef.current = null
           }
 
@@ -149,8 +149,8 @@ export const HCaptchaCaptcha = forwardRef<HCaptchaCaptchaHandle, HCaptchaCaptcha
         if (widgetIdRef.current && window.hcaptcha) {
           try {
             window.hcaptcha.remove(widgetIdRef.current)
-          } catch {
-            // best-effort cleanup
+          } catch (e) {
+            console.warn("[hcaptcha] Cleanup failed:", e)
           }
           widgetIdRef.current = null
         }
@@ -173,7 +173,9 @@ export const HCaptchaCaptcha = forwardRef<HCaptchaCaptchaHandle, HCaptchaCaptcha
       if (widgetIdRef.current && window.hcaptcha) {
         try {
           window.hcaptcha.remove(widgetIdRef.current)
-        } catch {}
+        } catch (e) {
+          console.warn("[hcaptcha] Failed to remove widget on retry:", e)
+        }
         widgetIdRef.current = null
       }
       setState("unloaded")

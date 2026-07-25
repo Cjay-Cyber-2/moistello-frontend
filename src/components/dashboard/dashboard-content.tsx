@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useMemo, useEffect } from "react"
+import React, { useMemo, useEffect, useState } from "react"
 import Link from "next/link"
 import { useQuery } from "@tanstack/react-query"
 import {
@@ -15,6 +15,10 @@ import {
   Inbox,
   PiggyBank,
   AlertCircle,
+  TrendingUp,
+  Wallet,
+  CalendarDays,
+  BarChart3,
 } from "lucide-react"
 import { get, post } from "@/lib/api-client"
 import { useAuth } from "@/hooks/use-auth"
@@ -28,6 +32,10 @@ import { cn } from "@/lib/cn"
 import { useTranslate } from "@/lib/locale/context"
 import { Routes, MOI_SCORE_HIGH_THRESHOLD } from "@/lib/constants"
 import type { ApiResponse, Circle, Contribution, Payout } from "@/types"
+
+/* ------------------------------------------------------------------ */
+/*  Helpers                                                            */
+/* ------------------------------------------------------------------ */
 
 function StatCard({ label, value, icon, gradient, pulseGlow }: { label: string; value: string; icon: React.ReactNode; gradient: string; pulseGlow?: boolean }) {
   return (
@@ -114,6 +122,168 @@ function ActivityTimelineItem({ description, amount, date, type }: { description
   )
 }
 
+/* ------------------------------------------------------------------ */
+/*  NEW: Chart Widgets                                                 */
+/* ------------------------------------------------------------------ */
+
+function TrendSparkline({ data, height = 160 }: { data: number[]; height?: number }) {
+  const width = 600
+  const padding = 12
+  const max = Math.max(...data, 1)
+  const min = Math.min(...data, 0)
+  const range = max - min || 1
+  const points = data.map((v, i) => {
+    const x = padding + (i / (data.length - 1 || 1)) * (width - padding * 2)
+    const y = height - padding - ((v - min) / range) * (height - padding * 2)
+    return `${x},${y}`
+  }).join(" ")
+
+  const areaPoints = `${padding},${height - padding} ${points} ${width - padding},${height - padding}`
+
+  return (
+    <svg viewBox={`0 0 ${width} ${height}`} className="w-full h-auto" preserveAspectRatio="none">
+      <defs>
+        <linearGradient id="trendGrad" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="rgb(var(--aurora-violet) / 0.25)" />
+          <stop offset="100%" stopColor="rgb(var(--aurora-violet) / 0)" />
+        </linearGradient>
+      </defs>
+      <polygon points={areaPoints} fill="url(#trendGrad)" />
+      <polyline
+        points={points}
+        fill="none"
+        stroke="rgb(var(--aurora-violet) / 0.9)"
+        strokeWidth="3"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  )
+}
+
+const TREND_TITLE = "Contribution trend"
+const TREND_EMPTY = "No contributions yet"
+const TREND_EMPTY_DESC = "Your trend will appear after your first contribution."
+const TREND_TOTAL = "Total"
+const TREND_PEAK = "Peak"
+const TREND_PERIOD = "Last 14 days"
+
+const PAYOUTS_TITLE = "Upcoming payouts"
+const PAYOUTS_EMPTY = "No upcoming payouts"
+const PAYOUTS_EMPTY_DESC = "Payouts will appear here when scheduled."
+const PAYOUTS_VIEW_ALL = "View all"
+
+function ContributionTrendChart({ contributions }: { contributions: Contribution[] }) {
+  const [isClient, setIsClient] = useState(false)
+  useEffect(() => { setIsClient(true) }, [])
+
+  const dailyTotals = useMemo(() => {
+    const map = new Map<string, number>()
+    for (const c of contributions) {
+      const day = new Date(c.submittedAt).toISOString().slice(0, 10)
+      map.set(day, (map.get(day) || 0) + c.amount)
+    }
+    const days = Array.from(map.keys()).sort().slice(-14)
+    return days.map((d) => map.get(d) || 0)
+  }, [contributions])
+
+  if (!isClient) return null
+
+  return (
+    <div className="glass rounded-2xl p-5 holo-border relative overflow-hidden">
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center gap-2">
+          <TrendingUp className="h-4 w-4 text-aurora-violet" />
+          <h3 className="font-heading text-sm font-semibold text-foreground">{TREND_TITLE}</h3>
+        </div>
+        <span className="text-2xs text-muted-foreground font-body">{TREND_PERIOD}</span>
+      </div>
+
+      {dailyTotals.length === 0 ? (
+        <div className="py-10 text-center space-y-2">
+          <BarChart3 className="h-8 w-8 text-muted-foreground mx-auto" />
+          <p className="text-xs text-muted-foreground font-body">{TREND_EMPTY}</p>
+          <p className="text-2xs text-muted-foreground">{TREND_EMPTY_DESC}</p>
+        </div>
+      ) : (
+        <div className="depth-4 rounded-xl bg-white/[0.02] p-3">
+          <TrendSparkline data={dailyTotals} height={160} />
+          <div className="flex items-end justify-between mt-3 px-1">
+            <div>
+              <p className="text-2xs text-muted-foreground uppercase tracking-wide">{TREND_TOTAL}</p>
+              <p className="font-heading text-lg font-bold gradient-text">
+                {formatCurrency(dailyTotals.reduce((a, b) => a + b, 0), "USDC")}
+              </p>
+            </div>
+            <div className="text-right">
+              <p className="text-2xs text-muted-foreground uppercase tracking-wide">{TREND_PEAK}</p>
+              <p className="font-heading text-lg font-bold text-foreground">{formatCurrency(Math.max(...dailyTotals), "USDC")}</p>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
+function UpcomingPayoutsWidget({ payouts }: { payouts: Payout[] }) {
+  const upcoming = useMemo(() => {
+    const now = Date.now()
+    return payouts
+      .filter((p) => new Date(p.executedAt).getTime() >= now)
+      .sort((a, b) => new Date(a.executedAt).getTime() - new Date(b.executedAt).getTime())
+      .slice(0, 5)
+  }, [payouts])
+
+  return (
+    <div className="glass rounded-2xl p-5 holo-border relative overflow-hidden">
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center gap-2">
+          <Wallet className="h-4 w-4 text-emerald-400" />
+          <h3 className="font-heading text-sm font-semibold text-foreground">{PAYOUTS_TITLE}</h3>
+        </div>
+        <Link href={Routes.PAYOUTS} className="text-xs text-aurora-violet hover:underline">{PAYOUTS_VIEW_ALL}</Link>
+      </div>
+
+      {upcoming.length === 0 ? (
+        <div className="py-10 text-center space-y-2">
+          <Inbox className="h-8 w-8 text-muted-foreground mx-auto" />
+          <p className="text-xs text-muted-foreground font-body">{PAYOUTS_EMPTY}</p>
+          <p className="text-2xs text-muted-foreground">{PAYOUTS_EMPTY_DESC}</p>
+        </div>
+      ) : (
+        <div className="space-y-3">
+          {upcoming.map((p) => {
+            const circleLabel = `Round ${p.roundNumber}`
+            const eta = new Date(p.executedAt)
+            const isToday = eta.toDateString() === new Date().toDateString()
+            return (
+              <div key={p.id} className="glass-whisper rounded-xl p-3 flex items-center justify-between">
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-emerald-500/20 to-aurora-cyan/20 text-emerald-400">
+                    <ArrowDownCircle className="h-4 w-4" />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-sm text-foreground truncate font-body">{circleLabel}</p>
+                    <p className="text-2xs text-muted-foreground flex items-center gap-1">
+                      <CalendarDays className="h-3 w-3" /> {isToday ? "Today" : eta.toLocaleDateString("en-US", { month: "short", day: "numeric" })}
+                    </p>
+                  </div>
+                </div>
+                <span className="gradient-text text-sm font-bold font-heading shrink-0 ml-3">{formatCurrency(p.amount, "USDC")}</span>
+              </div>
+            )
+          })}
+        </div>
+      )}
+    </div>
+  )
+}
+
+/* ------------------------------------------------------------------ */
+/*  Main Dashboard                                                     */
+/* ------------------------------------------------------------------ */
+
 export default function DashboardContent() {
   const { user, isLoading: authLoading } = useAuth()
   const { t } = useTranslate()
@@ -156,9 +326,9 @@ export default function DashboardContent() {
   const contributions = useMemo(() => contribsData ?? [], [contribsData])
   const payouts = useMemo(() => payoutsData ?? [], [payoutsData])
 
-  // Initialize wallet on first dashboard load (fires once per session)
+  /* Initialize wallet on first dashboard load (fires once per session) */
   useEffect(() => {
-    post("/auth/wallet/init").catch(() => {})
+    post("/auth/wallet/init").catch(() => { /* best-effort wallet init */ })
   }, [])
 
   const isLoading = authLoading || circlesLoading || contribsLoading || payoutsLoading
@@ -183,7 +353,7 @@ export default function DashboardContent() {
       items.push({ id: `c-${c.id}`, description: `Contribution in round ${c.roundNumber}`, amount: formatCurrency(c.amount, "USDC"), date: c.submittedAt, type: "contribution" })
     }
     for (const p of payouts) {
-      items.push({ id: `p-${p.id}`, description: `Payout received — round ${p.roundNumber}`, amount: formatCurrency(p.amount, "USDC"), date: p.executedAt, type: "payout" })
+      items.push({ id: `p-${p.id}`, description: `Payout received — round ${p.roundNumber}`, amount: formatCurrency(p.amount, "USDC"), date: p.createdAt, type: "payout" })
     }
     items.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
     return items.slice(0, 5)
@@ -215,6 +385,7 @@ export default function DashboardContent() {
   return (
     <div className="space-y-8">
       <PageHeader title={t("dash.title")} description={t("dash.welcome")} />
+
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <StatCard label={t("dash.activeCircles")} value={String(stats.activeCircles)} icon={<CircleDot className="h-5 w-5" />} gradient="from-aurora-indigo to-aurora-violet" />
         <StatCard label={t("dash.totalContributed")} value={stats.totalContributed} icon={<ArrowUpCircle className="h-5 w-5" />} gradient="from-aurora-cyan to-aurora-indigo" />
@@ -222,7 +393,7 @@ export default function DashboardContent() {
         <StatCard label={t("dash.moiScore")} value={stats.moiScore} icon={<Award className="h-5 w-5" />} gradient="from-aurora-amber to-aurora-violet" pulseGlow={moiHighScore} />
       </div>
 
-      {/* Upcoming Savings Obligations with explicit Empty & Loading states */}
+      {/* Savings Obligations */}
       <div className="glass-premium rounded-2xl p-5 space-y-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
@@ -267,6 +438,17 @@ export default function DashboardContent() {
         )}
       </div>
 
+      {/* Charts & widgets section */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-2 space-y-4">
+          <ContributionTrendChart contributions={contributions} />
+        </div>
+        <div className="space-y-4">
+          <UpcomingPayoutsWidget payouts={payouts} />
+        </div>
+      </div>
+
+      {/* Circles + Activity */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 space-y-4">
           <div className="flex items-center justify-between">

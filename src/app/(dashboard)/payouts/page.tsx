@@ -14,13 +14,15 @@ import {
 } from "lucide-react"
 import { useQuery } from "@tanstack/react-query"
 import { get } from "@/lib/api-client"
+import { usePayouts } from "@/hooks/use-payouts"
 import { PageHeader } from "@/components/shared/page-header"
 import { EmptyState } from "@/components/shared/empty-state"
 import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
 import { formatCurrency, formatDate, formatAddress } from "@/lib/formatters"
 import { cn } from "@/lib/cn"
-import type { ApiResponse, Payout as PayoutType, Circle } from "@/types"
+import type { ApiResponse, Circle } from "@/types"
+import { getCurrentPagePayoutTotal } from "./payout-summary"
 
 function TransactionLink({ hash }: { hash: string }) {
   return (
@@ -30,7 +32,7 @@ function TransactionLink({ hash }: { hash: string }) {
       rel="noopener noreferrer"
       className="inline-flex items-center gap-1 text-xs text-aurora-cyan hover:underline font-mono"
     >
-      {formatAddress(hash, 6, 4)}
+      {formatAddress(hash)}
       <ExternalLink className="h-3 w-3" />
     </a>
   )
@@ -84,21 +86,7 @@ export default function PayoutsPage() {
   const [page, setPage] = useState(1)
   const limit = 20
 
-  const { data, isLoading, isError } = useQuery({
-    queryKey: ["payouts", page, limit],
-    queryFn: async () => {
-      const params = new URLSearchParams()
-      params.set("page", String(page))
-      params.set("limit", String(limit))
-      const query = params.toString()
-      const url = `/payouts?${query}`
-      const response = await get<ApiResponse<{ payouts: PayoutType[] }>>(url)
-      return {
-        payouts: response.data?.payouts ?? [],
-        meta: response.meta ?? { page, limit, total: 0, totalPages: 0 },
-      }
-    },
-  })
+  const { data, isLoading, isError } = usePayouts({ page, limit })
 
   const { data: circlesData } = useQuery({
     queryKey: ["circles", "payouts-filter"],
@@ -114,7 +102,7 @@ export default function PayoutsPage() {
   const hasNext = meta ? meta.page < meta.totalPages : false
   const hasPrev = page > 1
 
-  const totalReceived = payouts.reduce((sum, p) => sum + p.amount, 0)
+  const currentPageTotal = getCurrentPagePayoutTotal(payouts)
 
   const getCircleName = (circleId: string): string =>
     circles.find((c) => c.id === circleId)?.name ?? "Unknown"
@@ -128,8 +116,8 @@ export default function PayoutsPage() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <SummaryCard
-          label="Total Received"
-          value={formatCurrency(totalReceived, "USDC")}
+          label="Total on This Page"
+          value={formatCurrency(currentPageTotal, "USDC")}
           icon={<DollarSign className="h-6 w-6" />}
           gradient="from-emerald-500 to-aurora-cyan"
         />
@@ -227,7 +215,7 @@ export default function PayoutsPage() {
                     : "—"}
                 </div>
                 <div className="w-28 text-sm text-muted-foreground font-body">
-                  {formatDate(payout.executedAt)}
+                  {formatDate(payout.createdAt)}
                 </div>
                 <div className="w-36">
                   {payout.txnHash ? (

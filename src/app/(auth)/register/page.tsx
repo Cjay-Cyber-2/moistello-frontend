@@ -126,7 +126,9 @@ export default function RegisterPage() {
           }
         }
       }
-    } catch { /* user cancelled */ }
+    } catch (e) {
+      console.warn("[register] Passkey setup skipped:", e)
+    }
     setLoading(false)
     skipPasskey()
   }, [addToast, skipPasskey])

@@ -39,7 +39,7 @@ export default function WalletSettingsPage() {
         const stored = localStorage.getItem("wallet_nickname") || ""
         setNickname(stored)
       }
-    }).catch(() => {}).finally(() => setLoading(false))
+    }).catch((e) => { console.warn("[wallet-settings] Failed to load wallet:", e) }).finally(() => setLoading(false))
   }, [])
 
   const copyKey = async () => {
@@ -67,7 +67,8 @@ export default function WalletSettingsPage() {
       await del(`/wallets/${wallet.id}`)
       addToast({ type: "success", title: "Deleted", description: "Wallet has been deleted." })
       setWallet(null)
-    } catch {
+    } catch (e) {
+      console.error("[wallet-settings] Failed to delete wallet:", e)
       addToast({ type: "error", title: "Failed", description: "Could not delete wallet." })
     } finally {
       setDeleting(false)
@@ -108,7 +109,7 @@ export default function WalletSettingsPage() {
                 )}
               </div>
               <div className="flex items-center gap-2">
-                <code className="text-sm font-mono text-foreground bg-white/5 px-2 py-1 rounded">{formatAddress(wallet.publicKey, 12, 8)}</code>
+                <code className="text-sm font-mono text-foreground bg-white/5 px-2 py-1 rounded">{formatAddress(wallet.publicKey)}</code>
                 <button onClick={copyKey} className="text-muted-foreground hover:text-foreground transition-colors">
                   {copied ? <Check className="h-4 w-4 text-emerald-400" /> : <Copy className="h-4 w-4" />}
                 </button>

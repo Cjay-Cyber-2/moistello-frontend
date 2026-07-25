@@ -1,11 +1,8 @@
 import type { NetworkType } from "./types"
-import { hmac } from "@noble/hashes/hmac.js"
-import { sha256 } from "@noble/hashes/sha2.js"
-import { bytesToHex } from "@noble/hashes/utils.js"
+import { computeHmacSha256 } from "./hmac"
 
 const STORAGE_KEY = "moistello_wc2_session"
 const SESSION_TTL = 7 * 24 * 60 * 60 * 1000
-const HMAC_KEY = new TextEncoder().encode("moistello-hmac-v1")
 
 interface WC2SessionData {
   pairingTopic: string
@@ -22,7 +19,7 @@ interface StoredPayload {
 
 function computeHMAC(data: WC2SessionData): string {
   const input = `${data.pairingTopic}|${data.publicKey}|${data.network}|${data.createdAt}|${data.expiresAt}`
-  return bytesToHex(hmac(sha256 as never, HMAC_KEY, new TextEncoder().encode(input)))
+  return computeHmacSha256(input)
 }
 
 function isBrowser(): boolean {
@@ -58,7 +55,8 @@ export class WC2SessionStore {
       }
 
       return payload.data
-    } catch {
+    } catch (e) {
+      console.warn("[wc-session-store] Failed to read session, clearing:", e)
       this.clear()
       return null
     }
@@ -89,8 +87,8 @@ export class WC2SessionStore {
     if (!storage) return
     try {
       storage.removeItem(STORAGE_KEY)
-    } catch {
-      // non-critical
+    } catch (e) {
+      console.warn("[wc-session-store] Failed to clear session:", e)
     }
   }
 }

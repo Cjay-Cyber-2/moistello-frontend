@@ -52,9 +52,9 @@ export default function TransactionDetailPage() {
               source: "contribution",
             }
           }
-        } catch {}
-
-        if (!found) {
+        } catch (e) {
+          console.warn("[tx-detail] Contribution fetch failed, trying payout:", e)
+        }
           try {
             const pRes = await get(`/payouts/${txId}`)
             const d = (pRes as Record<string, unknown>)?.data as Record<string, unknown> ?? pRes as Record<string, unknown>
@@ -70,11 +70,15 @@ export default function TransactionDetailPage() {
                 source: "payout",
               }
             }
-          } catch {}
+        } catch (e) {
+          console.warn("[tx-detail] Payout not found:", e)
+        }
         }
 
         setTx(found)
-      } catch {}
+      } catch (e) {
+        console.error("[tx-detail] Failed to load transaction:", e)
+      }
       setLoading(false)
     }
     load()
@@ -121,7 +125,7 @@ export default function TransactionDetailPage() {
         </Link>
         <div>
           <h1 className="font-heading text-xl font-bold text-foreground">Transaction</h1>
-          <p className="text-sm text-muted-foreground font-mono truncate">{formatAddress(tx.id, 8, 8)}</p>
+          <p className="text-sm text-muted-foreground font-mono truncate">{formatAddress(tx.id)}</p>
         </div>
       </div>
 
@@ -163,7 +167,7 @@ export default function TransactionDetailPage() {
           <div className="flex items-center justify-between px-5 py-4">
             <span className="text-sm text-muted-foreground">Transaction Hash</span>
             <div className="flex items-center gap-2">
-              <code className="text-xs font-mono text-aurora-cyan">{formatAddress(tx.txnHash, 8, 8)}</code>
+              <code className="text-xs font-mono text-aurora-cyan">{formatAddress(tx.txnHash)}</code>
               <button onClick={copyHash} className="text-muted-foreground hover:text-foreground transition-colors">
                 {copied ? <Check className="h-3.5 w-3.5 text-emerald-400" /> : <Copy className="h-3.5 w-3.5" />}
               </button>

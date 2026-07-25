@@ -54,7 +54,8 @@ export default function UploadPage() {
       } else {
         setLoginError(data.error || "Login failed");
       }
-    } catch {
+    } catch (e) {
+      console.error("[upload] Login failed:", e)
       setLoginError("Network error");
     }
     setLoggingIn(false);
@@ -105,7 +106,8 @@ export default function UploadPage() {
         setStatus("error");
         setMessage(data.error || "Upload failed");
       }
-    } catch {
+    } catch (e) {
+      console.error("[upload] Upload failed:", e)
       setStatus("error");
       setMessage("Network error — try again");
     }

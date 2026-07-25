@@ -20,6 +20,11 @@ export function useWebSocket(options?: UseWebSocketOptions) {
   const reconnectAttemptRef = useRef(0);
   const reconnectTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const mountedRef = useRef(true);
+  const onEventRef = useRef(options?.onEvent);
+
+  useEffect(() => {
+    onEventRef.current = options?.onEvent;
+  }, [options?.onEvent]);
 
   const send = useCallback((message: unknown) => {
     if (wsRef.current?.readyState === WebSocket.OPEN) {
@@ -47,9 +52,9 @@ export function useWebSocket(options?: UseWebSocketOptions) {
       try {
         const message: WebSocketMessage = JSON.parse(event.data);
         setLastMessage(message);
-        options?.onEvent?.(message);
+        onEventRef.current?.(message);
       } catch {
-        // Ignore non-JSON messages
+        // Non-JSON WebSocket message — ignore
       }
     };
 

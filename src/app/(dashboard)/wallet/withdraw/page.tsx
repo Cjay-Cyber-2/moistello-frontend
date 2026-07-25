@@ -49,7 +49,9 @@ export default function WithdrawPage() {
           setPasskeySeed(Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, "0")).join(""))
         })
       }
-    } catch {}
+    } catch (e) {
+      console.warn("[withdraw] Failed to read passkey credential:", e)
+    }
   }, [])
 
   // Fetch own wallet address for self-send detection
@@ -59,7 +61,7 @@ export default function WithdrawPage() {
         const d = (res as Record<string, unknown>)?.data as Record<string, unknown> ?? res as Record<string, unknown>
         const list = (d?.wallets ?? []) as { publicKey: string }[]
         if (list.length > 0) setOwnAddress(list[0].publicKey)
-      }).catch(() => {})
+      }).catch((e) => { console.warn("[withdraw] Failed to load own wallet address:", e) })
     })
   }, [])
 

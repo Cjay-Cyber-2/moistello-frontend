@@ -30,7 +30,7 @@ export default function DepositPage() {
       const d = (res as Record<string, unknown>)?.data as Record<string, unknown> ?? res as Record<string, unknown>
       const list = (d?.wallets ?? []) as WalletInfo[]
       if (list.length > 0) setWallet(list[0])
-    }).catch(() => {}).finally(() => setLoading(false))
+    }).catch((e) => { console.warn("[deposit] Failed to load wallet:", e) }).finally(() => setLoading(false))
   }, [])
 
   const copyKey = async () => {

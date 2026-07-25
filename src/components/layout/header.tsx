@@ -112,7 +112,7 @@ export function Header({ onToggleMobileMenu, isMobileMenuOpen }: HeaderProps) {
                 >
                   <span className="flex h-2 w-2 rounded-full bg-emerald-400" />
                   <span className="font-mono text-xs text-foreground tracking-tight">
-                    {formatAddress(address, 4, 4)}
+                    {formatAddress(address)}
                   </span>
                 </div>
               ) : (

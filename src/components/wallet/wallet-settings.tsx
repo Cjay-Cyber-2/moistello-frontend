@@ -128,7 +128,7 @@ export function WalletSettings() {
                         onClick={() => copyKey(w.publicKey)}
                         className="text-xs text-muted-foreground font-mono hover:text-foreground transition-colors flex items-center gap-1"
                       >
-                        {formatAddress(w.publicKey, 8, 6)}
+                        {formatAddress(w.publicKey)}
                         {copiedKey === w.publicKey ? (
                           <CheckCircle className="h-3 w-3 text-emerald-400" />
                         ) : (

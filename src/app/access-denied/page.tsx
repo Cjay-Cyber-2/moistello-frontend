@@ -1,40 +1,39 @@
-'use client'
-
 import Link from "next/link"
-
-import { Shield, ShieldQuestion, Home } from "lucide-react"
+import { ArrowRight, Home, LockKeyhole, ShieldQuestion } from "lucide-react"
 
 export default function Forbidden() {
   return (
-    <>
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="container-premium max-w-xl mx-auto px-4">
-          <div className="rounded-3xl bg-card/60 backdrop-blur-xl border border-white/10 p-10 text-center">
-            <div className="flex items-center justify-center mb-6">
-              <div className="flex items-baseline gap-4">
-                <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-red-500/15">
-                  <Shield className="h-8 w-8 text-red-400" />
-                </div>
-                <h1 className="font-heading text-5xl md:text-6xl font-black text-foreground">403</h1>
-              </div>
-            </div>
-            <h2 className="font-heading text-2xl font-semibold mb-3 text-foreground">Access Denied</h2>
-            <p className="text-muted-foreground mb-8 leading-relaxed">
-              You don&apos;t have permission to view this resource. Contact support for assistance.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-3 justify-center">
-              <Link href="/support" className="gradient-bg-extended text-white px-6 py-3 rounded-xl font-heading font-medium transition-transform duration-300 hover:scale-105">
-                <ShieldQuestion className="h-4 w-4 inline mr-2" />
-                Contact Support
-              </Link>
-              <Link href="/" className="glass text-muted-foreground px-6 py-3 rounded-xl font-heading transition-transform duration-300 hover:scale-105">
-                <Home className="h-4 w-4 inline mr-2" />
-                Home
-              </Link>
-            </div>
+    <main className="min-h-screen bg-background">
+      <div className="h-2 w-full bg-gradient-to-r from-red-500 via-amber-400 to-red-500" aria-hidden="true" />
+      <section className="container-premium grid min-h-[calc(100vh-0.5rem)] items-center gap-10 py-16 lg:grid-cols-[0.8fr_1.2fr]">
+        <div className="relative border-r border-border pr-8">
+          <div className="absolute -right-3 top-0 h-6 w-6 border-r-2 border-t-2 border-red-400" aria-hidden="true" />
+          <div className="absolute -bottom-1 -right-3 h-6 w-6 border-b-2 border-r-2 border-red-400" aria-hidden="true" />
+          <LockKeyhole className="h-16 w-16 text-red-400" />
+          <p className="mt-8 font-mono text-8xl font-black leading-none text-foreground md:text-9xl">403</p>
+        </div>
+        <div>
+          <span className="inline-flex items-center gap-2 rounded-full border border-red-500/30 bg-red-500/10 px-3 py-1 font-mono text-xs uppercase tracking-wider text-red-400">
+            Protected resource
+          </span>
+          <h1 className="mt-5 font-heading text-4xl font-bold text-foreground md:text-6xl">Access denied.</h1>
+          <p className="mt-5 max-w-xl text-lg leading-relaxed text-muted-foreground">
+            Your account does not have permission to open this resource. If that seems wrong,
+            support can help verify your access.
+          </p>
+          <div className="mt-8 flex flex-wrap gap-3">
+            <Link href="/support" className="inline-flex items-center gap-2 bg-red-500 px-5 py-3 font-heading font-semibold text-white hover:bg-red-400">
+              <ShieldQuestion className="h-4 w-4" />
+              Contact support
+              <ArrowRight className="h-4 w-4" />
+            </Link>
+            <Link href="/" className="inline-flex items-center gap-2 border border-border px-5 py-3 font-heading text-foreground hover:border-red-400/50">
+              <Home className="h-4 w-4" />
+              Home
+            </Link>
           </div>
         </div>
-      </div>
-    </>
+      </section>
+    </main>
   )
 }

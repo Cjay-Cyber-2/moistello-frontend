@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import { Button } from "@/components/ui/button"
 
 interface FormData {
   name: string
@@ -79,13 +80,15 @@ export function ContributionForm() {
         <p className="text-sm text-muted-foreground mb-6 max-w-xs">
           Thank you! We&apos;ll review your application and respond within 3-5 business days.
         </p>
-        <button
+        <Button
           type="button"
+          variant="ghost"
+          size="sm"
+          className="text-aurora-cyan hover:text-aurora-cyan"
           onClick={() => setFormState("idle")}
-          className="text-sm text-aurora-cyan"
         >
           Submit another
-        </button>
+        </Button>
       </div>
     )
   }
@@ -174,23 +177,17 @@ export function ContributionForm() {
         </div>
       )}
 
-      <button
+      <Button
         type="submit"
+        variant="primary"
+        size="lg"
+        className="w-full"
+        isLoading={formState === "submitting"}
         disabled={formState === "submitting"}
-        className="gradient-bg-extended w-full h-12 rounded-xl flex items-center justify-center gap-2 text-sm font-heading font-semibold text-white hover:opacity-90 transition-opacity disabled:opacity-50 disabled:pointer-events-none"
+        leftIcon={<SendIcon />}
       >
-        {formState === "submitting" ? (
-          <>
-            <LoaderIcon />
-            Submitting...
-          </>
-        ) : (
-          <>
-            <SendIcon />
-            Submit Application
-          </>
-        )}
-      </button>
+        {formState === "submitting" ? "Submitting..." : "Submit Application"}
+      </Button>
     </form>
   )
 }
@@ -201,10 +198,6 @@ function CheckCircleIcon() {
 
 function AlertCircleIcon() {
   return <svg className="h-4 w-4 shrink-0 mt-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4"/><path d="M12 16h.01"/></svg>
-}
-
-function LoaderIcon() {
-  return <svg className="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 2v4"/><path d="M12 20v-4"/><path d="M4.93 4.93l2.83 2.83"/><path d="M16.24 16.24l2.83 2.83"/><path d="M2 12h4"/><path d="M18 12h4"/><path d="M4.93 19.07l2.83-2.83"/><path d="M16.24 7.76l2.83-2.83"/></svg>
 }
 
 function SendIcon() {

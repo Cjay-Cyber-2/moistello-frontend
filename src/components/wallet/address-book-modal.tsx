@@ -60,7 +60,7 @@ export function AddressBookModal({ isOpen, onClose, onSelect }: AddressBookModal
               >
                 <div className="min-w-0">
                   <p className="text-sm font-medium text-foreground truncate">{addr.label}</p>
-                  <p className="text-xs font-mono text-muted-foreground truncate">{formatAddress(addr.publicKey, 8, 6)}</p>
+                  <p className="text-xs font-mono text-muted-foreground truncate">{formatAddress(addr.publicKey)}</p>
                 </div>
                 <ArrowUpRight className="h-4 w-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity shrink-0" />
               </button>

@@ -68,7 +68,9 @@ export default function TransactionsPage() {
         }
         all.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
         setTxns(all)
-      } catch {}
+      } catch (e) {
+        console.error("[transactions] Failed to load transactions:", e)
+      }
       setLoading(false)
     }
     load()
@@ -157,7 +159,7 @@ export default function TransactionsPage() {
                     {tx.type === "received" ? "+" : "-"}${tx.amount.toFixed(2)}
                   </span>
                   {tx.txnHash && (
-                    <span className="hidden sm:inline text-xs font-mono text-muted-foreground">{formatAddress(tx.txnHash, 4, 4)}</span>
+                    <span className="hidden sm:inline text-xs font-mono text-muted-foreground">{formatAddress(tx.txnHash)}</span>
                   )}
                 </div>
               </Link>

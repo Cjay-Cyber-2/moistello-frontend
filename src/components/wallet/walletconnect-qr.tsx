@@ -38,8 +38,8 @@ export function WalletConnectQR({
           light: "transparent",
         },
       })
-    } catch {
-      // QR generation failed silently
+    } catch (e) {
+      console.warn("[wc-qr] QR generation failed:", e)
     }
   }, [])
 

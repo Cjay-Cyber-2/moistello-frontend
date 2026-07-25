@@ -21,13 +21,14 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
 import { Card, CardContent } from "@/components/ui/card";
+import { CreateStepIndicator, type Step } from "@/components/circles/create-step-indicator"
 import { cn } from "@/lib/cn";
 import type { CircleType, PayoutType, Frequency, Currency } from "@/types";
 
-const STEPS = [
-  { step: 1, label: "Basic Info" },
-  { step: 2, label: "Financials" },
-  { step: 3, label: "Payout" },
+const STEPS: Step[] = [
+  { key: "basic", label: "Basic Info", number: 1 },
+  { key: "financials", label: "Financials", number: 2 },
+  { key: "payout", label: "Payout", number: 3 },
 ];
 
 const CIRCLE_TYPES: { value: CircleType; label: string; description: string }[] = [
@@ -82,53 +83,6 @@ interface FormErrors {
 interface CircleCreateFormProps {
   onSubmit: (data: CreateCircleInput) => void;
   isPending?: boolean;
-}
-
-function StepIndicator({ currentStep }: { currentStep: number }) {
-  return (
-    <div className="mb-8">
-      <div className="flex items-center justify-between">
-        {STEPS.map((s, index) => {
-          const isCompleted = s.step < currentStep;
-          const isCurrent = s.step === currentStep;
-          const isLast = index === STEPS.length - 1;
-
-          return (
-            <div key={s.step} className="flex flex-1 items-center">
-              <div className="flex flex-col items-center">
-                <div
-                  className={cn(
-                    "flex h-8 w-8 items-center justify-center rounded-full text-sm font-semibold transition-colors",
-                    isCompleted && "bg-primary text-primary-foreground",
-                    isCurrent && "bg-primary text-primary-foreground ring-4 ring-primary/20",
-                    !isCompleted && !isCurrent && "bg-gray-200 text-gray-500",
-                  )}
-                >
-                  {isCompleted ? <Check className="h-4 w-4" /> : s.step}
-                </div>
-                <span
-                  className={cn(
-                    "mt-1.5 text-xs font-medium",
-                    isCurrent ? "text-primary" : "text-gray-500",
-                  )}
-                >
-                  {s.label}
-                </span>
-              </div>
-              {!isLast && (
-                <div
-                  className={cn(
-                    "h-0.5 flex-1 mx-2",
-                    s.step < currentStep ? "bg-primary" : "bg-gray-200",
-                  )}
-                />
-              )}
-            </div>
-          );
-        })}
-      </div>
-    </div>
-  );
 }
 
 export function CircleCreateForm({ onSubmit, isPending }: CircleCreateFormProps) {
@@ -284,7 +238,7 @@ export function CircleCreateForm({ onSubmit, isPending }: CircleCreateFormProps)
 
   return (
     <div className="mx-auto max-w-2xl">
-      <StepIndicator currentStep={currentStep} />
+      <CreateStepIndicator currentStep={currentStep} steps={STEPS} variant="compact" />
 
       {currentStep === 1 && (
         <div className="space-y-6">

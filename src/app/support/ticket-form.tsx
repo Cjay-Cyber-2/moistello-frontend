@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import { Button } from "@/components/ui/button"
 
 interface FormData {
   name: string
@@ -84,13 +85,15 @@ export function TicketForm() {
         <p className="text-xs text-muted-foreground mb-4 max-w-xs">
           We&apos;ll respond within 24 hours.
         </p>
-        <button
+        <Button
           type="button"
+          variant="ghost"
+          size="sm"
+          className="text-aurora-cyan hover:text-aurora-cyan"
           onClick={() => { setFormState("idle"); setShowSubmitForm(false) }}
-          className="text-sm text-aurora-cyan"
         >
           Close
-        </button>
+        </Button>
       </div>
     )
   }
@@ -98,14 +101,16 @@ export function TicketForm() {
   return (
     <div className="space-y-4">
       {!showSubmitForm ? (
-        <button
+        <Button
           type="button"
+          variant="ghost"
+          size="lg"
+          className="w-full bg-aurora-violet/10 text-aurora-violet hover:bg-aurora-violet/20"
+          leftIcon={<SendIcon />}
           onClick={() => setShowSubmitForm(true)}
-          className="w-full h-12 rounded-xl bg-aurora-violet/10 text-aurora-violet text-sm font-medium flex items-center justify-center gap-2 hover:bg-aurora-violet/20 transition-colors"
         >
-          <SendIcon />
           Open Ticket Form
-        </button>
+        </Button>
       ) : (
         <form onSubmit={handleSubmitTicket} className="space-y-3">
           <input
@@ -143,24 +148,23 @@ export function TicketForm() {
             <div className="text-xs text-red-400 bg-red-500/10 rounded-xl px-3 py-2">{formError}</div>
           )}
           <div className="flex gap-2">
-            <button
+            <Button
               type="button"
+              variant="ghost"
+              className="flex-1 border border-white/10"
               onClick={() => setShowSubmitForm(false)}
-              className="flex-1 h-11 rounded-xl border border-white/10 text-sm text-muted-foreground hover:text-foreground transition-colors"
             >
               Cancel
-            </button>
-            <button
+            </Button>
+            <Button
               type="submit"
+              variant="primary"
+              className="flex-1"
+              isLoading={formState === "submitting"}
               disabled={formState === "submitting"}
-              className="flex-1 h-11 rounded-xl gradient-bg-extended text-white text-sm font-heading font-semibold flex items-center justify-center gap-2 disabled:opacity-50"
             >
-              {formState === "submitting" ? (
-                <LoaderIcon />
-              ) : (
-                "Submit"
-              )}
-            </button>
+              Submit
+            </Button>
           </div>
         </form>
       )}
@@ -170,10 +174,6 @@ export function TicketForm() {
 
 function CheckCircleIcon() {
   return <svg className="h-7 w-7 text-emerald-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="M22 4L12 14.01l-3-3"/></svg>
-}
-
-function LoaderIcon() {
-  return <svg className="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 2v4"/><path d="M12 20v-4"/><path d="M4.93 4.93l2.83 2.83"/><path d="M16.24 16.24l2.83 2.83"/><path d="M2 12h4"/><path d="M18 12h4"/><path d="M4.93 19.07l2.83-2.83"/><path d="M16.24 7.76l2.83-2.83"/></svg>
 }
 
 function SendIcon() {

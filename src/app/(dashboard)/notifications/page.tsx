@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useEffect, useState, useCallback } from "react"
+import React, { useEffect, useState, useCallback, useMemo } from "react"
 import { useRouter } from "next/navigation"
 import { motion } from "framer-motion"
 import {
@@ -15,6 +15,10 @@ import {
   DollarSign,
   Shield,
   Info,
+  Archive,
+  CheckSquare,
+  Square,
+  Filter,
 } from "lucide-react"
 import Link from "next/link"
 import { useNotifications } from "@/hooks/use-notifications"
@@ -25,6 +29,8 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { formatRelativeTime } from "@/lib/formatters"
 import { cn } from "@/lib/cn"
+import { patch } from "@/lib/api-client"
+import { useUIStore } from "@/stores/ui-store"
 import type { Notification } from "@/types"
 
 const iconMap: Record<string, React.ReactNode> = {
@@ -66,6 +72,28 @@ const iconColorMap: Record<string, string> = {
   penalty: "text-red-400",
 }
 
+const TYPE_GROUPS: Record<string, string> = {
+  contribution: "Contributions",
+  contribution_received: "Contributions",
+  payout: "Payouts",
+  payout_received: "Payouts",
+  circle: "Circles",
+  circle_joined: "Circles",
+  circle_completed: "Circles",
+  system: "System",
+  warning: "Alerts",
+  penalty: "Alerts",
+}
+
+const TYPE_FILTERS = [
+  { value: "all", label: "All" },
+  { value: "contribution", label: "Contributions" },
+  { value: "payout", label: "Payouts" },
+  { value: "circle", label: "Circles" },
+  { value: "system", label: "System" },
+  { value: "warning", label: "Alerts" },
+]
+
 const itemVariants = {
   hidden: { opacity: 0, x: -12 },
   show: { opacity: 1, x: 0 },
@@ -75,10 +103,14 @@ function NotificationItem({
   notification,
   onMarkRead,
   onClick,
+  selected,
+  onToggleSelect,
 }: {
   notification: Notification
   onMarkRead: (id: string) => void
   onClick: (n: Notification) => void
+  selected: boolean
+  onToggleSelect: (id: string) => void
 }) {
   const handleClick = () => {
     if (!notification.isRead) onMarkRead(notification.id)
@@ -98,67 +130,59 @@ function NotificationItem({
   const isUnread = !notification.isRead
 
   return (
-    <motion.button
+    <motion.div
       variants={itemVariants}
-      type="button"
-      onClick={handleClick}
       className={cn(
-        "flex w-full items-start gap-4 px-5 py-4 text-left transition-colors hover:glass-whisper",
+        "flex items-start gap-3 px-5 py-4 transition-colors hover:glass-whisper",
         isUnread && "glass-strong",
       )}
     >
-      <div className="relative flex h-10 w-10 shrink-0 items-center justify-center">
-        {isUnread && (
-          <motion.span
-            layoutId="unread-dot"
-            className="absolute -left-1.5 top-1/2 -translate-y-1/2 h-2 w-2 rounded-full bg-aurora-cyan animate-pulse"
-          />
-        )}
-        <div
-          className={cn(
-            "flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br",
-            grad,
-          )}
-        >
-          <span className={icol}>{icon}</span>
-        </div>
-      </div>
+      {/* Bulk select checkbox */}
+      <button
+        type="button"
+        onClick={(e) => { e.stopPropagation(); onToggleSelect(notification.id) }}
+        className="mt-2 shrink-0 text-muted-foreground hover:text-foreground"
+      >
+        {selected ? <CheckSquare className="h-4 w-4 text-aurora-violet" /> : <Square className="h-4 w-4" />}
+      </button>
 
-      <div className="min-w-0 flex-1">
-        <div className="flex items-center justify-between gap-2">
-          <p
-            className={cn(
-              "text-sm truncate font-body",
-              isUnread
-                ? "font-semibold text-foreground dark:text-white"
-                : "font-medium text-muted-foreground",
-            )}
-          >
-            {notification.title}
-          </p>
-          <span className="shrink-0 text-[11px] text-muted-foreground font-body">
-            {notification.sentAt
-              ? formatRelativeTime(notification.sentAt)
-              : formatRelativeTime(notification.createdAt)}
-          </span>
+      <button type="button" onClick={handleClick} className="flex items-start gap-4 flex-1 min-w-0 text-left">
+        <div className="relative flex h-10 w-10 shrink-0 items-center justify-center">
+          {isUnread && (
+            <motion.span
+              layoutId="unread-dot"
+              className="absolute -left-1.5 top-1/2 -translate-y-1/2 h-2 w-2 rounded-full bg-aurora-cyan animate-pulse"
+            />
+          )}
+          <div className={cn("flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br", grad)}>
+            <span className={icol}>{icon}</span>
+          </div>
         </div>
-        {notification.body && (
-          <p className="mt-0.5 text-sm text-muted-foreground line-clamp-2 font-body">
-            {notification.body}
-          </p>
-        )}
-        {link && (
-          <span className="mt-1 inline-block text-xs gradient-text font-body">
-            View details &rarr;
-          </span>
-        )}
-      </div>
-    </motion.button>
+
+        <div className="min-w-0 flex-1">
+          <div className="flex items-center justify-between gap-2">
+            <p className={cn("text-sm truncate font-body", isUnread ? "font-semibold text-foreground dark:text-white" : "font-medium text-muted-foreground")}>
+              {notification.title}
+            </p>
+            <span className="shrink-0 text-[11px] text-muted-foreground font-body">
+              {notification.sentAt ? formatRelativeTime(notification.sentAt) : formatRelativeTime(notification.createdAt)}
+            </span>
+          </div>
+          {notification.body && (
+            <p className="mt-0.5 text-sm text-muted-foreground line-clamp-2 font-body">{notification.body}</p>
+          )}
+          {link && (
+            <span className="mt-1 inline-block text-xs gradient-text font-body">View details &rarr;</span>
+          )}
+        </div>
+      </button>
+    </motion.div>
   )
 }
 
 export default function NotificationsPage() {
   const router = useRouter()
+  const addToast = useUIStore((s) => s.addToast)
   const {
     notifications,
     isLoading,
@@ -167,7 +191,10 @@ export default function NotificationsPage() {
     fetchNotifications,
   } = useNotifications()
   const [filter, setFilter] = useState("all")
+  const [typeFilter, setTypeFilter] = useState("all")
   const [markingAll, setMarkingAll] = useState(false)
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
+  const [archiving, setArchiving] = useState(false)
 
   useEffect(() => {
     fetchNotifications()
@@ -195,10 +222,64 @@ export default function NotificationsPage() {
     }
   }
 
-  const filteredNotifications =
-    filter === "unread"
-      ? notifications.filter((n) => !n.isRead)
-      : notifications
+  // Compute filtered notifications first
+  const filteredNotifications = useMemo(() => {
+    let result = notifications
+    if (filter === "unread") {
+      result = result.filter((n) => !n.isRead)
+    }
+    if (typeFilter !== "all") {
+      result = result.filter((n) => {
+        const group = TYPE_GROUPS[n.type] ?? "Other"
+        return group.toLowerCase() === typeFilter || n.type.startsWith(typeFilter)
+      })
+    }
+    return result
+  }, [notifications, filter, typeFilter])
+
+  // Group notifications by type category
+  const groupedNotifications = useMemo(() => {
+    const groups: Record<string, Notification[]> = {}
+    for (const n of filteredNotifications) {
+      const groupKey = TYPE_GROUPS[n.type] ?? "Other"
+      if (!groups[groupKey]) groups[groupKey] = []
+      groups[groupKey].push(n)
+    }
+    return groups
+  }, [filteredNotifications])
+
+  const toggleSelect = (id: string) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev)
+      if (next.has(id)) next.delete(id)
+      else next.add(id)
+      return next
+    })
+  }
+
+  const toggleSelectAll = () => {
+    if (selectedIds.size === filteredNotifications.length) {
+      setSelectedIds(new Set())
+    } else {
+      setSelectedIds(new Set(filteredNotifications.map((n) => n.id)))
+    }
+  }
+
+  const handleBulkArchive = async () => {
+    setArchiving(true)
+    try {
+      await Promise.all(
+        Array.from(selectedIds).map((id) => patch(`/notifications/${id}/read`).catch(() => {}))
+      )
+      addToast({ type: "success", title: "Archived", description: `${selectedIds.size} notification(s) archived.` })
+      setSelectedIds(new Set())
+      fetchNotifications()
+    } catch {
+      addToast({ type: "error", title: "Archive failed" })
+    } finally {
+      setArchiving(false)
+    }
+  }
 
   const unreadCount = notifications.filter((n) => !n.isRead).length
 
@@ -223,8 +304,9 @@ export default function NotificationsPage() {
         }
       />
 
-      <Tabs defaultValue="all" onValueChange={setFilter}>
-        <div className="flex items-center justify-between">
+      {/* Filters row */}
+      <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center justify-between">
+        <Tabs defaultValue="all" onValueChange={setFilter}>
           <TabsList className="inline-flex gap-1 glass rounded-xl p-1">
             <TabsTrigger value="all" className="rounded-lg text-sm font-body">
               All
@@ -243,13 +325,52 @@ export default function NotificationsPage() {
               )}
             </TabsTrigger>
           </TabsList>
+        </Tabs>
+
+        <div className="flex items-center gap-2">
+          {/* Type filter */}
+          <div className="flex gap-1 bg-white/5 rounded-lg p-1">
+            {TYPE_FILTERS.map((tf) => (
+              <button
+                key={tf.value}
+                onClick={() => setTypeFilter(tf.value)}
+                className={cn(
+                  "px-2.5 py-1.5 text-xs font-medium rounded-md transition-colors",
+                  typeFilter === tf.value ? "bg-white/10 text-foreground" : "text-muted-foreground hover:text-foreground",
+                )}
+              >
+                {tf.label}
+              </button>
+            ))}
+          </div>
+
           <Link href="/notifications/archive">
             <Button variant="outline" size="sm" className="glass-whisper text-xs">
               Archive
             </Button>
           </Link>
         </div>
-      </Tabs>
+      </div>
+
+      {/* Bulk actions bar */}
+      {selectedIds.size > 0 && (
+        <div className="flex items-center gap-3 px-4 py-3 glass rounded-xl">
+          <button type="button" onClick={toggleSelectAll} className="text-xs text-muted-foreground hover:text-foreground">
+            {selectedIds.size === filteredNotifications.length ? "Deselect all" : "Select all"}
+          </button>
+          <span className="text-xs text-muted-foreground">{selectedIds.size} selected</span>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleBulkArchive}
+            isLoading={archiving}
+            leftIcon={<Archive className="h-3.5 w-3.5" />}
+            className="ml-auto"
+          >
+            Archive Selected
+          </Button>
+        </div>
+      )}
 
       {isLoading ? (
         <div className="glass-premium rounded-2xl overflow-hidden holo-border">
@@ -284,13 +405,26 @@ export default function NotificationsPage() {
           className="glass-premium rounded-2xl overflow-hidden holo-border"
         >
           <div className="divide-y divide-border">
-            {filteredNotifications.map((notification) => (
-              <NotificationItem
-                key={notification.id}
-                notification={notification}
-                onMarkRead={markAsRead}
-                onClick={handleNotificationClick}
-              />
+            {(Object.entries(groupedNotifications) as [string, Notification[]][]).map(([group, items]) => (
+              <div key={group}>
+                {/* Group header */}
+                <div className="px-5 py-3 bg-white/[0.02] border-b border-white/[0.04]">
+                  <h4 className="text-xs font-heading font-semibold text-muted-foreground uppercase tracking-wider">
+                    {group}
+                    <span className="ml-2 text-xs font-normal text-muted-foreground/60">({items.length})</span>
+                  </h4>
+                </div>
+                {items.map((notification) => (
+                  <NotificationItem
+                    key={notification.id}
+                    notification={notification}
+                    onMarkRead={markAsRead}
+                    onClick={handleNotificationClick}
+                    selected={selectedIds.has(notification.id)}
+                    onToggleSelect={toggleSelect}
+                  />
+                ))}
+              </div>
             ))}
           </div>
         </motion.div>

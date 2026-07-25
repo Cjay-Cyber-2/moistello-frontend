@@ -40,6 +40,7 @@ export type WalletError =
   | { adapter: WalletId; code: "user_rejected"; message: string }
   | { adapter: WalletId; code: "network_mismatch"; message: string; expected: NetworkType; actual: NetworkType }
   | { adapter: WalletId; code: "timeout"; message: string }
+  | { adapter: WalletId; code: "network_offline"; message: string }
   | { adapter: WalletId; code: "internal"; message: string; cause: string }
   // Ledger-specific errors
   | { adapter: "ledger"; code: "ledger_unsupported_browser"; message: string; browser: string }

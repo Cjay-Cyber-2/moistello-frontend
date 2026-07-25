@@ -4,6 +4,7 @@ import { create } from "zustand";
 import { getWalletRegistry } from "@/lib/wallet/registry";
 import { getSessionManager } from "@/lib/wallet/session-manager";
 import { WC2_QR_EXPIRATION_MS } from "@/lib/constants";
+import { fetchBalanceWithBackoff } from "@/lib/wallet/balance-cache";
 import type {
   WalletAdapter,
   WalletId,
@@ -35,11 +36,13 @@ interface MultiWalletState {
     status: "detected" | "not_detected";
   }>;
   isScanning: boolean;
+  isInitializing: boolean;
 
   /* Convenience state for auth / UI pages */
   isConnected: boolean;
   address: string | null;
   isConnecting: boolean;
+  connectingWalletId: WalletId | null;
   error: string | null;
   activeAdapter: WalletAdapter | null;
   isSelectorOpen: boolean;
@@ -130,11 +133,13 @@ export const useMultiWalletStore = create<MultiWalletState>()((set, get) => ({
   wallets: {},
   detectedWallets: [],
   isScanning: false,
+  isInitializing: false,
 
   /* Convenience defaults */
   isConnected: false,
   address: null,
   isConnecting: false,
+  connectingWalletId: null,
   error: null,
   activeAdapter: null,
   isSelectorOpen: false,
@@ -164,51 +169,58 @@ export const useMultiWalletStore = create<MultiWalletState>()((set, get) => ({
   ledgerConnectionError: null,
 
   init: async () => {
-    const sessionManager = getSessionManager();
-    const sessions = sessionManager.getAll();
-    if (sessions.length > 0) {
-      const active = sessionManager.getActive();
-      const wallets: Record<string, WalletEntry> = {};
-      for (const s of sessions) {
-        const adapter = getWalletRegistry().getAdapter(s.walletId);
-        if (adapter) {
-          wallets[s.walletId] = {
-            adapter,
-            publicKey: s.publicKey,
-            network: s.network,
-            balance: null,
-            lastConnected: s.lastConnected,
-            error: null,
-            status: "reconnecting",
-          };
-        }
-      }
-      const nextActiveId = active?.walletId ?? null;
-      set({
-        wallets,
-        activeWalletId: nextActiveId,
-        ...syncConvenienceState({ activeWalletId: nextActiveId, wallets }),
-      });
+    if (get().isInitializing) return;
+    set({ isInitializing: true });
 
-      for (const s of sessions) {
-        const adapter = getWalletRegistry().getAdapter(s.walletId);
-        if (adapter) {
-          adapter
-            .isConnected()
-            .then((connected) => {
-              get().updateWalletStatus(
-                s.walletId,
-                connected ? "connected" : "disconnected"
-              );
-            })
-            .catch(() => {
-              get().updateWalletStatus(s.walletId, "disconnected");
-            });
+    try {
+      const sessionManager = getSessionManager();
+      const sessions = sessionManager.getAll();
+      if (sessions.length > 0) {
+        const active = sessionManager.getActive();
+        const wallets: Record<string, WalletEntry> = {};
+        for (const s of sessions) {
+          const adapter = getWalletRegistry().getAdapter(s.walletId);
+          if (adapter) {
+            wallets[s.walletId] = {
+              adapter,
+              publicKey: s.publicKey,
+              network: s.network,
+              balance: null,
+              lastConnected: s.lastConnected,
+              error: null,
+              status: "reconnecting",
+            };
+          }
+        }
+        const nextActiveId = active?.walletId ?? null;
+        set({
+          wallets,
+          activeWalletId: nextActiveId,
+          ...syncConvenienceState({ activeWalletId: nextActiveId, wallets }),
+        });
+
+        for (const s of sessions) {
+          const adapter = getWalletRegistry().getAdapter(s.walletId);
+          if (adapter) {
+            adapter
+              .isConnected()
+              .then((connected) => {
+                get().updateWalletStatus(
+                  s.walletId,
+                  connected ? "connected" : "disconnected"
+                );
+              })
+              .catch(() => {
+                get().updateWalletStatus(s.walletId, "disconnected");
+              });
+          }
         }
       }
+
+      await get().scanWallets();
+    } finally {
+      set({ isInitializing: false });
     }
-
-    get().scanWallets();
   },
 
   scanWallets: async () => {
@@ -232,6 +244,41 @@ export const useMultiWalletStore = create<MultiWalletState>()((set, get) => ({
   },
 
   connect: async (walletId: WalletId) => {
+    /* ── Offline guard ─────────────────────────────────────────── */
+    if (typeof navigator !== "undefined" && !navigator.onLine) {
+      const offlineError: WalletError = {
+        adapter: walletId,
+        code: "network_offline",
+        message:
+          "You appear to be offline. Please check your internet connection and try again.",
+      };
+      set((state) => {
+        const existing = state.wallets[walletId];
+        const next = {
+          wallets: {
+            ...state.wallets,
+            [walletId]: existing
+              ? { ...existing, status: "error" as const, error: offlineError }
+              : {
+                  adapter: null as unknown as WalletAdapter,
+                  publicKey: "",
+                  network: "testnet" as NetworkType,
+                  balance: null,
+                  lastConnected: Date.now(),
+                  error: offlineError,
+                  status: "error" as const,
+                },
+          },
+          activeWalletId: state.activeWalletId,
+        };
+        return {
+          ...next,
+          ...syncConvenienceState(next),
+        };
+      });
+      throw offlineError;
+    }
+
     const adapter = getWalletRegistry().getAdapter(walletId);
     if (!adapter) return;
 
@@ -256,6 +303,7 @@ export const useMultiWalletStore = create<MultiWalletState>()((set, get) => ({
       };
       return {
         ...next,
+        connectingWalletId: walletId,
         ...syncConvenienceState(next),
       };
     });
@@ -324,6 +372,12 @@ export const useMultiWalletStore = create<MultiWalletState>()((set, get) => ({
         };
       });
       throw error;
+    } finally {
+      set((state) =>
+        state.connectingWalletId === walletId
+          ? { connectingWalletId: null }
+          : state
+      );
     }
   },
 
@@ -359,34 +413,23 @@ export const useMultiWalletStore = create<MultiWalletState>()((set, get) => ({
     });
   },
 
-  refreshBalance: async (walletId: WalletId) => {
+  refreshBalance: async (walletId: WalletId, forceRefresh = false) => {
     const entry = get().wallets[walletId];
-    if (!entry) return;
+    if (!entry || !entry.publicKey) return;
     try {
-      const response = await fetch(
-        `https://horizon-testnet.stellar.org/accounts/${entry.publicKey}`
-      );
-      if (response.ok) {
-        const data = await response.json();
-        let xlm = "0";
-        let usdc = "0";
-        for (const b of data.balances || []) {
-          if (b.asset_type === "native") xlm = b.balance;
-          else if (b.asset_code === "USDC") usdc = b.balance;
+      const balance = await fetchBalanceWithBackoff(entry.publicKey, { forceRefresh });
+      set((state) => {
+        const existing = state.wallets[walletId];
+        if (existing) {
+          return {
+            wallets: {
+              ...state.wallets,
+              [walletId]: { ...existing, balance },
+            },
+          };
         }
-        set((state) => {
-          const existing = state.wallets[walletId];
-          if (existing) {
-            return {
-              wallets: {
-                ...state.wallets,
-                [walletId]: { ...existing, balance: { xlm, usdc } },
-              },
-            };
-          }
-          return state;
-        });
-      }
+        return state;
+      });
     } catch {
       // non-critical
     }

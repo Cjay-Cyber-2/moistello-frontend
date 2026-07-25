@@ -1,4 +1,5 @@
 import { STELLAR_NETWORK } from "./constants"
+import { fetchBalanceWithBackoff } from "./wallet/balance-cache"
 
 const TESTNET_PASSPHRASE = "Test SDF Network ; September 2015"
 const PUBLIC_PASSPHRASE = "Public Global Stellar Network ; September 2015"
@@ -116,38 +117,7 @@ export async function getNetworkDetails(): Promise<{
 export async function getAccountBalance(
   address: string
 ): Promise<{ xlm: string; usdc: string }> {
-  try {
-    const response = await fetch(
-      `https://horizon-testnet.stellar.org/accounts/${address}`
-    )
-
-    if (!response.ok) {
-      throw new Error(`Horizon request failed: ${response.statusText}`)
-    }
-
-    const data = await response.json()
-    const balances = data.balances || []
-
-    let xlm = "0"
-    let usdc = "0"
-
-    for (const balance of balances) {
-      if (balance.asset_type === "native") {
-        xlm = balance.balance
-      } else if (
-        balance.asset_code === "USDC" &&
-        balance.asset_issuer ===
-          "GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
-      ) {
-        usdc = balance.balance
-      }
-    }
-
-    return { xlm, usdc }
-  } catch (error) {
-    console.warn("Failed to fetch account balance:", error)
-    return { xlm: "0", usdc: "0" }
-  }
+  return fetchBalanceWithBackoff(address)
 }
 
 export function formatStroopsToXLM(stroops: string): string {

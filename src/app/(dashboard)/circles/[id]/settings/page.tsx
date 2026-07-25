@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react"
 import { useParams, useRouter } from "next/navigation"
 import Link from "next/link"
+import { useQueryClient } from "@tanstack/react-query"
 import {
   ArrowLeft,
   Settings,
@@ -25,15 +26,18 @@ import { Badge } from "@/components/ui/badge"
 import { Skeleton } from "@/components/ui/skeleton"
 import { CopyButton } from "@/components/shared/copy-button"
 import { del, patch, post } from "@/lib/api-client"
+import { useUIStore } from "@/stores/ui-store"
 import type { Invite } from "@/types"
 
 export default function CircleSettingsPage() {
   const params = useParams()
   const router = useRouter()
+  const queryClient = useQueryClient()
   const circleId = params.id as string
 
   const { user } = useAuth()
   const { data: circle, isLoading, isError } = useCircle(circleId)
+  const addToast = useUIStore((s) => s.addToast)
 
   const [name, setName] = useState("")
   const [description, setDescription] = useState("")
@@ -63,7 +67,19 @@ export default function CircleSettingsPage() {
         name: name.trim(),
         description: description.trim() || undefined,
       })
-    } catch {
+      await queryClient.invalidateQueries({ queryKey: ["circle", circleId] })
+      addToast({
+        type: "success",
+        title: "Settings saved",
+        description: "Circle details were updated successfully.",
+      })
+    } catch (e) {
+      console.error("[circle-settings] Failed to save circle settings:", e)
+      addToast({
+        type: "error",
+        title: "Save failed",
+        description: e instanceof Error ? e.message : "Could not save circle settings.",
+      })
     } finally {
       setSaving(false)
     }
@@ -85,8 +101,24 @@ export default function CircleSettingsPage() {
       if (code) {
         setGeneratedCode(code)
         setExistingInvites((prev) => [invite as unknown as Invite, ...prev])
+        setInviteError("")
+        addToast({
+          type: "success",
+          title: "Invite generated",
+          description: "A new invite code is ready to share.",
+        })
+      } else {
+        throw new Error("Invite code was not returned by the API.")
       }
-    } catch {
+    } catch (e) {
+      console.error("[circle-settings] Failed to generate invite:", e)
+      const message = e instanceof Error ? e.message : "Could not generate invite code."
+      setInviteError(message)
+      addToast({
+        type: "error",
+        title: "Invite failed",
+        description: message,
+      })
     } finally {
       setGeneratingInvite(false)
     }
@@ -96,7 +128,19 @@ export default function CircleSettingsPage() {
     setDeleting(true)
     try {
       await del(`/circles/${circleId}`)
+      addToast({
+        type: "success",
+        title: "Circle cancelled",
+        description: "The circle has been removed.",
+      })
       router.push("/circles")
+    } catch (e) {
+      console.error("[circle-settings] Failed to delete circle:", e)
+      addToast({
+        type: "error",
+        title: "Delete failed",
+        description: e instanceof Error ? e.message : "Could not delete the circle.",
+      })
     } finally {
       setDeleting(false)
     }

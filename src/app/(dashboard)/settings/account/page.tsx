@@ -163,7 +163,8 @@ export default function AccountSettingsPage() {
       })
       setSaved(true)
       setTimeout(() => setSaved(false), 3000)
-    } catch {
+    } catch (e) {
+      console.error("[account] Failed to save account settings:", e)
     } finally {
       setSaving(false)
     }
@@ -174,7 +175,8 @@ export default function AccountSettingsPage() {
     try {
       await del("/users/me")
       window.location.href = "/login"
-    } catch {
+    } catch (e) {
+      console.error("[account] Failed to delete account:", e)
       setDeleting(false)
       setShowDeleteModal(false)
     }

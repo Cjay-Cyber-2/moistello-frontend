@@ -41,8 +41,9 @@ export const useNotificationStore = create<NotificationStore>()(
           unreadCount: computeUnreadCount(notifications),
           isLoading: false,
         });
-      } catch {
-        set({ isLoading: false });
+      } catch (e) {
+        console.warn("[notifications] Failed to load:", e)
+        set({ isLoading: false })
       }
     },
 
@@ -58,8 +59,8 @@ export const useNotificationStore = create<NotificationStore>()(
             unreadCount: computeUnreadCount(notifications),
           };
         });
-      } catch {
-        // Silently fail; UI should remain consistent
+      } catch (e) {
+        console.warn("[notifications] Failed to mark notification as read:", e)
       }
     },
 
@@ -76,8 +77,8 @@ export const useNotificationStore = create<NotificationStore>()(
             unreadCount: 0,
           };
         });
-      } catch {
-        // Silently fail
+      } catch (e) {
+        console.warn("[notifications] Failed to mark all as read:", e)
       }
     },
 

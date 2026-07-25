@@ -25,7 +25,8 @@ export function SearchForm() {
       const res = await fetch(`/api/docs/search?q=${encodeURIComponent(searchQuery.trim())}`)
       const data = await res.json()
       setSearchResults(data.results.length > 0 ? data.results : [])
-    } catch {
+    } catch (e) {
+      console.warn("[search] Failed to search docs:", e)
       setSearchResults([])
     } finally {
       setSearching(false)

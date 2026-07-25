@@ -103,7 +103,8 @@ export function SignStep({
     setIsSigning(true)
     try {
       await onSign()
-    } catch {
+    } catch (e) {
+      console.error("[sign-step] Sign failed:", e)
       setIsSigning(false)
     }
   }, [onSign])
@@ -112,7 +113,8 @@ export function SignStep({
     setIsSigning(true)
     try {
       await onSign()
-    } catch {
+    } catch (e) {
+      console.error("[sign-step] Sign retry failed:", e)
       setIsSigning(false)
     }
   }, [onSign])
@@ -177,25 +179,19 @@ export function SignStep({
         )}
       </div>
 
-      {error && (
+      {(error || isError) && (
         <ErrorDisplay
-          code={error.code}
-          message={error.message}
-          canRetry={error.code === "connection_timeout" || error.code === "auth_server_error"}
+          code={error?.code ?? "internal_error"}
+          message={error?.message ?? "An unexpected error occurred."}
+          canRetry={
+            error?.code === "connection_timeout" ||
+            error?.code === "auth_server_error" ||
+            error?.code === "internal_error" ||
+            !error?.code
+          }
           onRetry={handleRetry}
         />
       )}
-
-      {
-        isError && (error?.code === "internal_error" || !error?.code) && (
-          <ErrorDisplay
-            code={error?.code ?? "internal_error"}
-            message={error?.message ?? "An unexpected error occurred."}
-            canRetry={true}
-            onRetry={handleRetry}
-          />
-        )
-      }
 
       <div className="space-y-3">
         {isOnCooldown && (

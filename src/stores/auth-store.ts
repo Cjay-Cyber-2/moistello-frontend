@@ -5,6 +5,8 @@ import { devtools } from "zustand/middleware";
 import { ApiResponse, User } from "@/types";
 import { post } from "@/lib/api-client";
 
+const isDev = process.env.NODE_ENV === "development"
+
 // ── Single source of truth for token storage ──
 
 const ACCESS_TOKEN_KEY = "moistello_token";
@@ -18,12 +20,12 @@ function getStoredAccessToken(): string | null {
 
 function setStoredAccessToken(value: string): void {
   if (typeof window === "undefined") return;
-  try { localStorage.setItem(ACCESS_TOKEN_KEY, value) } catch {}
+  try { localStorage.setItem(ACCESS_TOKEN_KEY, value) } catch (e) { console.warn("[auth] Failed to persist access token:", e) }
 }
 
 function removeStoredAccessToken(): void {
   if (typeof window === "undefined") return;
-  try { localStorage.removeItem(ACCESS_TOKEN_KEY) } catch {}
+  try { localStorage.removeItem(ACCESS_TOKEN_KEY) } catch (e) { console.warn("[auth] Failed to remove access token:", e) }
 }
 
 function getStoredRefreshToken(): string | null {
@@ -33,12 +35,12 @@ function getStoredRefreshToken(): string | null {
 
 function setStoredRefreshToken(value: string): void {
   if (typeof window === "undefined") return;
-  try { localStorage.setItem(REFRESH_TOKEN_KEY, value) } catch {}
+  try { localStorage.setItem(REFRESH_TOKEN_KEY, value) } catch (e) { console.warn("[auth] Failed to persist refresh token:", e) }
 }
 
 function removeStoredRefreshToken(): void {
   if (typeof window === "undefined") return;
-  try { localStorage.removeItem(REFRESH_TOKEN_KEY) } catch {}
+  try { localStorage.removeItem(REFRESH_TOKEN_KEY) } catch (e) { console.warn("[auth] Failed to remove refresh token:", e) }
 }
 
 function getStoredUser(): User | null {
@@ -51,12 +53,12 @@ function getStoredUser(): User | null {
 
 function setStoredUser(user: User): void {
   if (typeof window === "undefined") return;
-  try { localStorage.setItem(USER_DATA_KEY, JSON.stringify(user)) } catch {}
+  try { localStorage.setItem(USER_DATA_KEY, JSON.stringify(user)) } catch (e) { console.warn("[auth] Failed to persist user data:", e) }
 }
 
 function removeStoredUser(): void {
   if (typeof window === "undefined") return;
-  try { localStorage.removeItem(USER_DATA_KEY) } catch {}
+  try { localStorage.removeItem(USER_DATA_KEY) } catch (e) { console.warn("[auth] Failed to remove user data:", e) }
 }
 
 // Migrate legacy keys if they exist
@@ -73,7 +75,7 @@ function migrateLegacyTokens(): void {
   try {
     if (oldAccess) localStorage.removeItem("moistello_access_token");
     if (oldRefresh) localStorage.removeItem("moistello_refresh_token");
-  } catch {}
+  } catch (e) { console.warn("[auth] Failed to migrate legacy tokens:", e) }
 }
 
 migrateLegacyTokens();
@@ -122,7 +124,7 @@ interface AuthActions {
 
 type AuthStore = AuthState & AuthActions;
 
-export const useAuthStore = create<AuthStore>()(devtools((set, get) => ({
+const baseStore = (set: any, get: any): AuthStore => ({
   isAuthenticated: !!getStoredAccessToken(),
   user: getStoredUser(),
   token: getStoredAccessToken(),
@@ -167,7 +169,6 @@ export const useAuthStore = create<AuthStore>()(devtools((set, get) => ({
   },
 
   logout: () => {
-    // Attempt server-side session invalidation (best-effort)
     post("/auth/logout").catch(() => {})
     get().clearTokens()
     set({
@@ -180,7 +181,7 @@ export const useAuthStore = create<AuthStore>()(devtools((set, get) => ({
     })
     if (typeof window !== "undefined") {
       import("@/lib/wallet/registry").then(({ getWalletRegistry }) => {
-        try { getWalletRegistry().getAdapter("passkey")?.reset?.() } catch {}
+        try { getWalletRegistry().getAdapter("passkey")?.reset?.() } catch (e) { console.warn("[auth] Failed to reset passkey adapter:", e) }
       })
     }
   },
@@ -192,7 +193,6 @@ export const useAuthStore = create<AuthStore>()(devtools((set, get) => ({
       return;
     }
 
-    // If token hasn't expired yet, skip the HTTP call
     const exp = extractTokenExpiry(token);
     if (exp && Date.now() < exp) {
       set({ isLoading: false, isAuthenticated: true, token, refreshToken: getStoredRefreshToken(), tokenExpiresAt: exp, user: getStoredUser() });
@@ -218,7 +218,8 @@ export const useAuthStore = create<AuthStore>()(devtools((set, get) => ({
         tokenExpiresAt: updatedExp ?? Date.now() + 15 * 60 * 1000,
         isLoading: false,
       });
-    } catch {
+    } catch (e) {
+      console.warn("[auth] Token refresh failed, logging out:", e)
       get().logout();
     }
   },
@@ -242,15 +243,18 @@ export const useAuthStore = create<AuthStore>()(devtools((set, get) => ({
     removeStoredAccessToken();
     removeStoredRefreshToken();
     removeStoredUser();
-    // Also clean up any legacy keys
     if (typeof window !== "undefined") {
       try {
         localStorage.removeItem("moistello_access_token");
         localStorage.removeItem("moistello_refresh_token");
-      } catch {}
+      } catch (e) { console.warn("[auth] Failed to remove legacy tokens:", e) }
     }
     removeCookie("moistello_token");
     removeCookie("moistello_refresh");
     set({ token: null, refreshToken: null, tokenExpiresAt: null });
   },
-})));
+});
+
+export const useAuthStore = create<AuthStore>()(
+  isDev ? devtools(baseStore) : baseStore
+)

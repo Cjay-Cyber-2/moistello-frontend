@@ -50,7 +50,9 @@ export default function CommunityCirclesPage() {
           const d = (circlesRes.value as Record<string, unknown>)?.data as Record<string, unknown> ?? circlesRes.value as Record<string, unknown>
           setCircles((d?.circles ?? []) as CommunityCircle[])
         }
-      } catch {}
+      } catch (e) {
+        console.error("[community-circles] Failed to load data:", e)
+      }
       setLoading(false)
     }
     load()

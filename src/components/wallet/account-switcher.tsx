@@ -17,7 +17,7 @@ export function AccountSwitcher() {
     <div className="relative">
       <button onClick={() => setIsOpen(!isOpen)} className="flex items-center gap-1.5 glass-whisper rounded-full px-2.5 py-1.5 text-xs font-mono hover:glass-strong transition-all">
         <div className="w-2 h-2 rounded-full bg-emerald-400" />
-        <span className="max-w-[100px] truncate">{activeWallet?.publicKey ? formatAddress(activeWallet.publicKey, 4, 4) : activeName}</span>
+        <span className="max-w-[100px] truncate">{activeWallet?.publicKey ? formatAddress(activeWallet.publicKey) : activeName}</span>
         <ChevronDown className={cn("h-3 w-3 transition-transform", isOpen && "rotate-180")} />
       </button>
       <AnimatePresence>
@@ -27,7 +27,7 @@ export function AccountSwitcher() {
             {connectedWallets.map(([id, w]) => (
               <button key={id} onClick={() => { switchWallet(id); setIsOpen(false) }} className={cn("w-full flex items-center gap-3 px-3 py-2 rounded-xl text-sm transition-all", activeWalletId === id ? "glass-strong text-foreground" : "text-muted-foreground hover:text-foreground hover:glass-whisper")}>
                 <div className={cn("w-2 h-2 rounded-full", w.status === "connected" ? "bg-emerald-400" : "bg-muted-foreground")} />
-                <span className="flex-1 text-left font-mono text-xs">{formatAddress(w.publicKey, 6, 4)}</span>
+                <span className="flex-1 text-left font-mono text-xs">{formatAddress(w.publicKey)}</span>
                 {activeWalletId === id && <Check className="h-3.5 w-3.5 text-aurora-violet" />}
               </button>
             ))}
