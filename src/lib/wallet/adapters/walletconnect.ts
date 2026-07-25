@@ -154,7 +154,8 @@ export function createWalletConnectAdapter(): WalletAdapter {
           connectedNetwork = stored.network
           sessionTopic = stored.pairingTopic
         }
-      } catch {
+      } catch (e) {
+        console.warn("[wc] Failed to restore session, clearing store:", e)
         getWC2SessionStore().clear()
       }
     }
@@ -225,10 +226,10 @@ export function createWalletConnectAdapter(): WalletAdapter {
     startTime: number,
   ) {
     if (_sessionProposalHandler) {
-      try { signClient.off?.("session_proposal", _sessionProposalHandler) } catch {}
+      try { signClient.off?.("session_proposal", _sessionProposalHandler) } catch (e) { console.warn("[wc] Failed to remove session_proposal handler:", e) }
     }
     if (_sessionDeleteHandler) {
-      try { signClient.off?.("session_delete", _sessionDeleteHandler) } catch {}
+      try { signClient.off?.("session_delete", _sessionDeleteHandler) } catch (e) { console.warn("[wc] Failed to remove session_delete handler:", e) }
     }
 
     _sessionProposalHandler = async (proposal: unknown) => {
@@ -418,8 +419,8 @@ export function createWalletConnectAdapter(): WalletAdapter {
       if (sc?.disconnect && sessionTopic) {
         try {
           await sc.disconnect({ topic: sessionTopic })
-        } catch {
-          // best-effort disconnect
+        } catch (e) {
+          console.warn("[wc] Best-effort disconnect failed:", e)
         }
       }
       resetWcState()
@@ -526,7 +527,7 @@ export function cleanupWcOverlays(): void {
     '[class*="wcm-backdrop"], ' +
     '[class*="walletconnect-modal"]'
   ).forEach((el) => {
-    try { el.remove() } catch {}
+    try { el.remove() } catch (e) { console.warn("[wc] Failed to remove overlay element:", e) }
   })
 
   const bodyEl = document.body
@@ -546,10 +547,10 @@ export function cleanupWcOverlays(): void {
 export function resetWcState(): void {
   _wcConnectCancelled = true
   if (_pendingSetSettled) {
-    try { _pendingSetSettled() } catch {}
+    try { _pendingSetSettled() } catch (e) { console.warn("[wc] Failed to settle pending promise:", e) }
   }
   if (_pendingReject) {
-    try { _pendingReject(createInternalError("walletconnect", "Connection cancelled by user")) } catch {}
+    try { _pendingReject(createInternalError("walletconnect", "Connection cancelled by user")) } catch (e) { console.warn("[wc] Failed to reject pending promise:", e) }
   }
   _pendingSetSettled = null
   _pendingReject = null
@@ -571,7 +572,7 @@ export async function clearWcIndexedDB(): Promise<void> {
     const dbs = await indexedDB.databases()
     for (const db of dbs) {
       if (db.name?.startsWith("wc@2:")) {
-        try { indexedDB.deleteDatabase(db.name) } catch {}
+        try { indexedDB.deleteDatabase(db.name) } catch (e) { console.warn("[wc] Failed to delete IndexedDB:", e) }
       }
     }
   } catch {
@@ -579,7 +580,7 @@ export async function clearWcIndexedDB(): Promise<void> {
     // delete the known WalletConnect databases by name
     const knownNames = ["wc@2:client:0.3", "wc@2:core:0.3"]
     for (const name of knownNames) {
-      try { indexedDB.deleteDatabase(name) } catch {}
+      try { indexedDB.deleteDatabase(name) } catch (e) { console.warn("[wc] Failed to delete known IndexedDB:", e) }
     }
   }
 }
@@ -589,8 +590,8 @@ export async function disconnectWc(): Promise<void> {
   if (sc?.disconnect && sessionTopic) {
     try {
       await sc.disconnect({ topic: sessionTopic })
-    } catch {
-      // best-effort disconnect
+    } catch (e) {
+      console.warn("[wc] Best-effort disconnect failed (session may be expired):", e)
     }
   }
   resetWcState()

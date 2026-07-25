@@ -63,10 +63,9 @@ export default function CircleSettingsPage() {
         name: name.trim(),
         description: description.trim() || undefined,
       })
-    } catch {
+    } catch (e) {
+      console.error("[circle-settings] Failed to save circle settings:", e)
     } finally {
-      setSaving(false)
-    }
   }
 
   const handleGenerateInvite = async () => {
@@ -86,7 +85,8 @@ export default function CircleSettingsPage() {
         setGeneratedCode(code)
         setExistingInvites((prev) => [invite as unknown as Invite, ...prev])
       }
-    } catch {
+    } catch (e) {
+      console.error("[circle-settings] Failed to generate invite:", e)
     } finally {
       setGeneratingInvite(false)
     }

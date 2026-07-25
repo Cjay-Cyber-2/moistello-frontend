@@ -46,7 +46,7 @@ export function createXBullAdapter(): WalletAdapter {
     async disconnect() {
       const api = getXBullAPI()
       if (api) {
-        try { await api.closeConnections() } catch {}
+        try { await api.closeConnections() } catch (e) { console.warn("[xbull] Failed to close connections:", e) }
       }
     },
 

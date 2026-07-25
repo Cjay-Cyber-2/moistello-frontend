@@ -11,7 +11,9 @@ export function getDailySpending(): DailySpending {
   try {
     const raw = localStorage.getItem(SPENDING_KEY)
     if (raw) return JSON.parse(raw)
-  } catch {}
+  } catch (e) {
+    console.warn("[security] Failed to read spending data:", e)
+  }
   return { date: new Date().toISOString().slice(0, 10), totalUsdc: 0, totalXlm: 0 }
 }
 
@@ -35,7 +37,9 @@ export function isKnownAddress(addr: string): boolean {
       const list: string[] = JSON.parse(raw)
       return list.includes(addr)
     }
-  } catch {}
+  } catch (e) {
+    console.warn("[security] Failed to read known addresses:", e)
+  }
   return false
 }
 
@@ -47,7 +51,9 @@ export function markAddressKnown(addr: string): void {
       list.push(addr)
       localStorage.setItem(KNOWN_ADDR_KEY, JSON.stringify(list))
     }
-  } catch {}
+  } catch (e) {
+    console.warn("[security] Failed to persist known address:", e)
+  }
 }
 
 /**
