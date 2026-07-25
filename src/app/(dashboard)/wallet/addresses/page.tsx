@@ -103,7 +103,7 @@ export default function AddressesPage() {
                   </span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <code className="text-sm font-mono text-foreground bg-white/5 px-2 py-1 rounded">{formatAddress(autoWallet.publicKey, 12, 8)}</code>
+                  <code className="text-sm font-mono text-foreground bg-white/5 px-2 py-1 rounded">{formatAddress(autoWallet.publicKey)}</code>
                   <button onClick={() => copyAddr(autoWallet.publicKey)} className="text-muted-foreground hover:text-foreground transition-colors">
                     {copiedKey === autoWallet.publicKey ? <Check className="h-4 w-4 text-emerald-400" /> : <Copy className="h-4 w-4" />}
                   </button>
@@ -133,7 +133,7 @@ export default function AddressesPage() {
                   <div key={addr.id} className="flex items-center justify-between border border-white/10 rounded-xl px-5 py-4 hover:bg-white/[0.02] transition-colors">
                     <div className="min-w-0">
                       <p className="text-sm font-medium text-foreground">{addr.label}</p>
-                      <code className="text-xs font-mono text-muted-foreground">{formatAddress(addr.publicKey, 10, 8)}</code>
+                      <code className="text-xs font-mono text-muted-foreground">{formatAddress(addr.publicKey)}</code>
                     </div>
                     <div className="flex items-center gap-2 shrink-0">
                       <Link href={`/wallet/withdraw?address=${encodeURIComponent(addr.publicKey)}&label=${encodeURIComponent(addr.label)}`}>

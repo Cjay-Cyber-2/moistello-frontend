@@ -39,14 +39,9 @@ export function formatRelativeTime(date: string | Date): string {
   }
 }
 
-export function formatAddress(
-  address: string,
-  startChars = 6,
-  endChars = 4
-): string {
+export function formatAddress(address: string): string {
   if (!address) return ""
-  if (address.length <= startChars + endChars) return address
-  return `${address.slice(0, startChars)}...${address.slice(-endChars)}`
+  return `${address.slice(0, 6)}...${address.slice(-4)}`
 }
 
 export function formatNumber(num: number): string {

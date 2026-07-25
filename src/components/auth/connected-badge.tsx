@@ -2,6 +2,7 @@
 
 import { X } from "lucide-react"
 import { cn } from "@/lib/cn"
+import { formatAddress } from "@/lib/formatters"
 
 interface ConnectedBadgeProps {
   walletName: string
@@ -31,7 +32,7 @@ export function ConnectedBadge({
       <div className="min-w-0 flex-1">
         <p className="text-sm font-medium text-foreground">{walletName}</p>
         <p className="text-xs text-muted-foreground font-mono truncate">
-          {address.slice(0, 6)}...{address.slice(-4)}
+          {formatAddress(address)}
         </p>
       </div>
 

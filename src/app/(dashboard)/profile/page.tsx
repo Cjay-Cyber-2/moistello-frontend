@@ -187,7 +187,7 @@ export default function ProfilePage() {
 
               <div className="flex items-center gap-3 flex-wrap justify-center">
                 <span className="font-mono text-sm text-muted-foreground">
-                  {formatAddress(user.walletAddress, 8, 6)}
+                  {formatAddress(user.walletAddress)}
                 </span>
                 <Badge variant="premium" size="sm">
                   MoiScore {user.moiScore}

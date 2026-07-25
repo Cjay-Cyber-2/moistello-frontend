@@ -37,7 +37,7 @@ function TransactionLink({ hash }: { hash: string }) {
       rel="noopener noreferrer"
       className="inline-flex items-center gap-1 text-xs text-aurora-cyan hover:underline font-mono"
     >
-      {formatAddress(hash, 6, 4)}
+      {formatAddress(hash)}
       <ExternalLink className="h-3 w-3" />
     </a>
   )
