@@ -28,6 +28,7 @@ describe("useCircles & useContribute hooks", () => {
             sort: "amount-desc",
             sortBy: "amount",
             sortOrder: "desc",
+            currency: "USDC",
             page: 1,
             limit: 12,
           }),
@@ -37,7 +38,7 @@ describe("useCircles & useContribute hooks", () => {
       await waitFor(() => expect(result.current.isSuccess).toBe(true))
 
       expect(get).toHaveBeenCalledWith(
-        "/circles?page=1&limit=12&sort=amount-desc&sortBy=amount&sortOrder=desc"
+        "/circles?currency=USDC&page=1&limit=12&sort=amount-desc&sortBy=amount&sortOrder=desc"
       )
     })
   })

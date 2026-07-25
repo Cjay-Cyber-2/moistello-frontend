@@ -1,7 +1,7 @@
 import { renderHook, waitFor } from "@testing-library/react"
 import { beforeEach, describe, expect, it, vi } from "vitest"
 import { get } from "@/lib/api-client"
-import { usePayouts } from "@/hooks/use-payouts"
+import { useCirclePayouts, usePayouts } from "@/hooks/use-payouts"
 import { createQueryWrapper } from "./test-utils"
 
 vi.mock("@/lib/api-client", () => ({ get: vi.fn() }))
@@ -61,5 +61,30 @@ describe("usePayouts", () => {
 
     await waitFor(() => expect(result.current.isError).toBe(true))
     expect(result.current.error).toBe(error)
+  })
+
+  it("loads payouts for a specific circle from the circle payouts endpoint", async () => {
+    const payout = {
+      id: "payout-2",
+      circleId: "circle-1",
+      recipientId: "user-2",
+      roundNumber: 3,
+      amount: 250,
+      payoutType: "fixed" as const,
+      executedAt: "2026-07-25T00:00:00Z",
+    }
+    mockedGet.mockResolvedValue({
+      success: true,
+      data: { payouts: [payout] },
+      meta: { page: 1, limit: 5, total: 1, totalPages: 1 },
+    })
+    const { QueryWrapper } = createQueryWrapper()
+    const { result } = renderHook(() => useCirclePayouts("circle-1", { limit: 5 }), {
+      wrapper: QueryWrapper,
+    })
+
+    await waitFor(() => expect(result.current.isSuccess).toBe(true))
+    expect(mockedGet).toHaveBeenCalledWith("/circles/circle-1/payouts?page=1&limit=5")
+    expect(result.current.data?.payouts).toEqual([payout])
   })
 })
