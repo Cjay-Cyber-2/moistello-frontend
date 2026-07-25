@@ -44,9 +44,9 @@ function TransactionLink({ hash }: { hash: string }) {
 }
 
 const statusConfig: Record<ContributionStatus, { variant: "success" | "warning" | "destructive" | "default" }> = {
-  completed: { variant: "success" },
+  confirmed: { variant: "success" },
   pending: { variant: "warning" },
-  missed: { variant: "destructive" },
+  failed: { variant: "destructive" },
   late: { variant: "destructive" },
 }
 
@@ -298,7 +298,7 @@ export default function ContributionsPage() {
                     {formatCurrency(c.amount, "USDC")}
                   </div>
                   <div className="w-28 text-sm text-muted-foreground font-body">
-                    {formatDate(c.submittedAt)}
+                    {formatDate(c.createdAt)}
                   </div>
                   <div className="w-24">
                     <Badge

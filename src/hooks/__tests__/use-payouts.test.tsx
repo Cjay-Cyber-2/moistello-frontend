@@ -19,7 +19,7 @@ describe("usePayouts", () => {
       roundNumber: 1,
       amount: 100,
       payoutType: "fixed" as const,
-      executedAt: "2026-07-25T00:00:00Z",
+      createdAt: "2026-07-25T00:00:00Z",
     }
     mockedGet.mockResolvedValue({
       success: true,

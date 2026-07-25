@@ -1,10 +1,10 @@
 "use client"
 
-import React from "react"
+import React, { useMemo, useState } from "react"
 import { useParams } from "next/navigation"
 import Link from "next/link"
 import { motion } from "framer-motion"
-import { ArrowLeft, Users, Inbox, Hash } from "lucide-react"
+import { ArrowLeft, Users, Inbox, Hash, Search, SlidersHorizontal, X } from "lucide-react"
 import { useCircleMembers } from "@/hooks/use-circles"
 import { useAuth } from "@/hooks/use-auth"
 import { PageHeader } from "@/components/shared/page-header"
@@ -13,10 +13,13 @@ import { Button } from "@/components/ui/button"
 import { Avatar } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
 import { Skeleton } from "@/components/ui/skeleton"
+import { Input } from "@/components/ui/input"
+import { Select } from "@/components/ui/select"
 import { CopyButton } from "@/components/shared/copy-button"
 import { formatAddress } from "@/lib/formatters"
 import { cn } from "@/lib/cn"
 import type { MemberStatus } from "@/types"
+import { filterCircleMembers, type JoinedFilter } from "./member-filters"
 
 const statusVariantMap: Record<
   MemberStatus,
@@ -46,6 +49,42 @@ export default function CircleMembersPage() {
 
   const { user } = useAuth()
   const { data: members = [], isLoading, isError } = useCircleMembers(circleId)
+  const [search, setSearch] = useState("")
+  const [status, setStatus] = useState("")
+  const [position, setPosition] = useState("")
+  const [joined, setJoined] = useState<JoinedFilter>("")
+
+  const statusOptions = useMemo(
+    () => [
+      { label: "All statuses", value: "" },
+      ...Array.from(new Set(members.map((member) => member.status))).map((value) => ({
+        label: value.charAt(0).toUpperCase() + value.slice(1),
+        value,
+      })),
+    ],
+    [members],
+  )
+  const positionOptions = useMemo(
+    () => [
+      { label: "All positions", value: "" },
+      ...Array.from(new Set(members.map((member) => member.position)))
+        .sort((a, b) => a - b)
+        .map((value) => ({ label: `Position #${value}`, value: String(value) })),
+    ],
+    [members],
+  )
+  const filteredMembers = useMemo(
+    () => filterCircleMembers(members, { search, status, position, joined }),
+    [members, search, status, position, joined],
+  )
+  const hasFilters = Boolean(search || status || position || joined)
+
+  const clearFilters = () => {
+    setSearch("")
+    setStatus("")
+    setPosition("")
+    setJoined("")
+  }
 
   if (isLoading) {
     return (
@@ -123,14 +162,72 @@ export default function CircleMembersPage() {
           description="This circle has no members."
         />
       ) : (
-        <motion.div
-          variants={container}
-          initial="hidden"
-          animate="show"
-          className="glass-premium rounded-2xl overflow-hidden holo-border"
-        >
-          <div className="divide-y divide-border">
-            {members.map((member) => {
+        <>
+          <div className="border-y border-border/70 py-4">
+            <div className="mb-3 flex items-center justify-between gap-3">
+              <div className="flex items-center gap-2 text-xs font-heading uppercase tracking-wider text-muted-foreground">
+                <SlidersHorizontal className="h-4 w-4 text-aurora-violet" />
+                Member filters
+              </div>
+              <span className="font-mono text-xs text-muted-foreground">
+                {filteredMembers.length} of {members.length}
+              </span>
+            </div>
+            <div className="flex flex-col gap-3 lg:flex-row">
+              <div className="relative min-w-0 flex-1">
+                <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                <Input
+                  aria-label="Search by user ID or position"
+                  placeholder="Search user ID or position..."
+                  value={search}
+                  onChange={(event) => setSearch(event.target.value)}
+                  className="pl-9"
+                />
+              </div>
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-3 lg:w-[34rem]">
+                <Select options={statusOptions} value={status} onChange={setStatus} />
+                <Select options={positionOptions} value={position} onChange={setPosition} />
+                <Select
+                  options={[
+                    { label: "Joined anytime", value: "" },
+                    { label: "Joined in 7 days", value: "7d" },
+                    { label: "Joined in 30 days", value: "30d" },
+                    { label: "Joined this year", value: "1y" },
+                  ]}
+                  value={joined}
+                  onChange={(value) => setJoined(value as JoinedFilter)}
+                />
+              </div>
+              {hasFilters && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={clearFilters}
+                  leftIcon={<X className="h-4 w-4" />}
+                  className="self-start lg:self-center"
+                >
+                  Clear
+                </Button>
+              )}
+            </div>
+          </div>
+
+          {filteredMembers.length === 0 ? (
+            <EmptyState
+              icon={<Search className="h-6 w-6" />}
+              title="No matching members"
+              description="Try changing or clearing the current filters."
+              action={{ label: "Clear filters", onClick: clearFilters }}
+            />
+          ) : (
+            <motion.div
+              variants={container}
+              initial="hidden"
+              animate="show"
+              className="overflow-hidden border-l-4 border-l-aurora-violet bg-card/40"
+            >
+              <div className="divide-y divide-border">
+                {filteredMembers.map((member) => {
               const isCurrentUser = member.userId === user?.id
               const displayName = member.userName || "Anonymous"
               const statusCfg =
@@ -184,9 +281,11 @@ export default function CircleMembersPage() {
                   </div>
                 </motion.div>
               )
-            })}
-          </div>
-        </motion.div>
+                })}
+              </div>
+            </motion.div>
+          )}
+        </>
       )}
     </div>
   )
