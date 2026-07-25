@@ -43,6 +43,7 @@ class WCSessionOrchestrator {
   }
   private eventHandlers: Map<keyof WC2EventMap, Set<(...args: unknown[]) => void>> = new Map()
   private cleanupCallbacks: Array<() => void> = []
+  private initPromise: Promise<unknown> | null = null
 
   private constructor() {
     this.recoverSession()
@@ -105,13 +106,17 @@ class WCSessionOrchestrator {
 
   private async getOrInitSignClient(): Promise<unknown> {
     if (this.signClient) return this.signClient
-    const { SignClient } = await import("@walletconnect/sign-client")
-    this.signClient = await SignClient.init({
-      projectId: PROJECT_ID || undefined,
-      relayUrl: RELAY_URL,
-      metadata: METADATA,
-    })
-    return this.signClient
+    if (this.initPromise) return this.initPromise
+    this.initPromise = (async () => {
+      const { SignClient } = await import("@walletconnect/sign-client")
+      this.signClient = await SignClient.init({
+        projectId: PROJECT_ID || undefined,
+        relayUrl: RELAY_URL,
+        metadata: METADATA,
+      })
+      return this.signClient
+    })()
+    return this.initPromise
   }
 
   on<K extends keyof WC2EventMap>(event: K, handler: WC2EventMap[K]): () => void {
