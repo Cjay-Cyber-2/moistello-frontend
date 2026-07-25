@@ -16,6 +16,9 @@ interface CircleFilters {
   page?: number;
   limit?: number;
   organizerId?: string;
+  sort?: string;
+  sortBy?: string;
+  sortOrder?: "asc" | "desc";
 }
 
 interface CreateCirclePayload {
@@ -73,6 +76,9 @@ export function useCircles(filters?: CircleFilters) {
       if (filters?.page) params.set("page", String(filters.page));
       if (filters?.limit) params.set("limit", String(filters.limit));
       if (filters?.organizerId) params.set("organizerId", filters.organizerId);
+      if (filters?.sort) params.set("sort", filters.sort);
+      if (filters?.sortBy) params.set("sortBy", filters.sortBy);
+      if (filters?.sortOrder) params.set("sortOrder", filters.sortOrder);
 
       const query = params.toString();
       const url = `/circles${query ? `?${query}` : ""}`;
@@ -155,7 +161,48 @@ export function useContribute(circleId: string) {
         `/circles/${circleId}/contribute`,
         payload
       ),
-    onSuccess: () => {
+    onMutate: async (newContribution) => {
+      await queryClient.cancelQueries({ queryKey: ["circle", circleId] });
+      await queryClient.cancelQueries({ queryKey: ["circle-rounds", circleId] });
+
+      const previousCircle = queryClient.getQueryData<Circle | null>(["circle", circleId]);
+      const previousRounds = queryClient.getQueryData<Contribution[]>(["circle-rounds", circleId]);
+
+      if (previousCircle) {
+        queryClient.setQueryData<Circle | null>(["circle", circleId], {
+          ...previousCircle,
+          totalContributions: (previousCircle.totalContributions ?? 0) + (newContribution.amount ?? 0),
+        });
+      }
+
+      if (previousRounds) {
+        const optimisticRound: Contribution = {
+          id: `temp-${Date.now()}`,
+          circleId,
+          userId: "current-user",
+          roundNumber: newContribution.roundNumber ?? previousCircle?.currentRound ?? 1,
+          amount: newContribution.amount,
+          status: "completed",
+          onTime: true,
+          submittedAt: new Date().toISOString(),
+        };
+        queryClient.setQueryData<Contribution[]>(
+          ["circle-rounds", circleId],
+          [...previousRounds, optimisticRound]
+        );
+      }
+
+      return { previousCircle, previousRounds };
+    },
+    onError: (_err, _newContribution, context) => {
+      if (context?.previousCircle) {
+        queryClient.setQueryData(["circle", circleId], context.previousCircle);
+      }
+      if (context?.previousRounds) {
+        queryClient.setQueryData(["circle-rounds", circleId], context.previousRounds);
+      }
+    },
+    onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ["circle", circleId] });
       queryClient.invalidateQueries({ queryKey: ["circle-rounds", circleId] });
     },

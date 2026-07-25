@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState, useDeferredValue } from "react"
+import React, { useState, useDeferredValue, useMemo } from "react"
 import Link from "next/link"
 import { motion } from "framer-motion"
 import {
@@ -12,6 +12,8 @@ import {
   ChevronLeft,
   ChevronRight,
   Inbox,
+  ArrowUpDown,
+  Check,
 } from "lucide-react"
 import { useCircles } from "@/hooks/use-circles"
 import { PageHeader } from "@/components/shared/page-header"
@@ -21,6 +23,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Progress } from "@/components/ui/progress"
+import { Dropdown, DropdownItem } from "@/components/ui/dropdown"
 import { cn } from "@/lib/cn"
 import { formatCurrency } from "@/lib/formatters"
 import type { Circle, CircleType, Currency } from "@/types"
@@ -32,6 +35,17 @@ const TYPE_TABS = [
   { value: "private", label: "Private" },
   { value: "community", label: "Community" },
   { value: "premium", label: "Premium" },
+]
+
+const SORT_OPTIONS = [
+  { value: "date-desc", label: "Creation Date (Newest)", sortBy: "date", sortOrder: "desc" as const },
+  { value: "date-asc", label: "Creation Date (Oldest)", sortBy: "date", sortOrder: "asc" as const },
+  { value: "name-asc", label: "Name (A-Z)", sortBy: "name", sortOrder: "asc" as const },
+  { value: "name-desc", label: "Name (Z-A)", sortBy: "name", sortOrder: "desc" as const },
+  { value: "amount-asc", label: "Amount (Low to High)", sortBy: "amount", sortOrder: "asc" as const },
+  { value: "amount-desc", label: "Amount (High to Low)", sortBy: "amount", sortOrder: "desc" as const },
+  { value: "members-asc", label: "Members (Fewest)", sortBy: "members", sortOrder: "asc" as const },
+  { value: "members-desc", label: "Members (Most)", sortBy: "members", sortOrder: "desc" as const },
 ]
 
 const CURRENCIES: Currency[] = ["USDC", "XLM"]
@@ -139,12 +153,18 @@ export default function CirclesBrowsePage() {
   const deferredSearch = useDeferredValue(search)
   const [typeFilter, setTypeFilter] = useState("all")
   const [currencyFilter, setCurrencyFilter] = useState<Currency | null>(null)
+  const [sortValue, setSortValue] = useState("date-desc")
   const [page, setPage] = useState(1)
   const limit = 12
+
+  const selectedSort = SORT_OPTIONS.find((s) => s.value === sortValue) ?? SORT_OPTIONS[0]
 
   const filters = {
     search: deferredSearch || undefined,
     type: typeFilter !== "all" ? typeFilter : undefined,
+    sort: selectedSort.value,
+    sortBy: selectedSort.sortBy,
+    sortOrder: selectedSort.sortOrder,
     page,
     limit,
   }
@@ -153,10 +173,39 @@ export default function CirclesBrowsePage() {
   const circles = data?.circles ?? []
   const meta = data?.meta
 
-  const filteredCircles =
-    currencyFilter != null
+  const filteredCircles = useMemo(() => {
+    let result = currencyFilter != null
       ? circles.filter((c) => c.currency === currencyFilter)
-      : circles
+      : [...circles]
+
+    const key = selectedSort.sortBy
+    const order = selectedSort.sortOrder
+
+    result.sort((a, b) => {
+      let valA: string | number = 0
+      let valB: string | number = 0
+
+      if (key === "name") {
+        valA = a.name.toLowerCase()
+        valB = b.name.toLowerCase()
+      } else if (key === "amount") {
+        valA = a.contributionAmount
+        valB = b.contributionAmount
+      } else if (key === "members") {
+        valA = a.memberCount ?? 0
+        valB = b.memberCount ?? 0
+      } else if (key === "date") {
+        valA = a.createdAt ? new Date(a.createdAt).getTime() : 0
+        valB = b.createdAt ? new Date(b.createdAt).getTime() : 0
+      }
+
+      if (valA < valB) return order === "asc" ? -1 : 1
+      if (valA > valB) return order === "asc" ? 1 : -1
+      return 0
+    })
+
+    return result
+  }, [circles, currencyFilter, selectedSort])
 
   const hasNext = meta ? meta.page < meta.totalPages : false
   const hasPrev = page > 1
@@ -187,49 +236,98 @@ export default function CirclesBrowsePage() {
         />
       </div>
 
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-        <div className="flex flex-wrap gap-1.5">
-          {TYPE_TABS.map((f) => (
-            <motion.button
-              key={f.value}
-              type="button"
-              whileHover={{ scale: 1.03 }}
-              whileTap={{ scale: 0.97 }}
-              onClick={() => {
-                setTypeFilter(f.value)
-                setPage(1)
-              }}
-              className={cn(
-                "inline-flex items-center rounded-full px-4 py-1.5 text-xs font-body font-medium transition-all duration-300",
-                typeFilter === f.value
-                  ? "gradient-bg-extended text-white shadow-lg holo-glow"
-                  : "glass-whisper text-muted-foreground hover:text-foreground dark:hover:text-white",
-              )}
-            >
-              {t("circles." + f.value)}
-            </motion.button>
-          ))}
-        </div>
+      <div className="p-4 rounded-xl border-l-4 border-l-aurora-violet bg-card/60 backdrop-blur-md space-y-3 shadow-md">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <div className="flex flex-wrap gap-1.5">
+            {TYPE_TABS.map((f) => (
+              <motion.button
+                key={f.value}
+                type="button"
+                whileHover={{ scale: 1.03 }}
+                whileTap={{ scale: 0.97 }}
+                onClick={() => {
+                  setTypeFilter(f.value)
+                  setPage(1)
+                }}
+                className={cn(
+                  "inline-flex items-center rounded-full px-4 py-1.5 text-xs font-body font-medium transition-all duration-300",
+                  typeFilter === f.value
+                    ? "gradient-bg-extended text-white shadow-lg holo-glow"
+                    : "glass-whisper text-muted-foreground hover:text-foreground dark:hover:text-white",
+                )}
+              >
+                {t("circles." + f.value)}
+              </motion.button>
+            ))}
+          </div>
 
-        <div className="flex items-center gap-2">
-          <span className="text-2xs text-muted-foreground font-body">Currency:</span>
-          {CURRENCIES.map((c) => (
-            <motion.button
-              key={c}
-              type="button"
-              whileHover={{ scale: 1.03 }}
-              whileTap={{ scale: 0.97 }}
-              onClick={() => setCurrencyFilter((prev) => (prev === c ? null : c))}
-              className={cn(
-                "inline-flex items-center rounded-full px-3.5 py-1 text-xs font-body font-medium transition-all duration-300",
-                currencyFilter === c
-                  ? "gradient-bg-extended text-white"
-                  : "glass-whisper text-muted-foreground hover:text-foreground dark:hover:text-white",
-              )}
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2">
+              <span className="text-2xs text-muted-foreground font-body">Currency:</span>
+              {CURRENCIES.map((c) => (
+                <motion.button
+                  key={c}
+                  type="button"
+                  whileHover={{ scale: 1.03 }}
+                  whileTap={{ scale: 0.97 }}
+                  onClick={() => setCurrencyFilter((prev) => (prev === c ? null : c))}
+                  className={cn(
+                    "inline-flex items-center rounded-full px-3.5 py-1 text-xs font-body font-medium transition-all duration-300",
+                    currencyFilter === c
+                      ? "gradient-bg-extended text-white"
+                      : "glass-whisper text-muted-foreground hover:text-foreground dark:hover:text-white",
+                  )}
+                >
+                  {c}
+                </motion.button>
+              ))}
+            </div>
+
+            <Dropdown
+              align="right"
+              trigger={
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  leftIcon={<ArrowUpDown className="h-3.5 w-3.5" />}
+                  className="font-body text-xs border-aurora-violet/30 hover:border-aurora-violet"
+                >
+                  <span className="hidden sm:inline">Sort: </span>
+                  <span className="font-semibold text-aurora-violet dark:text-emerald-400">
+                    {selectedSort.label}
+                  </span>
+                </Button>
+              }
             >
-              {c}
-            </motion.button>
-          ))}
+              <div className="py-1">
+                <p className="px-3 py-1.5 text-[10px] tracking-wider uppercase text-muted-foreground font-heading border-b border-border/40">
+                  Sort Circles By
+                </p>
+                {SORT_OPTIONS.map((option) => {
+                  const isSelected = option.value === sortValue
+                  return (
+                    <DropdownItem
+                      key={option.value}
+                      onClick={() => {
+                        setSortValue(option.value)
+                        setPage(1)
+                      }}
+                      className={cn(
+                        "justify-between text-xs transition-colors",
+                        isSelected
+                          ? "bg-aurora-violet/15 text-aurora-violet font-semibold dark:text-emerald-400"
+                          : "text-foreground/80 hover:bg-white/5",
+                      )}
+                    >
+                      <span>{option.label}</span>
+                      {isSelected && <Check className="h-3.5 w-3.5 shrink-0 text-aurora-violet dark:text-emerald-400" />}
+                    </DropdownItem>
+                  )
+                })}
+              </div>
+            </Dropdown>
+          </div>
         </div>
       </div>
 
