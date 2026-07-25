@@ -20,7 +20,7 @@ vi.mock("@/stores/multi-wallet-store", () => ({
   useMultiWalletStore: {
     getState: () => ({
       wallets: {
-        "freighter": {
+        freighter: {
           adapter: { signMessage: mockSignMessage },
         },
       },
@@ -71,7 +71,13 @@ describe("AuthFlowStore - signAndSubmit", () => {
 
   it("fails early if no wallet connected", async () => {
     useAuthFlowStore.setState({
-      connection: { walletId: null, address: null, pairingUri: null, protocol: null, relayStatus: "healthy" },
+      connection: {
+        walletId: null,
+        address: null,
+        pairingUri: null,
+        protocol: null,
+        relayStatus: "healthy",
+      },
     })
 
     await useAuthFlowStore.getState().signAndSubmit()
@@ -88,30 +94,75 @@ describe("AuthFlowStore - signAndSubmit", () => {
 
   it("fetches nonce, signs message, submits, and authenticates", async () => {
     mockSignMessage.mockResolvedValueOnce({ signature: "sig-abc" })
-    mockPost
-      .mockResolvedValueOnce({ data: { nonce: { nonce: "nonce-123" } } })
-      .mockResolvedValueOnce({
-        data: {
-          token: "jwt-token",
-          refreshToken: "refresh-token",
-          user: { id: "user-1" },
-        },
-      })
+    mockPost.mockResolvedValueOnce({ data: { nonce: { nonce: "nonce-123" } } }).mockResolvedValueOnce({
+      data: {
+        token: "jwt-token",
+        refreshToken: "refresh-token",
+        user: { id: "user-1" },
+      },
+    })
 
     await useAuthFlowStore.getState().signAndSubmit()
 
     expect(mockPost).toHaveBeenCalledWith("/auth/nonce", { walletAddress: "GABC123..." }, { _retry: true })
     expect(mockSignMessage).toHaveBeenCalledWith("nonce-123")
-    expect(mockPost).toHaveBeenCalledWith("/auth/verify", {
-      walletAddress: "GABC123...",
-      signature: "sig-abc",
-      nonce: "nonce-123",
-      passkeyVersion: 0,
-    }, { _retry: true })
+    expect(mockPost).toHaveBeenCalledWith(
+      "/auth/verify",
+      {
+        walletAddress: "GABC123...",
+        signature: "sig-abc",
+        nonce: "nonce-123",
+        passkeyVersion: 0,
+      },
+      { _retry: true },
+    )
     expect(mockSetTokens).toHaveBeenCalledWith("jwt-token", "refresh-token")
 
     const state = useAuthFlowStore.getState()
     expect(state.status).toEqual({ status: "authenticated" })
+  })
+
+  it("uses current state after asynchronous signing steps", async () => {
+    mockPost
+      .mockImplementationOnce(async () => {
+        useAuthFlowStore.setState({ passkeyVersion: 2 })
+        return { data: { nonce: { nonce: "nonce-123" } } }
+      })
+      .mockResolvedValueOnce({
+        data: {
+          token: "jwt-token",
+          user: { id: "user-1" },
+        },
+      })
+    mockSignMessage.mockImplementationOnce(async () => {
+      useAuthFlowStore.setState({
+        mode: "register",
+        passkeyVersion: 3,
+        profile: {
+          displayName: "Current User",
+          countryCode: "NG",
+          language: "en",
+          fieldErrors: {},
+        },
+      })
+      return { signature: "sig-abc" }
+    })
+
+    await useAuthFlowStore.getState().signAndSubmit()
+
+    expect(mockPost).toHaveBeenCalledWith(
+      "/auth/register",
+      {
+        walletAddress: "GABC123...",
+        signature: "sig-abc",
+        nonce: "nonce-123",
+        passkeyVersion: 3,
+        displayName: "Current User",
+        countryCode: "NG",
+        preferredLanguage: "en",
+      },
+      { _retry: true },
+    )
   })
 
   it("sets error when nonce fetch fails", async () => {
@@ -131,11 +182,12 @@ describe("AuthFlowStore - signAndSubmit", () => {
 
   it("sets error when signature verification fails on server", async () => {
     mockSignMessage.mockResolvedValueOnce({ signature: "sig-bad" })
-    mockPost
-      .mockResolvedValueOnce({ data: { nonce: { nonce: "nonce-123" } } })
-      .mockRejectedValueOnce({
-        response: { status: 401, data: { error: "signature verification failed" } },
-      })
+    mockPost.mockResolvedValueOnce({ data: { nonce: { nonce: "nonce-123" } } }).mockRejectedValueOnce({
+      response: {
+        status: 401,
+        data: { error: "signature verification failed" },
+      },
+    })
 
     await useAuthFlowStore.getState().signAndSubmit()
 
@@ -150,16 +202,14 @@ describe("AuthFlowStore - signAndSubmit", () => {
 
   it("handles passkey revocation on login", async () => {
     mockSignMessage.mockResolvedValueOnce({ signature: "sig-abc" })
-    mockPost
-      .mockResolvedValueOnce({ data: { nonce: { nonce: "nonce-123" } } })
-      .mockResolvedValueOnce({
-        data: {
-          token: "jwt-token",
-          refreshToken: "refresh-token",
-          user: { id: "user-1" },
-          expectedPasskeyVersion: 5,
-        },
-      })
+    mockPost.mockResolvedValueOnce({ data: { nonce: { nonce: "nonce-123" } } }).mockResolvedValueOnce({
+      data: {
+        token: "jwt-token",
+        refreshToken: "refresh-token",
+        user: { id: "user-1" },
+        expectedPasskeyVersion: 5,
+      },
+    })
 
     await useAuthFlowStore.getState().signAndSubmit()
 
@@ -189,43 +239,43 @@ describe("AuthFlowStore - signAndSubmit", () => {
     })
 
     mockSignMessage.mockResolvedValueOnce({ signature: "sig-abc" })
-    mockPost
-      .mockResolvedValueOnce({ data: { nonce: { nonce: "nonce-123" } } })
-      .mockResolvedValueOnce({
-        data: {
-          token: "jwt-token",
-          refreshToken: "refresh-token",
-          user: { id: "user-1" },
-        },
-      })
+    mockPost.mockResolvedValueOnce({ data: { nonce: { nonce: "nonce-123" } } }).mockResolvedValueOnce({
+      data: {
+        token: "jwt-token",
+        refreshToken: "refresh-token",
+        user: { id: "user-1" },
+      },
+    })
 
     await useAuthFlowStore.getState().signAndSubmit()
 
-    expect(mockPost).toHaveBeenCalledWith("/auth/register", {
-      walletAddress: "GABC123...",
-      signature: "sig-abc",
-      nonce: "nonce-123",
-      passkeyVersion: 0,
-      displayName: "Test User",
-      email: "test@example.com",
-      countryCode: "US",
-      preferredLanguage: "en",
-    }, { _retry: true })
+    expect(mockPost).toHaveBeenCalledWith(
+      "/auth/register",
+      {
+        walletAddress: "GABC123...",
+        signature: "sig-abc",
+        nonce: "nonce-123",
+        passkeyVersion: 0,
+        displayName: "Test User",
+        email: "test@example.com",
+        countryCode: "US",
+        preferredLanguage: "en",
+      },
+      { _retry: true },
+    )
   })
 
   it("transitions state through signing phases", async () => {
     mockSignMessage.mockResolvedValueOnce({ signature: "sig-abc" })
-    mockPost
-      .mockResolvedValueOnce({ data: { nonce: { nonce: "nonce-123" } } })
-      .mockResolvedValueOnce({
-        data: {
-          token: "jwt-token",
-          user: { id: "user-1" },
-        },
-      })
+    mockPost.mockResolvedValueOnce({ data: { nonce: { nonce: "nonce-123" } } }).mockResolvedValueOnce({
+      data: {
+        token: "jwt-token",
+        user: { id: "user-1" },
+      },
+    })
 
     const states: string[] = []
-    const unsub = useAuthFlowStore.subscribe((s) => {
+    const unsub = useAuthFlowStore.subscribe(s => {
       if (typeof s.status === "object" && s.status !== null && "status" in s.status) {
         states.push((s.status as { status: string }).status)
       }
@@ -241,7 +291,13 @@ describe("AuthFlowStore - signAndSubmit", () => {
 
   it("handles missing wallet adapter", async () => {
     useAuthFlowStore.setState({
-      connection: { walletId: "nonexistent", address: "GABC...", pairingUri: null, protocol: null, relayStatus: "healthy" },
+      connection: {
+        walletId: "nonexistent",
+        address: "GABC...",
+        pairingUri: null,
+        protocol: null,
+        relayStatus: "healthy",
+      },
     })
 
     mockPost.mockResolvedValueOnce({ data: { nonce: { nonce: "nonce-123" } } })
