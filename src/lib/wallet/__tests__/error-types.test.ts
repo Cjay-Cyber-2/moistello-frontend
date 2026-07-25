@@ -59,6 +59,15 @@ describe("WalletError union completeness", () => {
     expect(err.code).toBe("timeout")
   })
 
+  it("includes network_offline for offline connect scenarios", () => {
+    const err: { adapter: string; code: "network_offline"; message: string } = {
+      adapter: "freighter",
+      code: "network_offline",
+      message: "You appear to be offline. Please check your internet connection and try again.",
+    }
+    expect(err.code).toBe("network_offline")
+  })
+
   it("includes internal with cause field", () => {
     const err: { adapter: string; code: "internal"; message: string; cause: string } = {
       adapter: "passkey",
