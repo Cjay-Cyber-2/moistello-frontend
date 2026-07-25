@@ -20,19 +20,23 @@ import {
   Copy,
   Check,
   Play,
+  AlertCircle,
 } from "lucide-react"
 import { useCircle, useCircleMembers, useContribute, useJoinCircle, useStartCircle } from "@/hooks/use-circles"
+import { useCirclePayouts } from "@/hooks/use-payouts"
 import { useAuth } from "@/hooks/use-auth"
 import { useUIStore } from "@/stores/ui-store"
 import { PageHeader } from "@/components/shared/page-header"
+import { EmptyState } from "@/components/shared/empty-state"
 import { Button } from "@/components/ui/button"
 import { Modal } from "@/components/ui/modal"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Badge } from "@/components/ui/badge"
-import { formatCurrency } from "@/lib/formatters"
+import { formatCurrency, formatDate } from "@/lib/formatters"
 import { Routes } from "@/lib/constants"
 import { copyToClipboard } from "@/lib/clipboard"
 import { cn } from "@/lib/cn"
+import type { Payout } from "@/types"
 import { CircleMembersPreview } from "./circle-members-preview"
 
 const container = {
@@ -84,6 +88,7 @@ export default function CircleDetailPage() {
   const { user } = useAuth()
   const { data: circle, isLoading, isError } = useCircle(circleId)
   const { data: members = [] } = useCircleMembers(circleId)
+  const { data: payoutData, isLoading: payoutsLoading, isError: payoutsError } = useCirclePayouts(circleId, { limit: 5 })
   const contribute = useContribute(circleId)
   const joinCircle = useJoinCircle()
   const startCircle = useStartCircle()
@@ -105,6 +110,7 @@ export default function CircleDetailPage() {
 
   const isOrganizer = user?.id === circle?.organizerId
   const isMember = members.some((m) => m.userId === user?.id)
+  const recentPayouts = payoutData?.payouts ?? []
   const canJoin =
     circle && !isMember && (circle.status === "pending" || circle.status === "active")
   const canContribute = isMember && circle?.status === "active"
@@ -477,15 +483,36 @@ export default function CircleDetailPage() {
             View Rounds <ChevronRight className="h-4 w-4" />
           </Link>
         </div>
-        <div className="glass rounded-2xl overflow-hidden">
-          <div className="divide-y divide-border">
-            {Array.from({
-              length: Math.min(Math.max(circle.currentRound - 1, 0), 5),
-            }).map((_, i) => {
-              const r = circle.currentRound - 1 - i
-              return (
+        {payoutsLoading ? (
+          <div className="glass rounded-2xl overflow-hidden divide-y divide-border">
+            {Array.from({ length: 3 }).map((_, i) => (
+              <div key={i} className="flex items-center justify-between px-5 py-4">
+                <div className="space-y-2">
+                  <Skeleton variant="text" width="180px" />
+                  <Skeleton variant="text" width="120px" />
+                </div>
+                <Skeleton variant="text" width="110px" />
+              </div>
+            ))}
+          </div>
+        ) : payoutsError ? (
+          <EmptyState
+            icon={<AlertCircle className="h-6 w-6" />}
+            title="Failed to load payouts"
+            description="The recent payout history could not be loaded right now."
+          />
+        ) : recentPayouts.length === 0 ? (
+          <div className="glass rounded-2xl px-5 py-10 text-center">
+            <p className="text-sm text-muted-foreground">
+              No payouts yet. The first round is still active.
+            </p>
+          </div>
+        ) : (
+          <div className="glass rounded-2xl overflow-hidden">
+            <div className="divide-y divide-border">
+              {recentPayouts.map((payout: Payout, i: number) => (
                 <motion.div
-                  key={r}
+                  key={payout.id}
                   initial={{ opacity: 0, x: -12 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: i * 0.05 }}
@@ -497,26 +524,21 @@ export default function CircleDetailPage() {
                     </div>
                     <div>
                       <p className="text-sm font-medium text-foreground dark:text-white font-heading">
-                        Round {r} Payout
+                        Round {payout.roundNumber} Payout
                       </p>
-                      <p className="text-2xs text-muted-foreground">Completed</p>
+                      <p className="text-2xs text-muted-foreground">
+                        {formatDate(payout.executedAt)}
+                      </p>
                     </div>
                   </div>
                   <span className="gradient-text text-sm font-bold font-heading">
-                    {formatCurrency(circle.contributionAmount * circle.maxMembers, circle.currency)}
+                    {formatCurrency(payout.amount, circle.currency)}
                   </span>
                 </motion.div>
-              )
-            })}
-            {circle.currentRound <= 1 && (
-              <div className="flex items-center justify-center px-5 py-10">
-                <p className="text-sm text-muted-foreground">
-                  No payouts yet. The first round is still active.
-                </p>
-              </div>
-            )}
+              ))}
+            </div>
           </div>
-        </div>
+        )}
       </div>
 
       <Modal

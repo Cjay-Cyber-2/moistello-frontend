@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState, useDeferredValue, useMemo } from "react"
+import React, { useState, useDeferredValue } from "react"
 import Link from "next/link"
 import { motion } from "framer-motion"
 import {
@@ -162,6 +162,7 @@ export default function CirclesBrowsePage() {
   const filters = {
     search: deferredSearch || undefined,
     type: typeFilter !== "all" ? typeFilter : undefined,
+    currency: currencyFilter ?? undefined,
     sort: selectedSort.value,
     sortBy: selectedSort.sortBy,
     sortOrder: selectedSort.sortOrder,
@@ -172,40 +173,6 @@ export default function CirclesBrowsePage() {
   const { data, isLoading, isError } = useCircles(filters)
   const circles = data?.circles ?? []
   const meta = data?.meta
-
-  const filteredCircles = useMemo(() => {
-    let result = currencyFilter != null
-      ? circles.filter((c) => c.currency === currencyFilter)
-      : [...circles]
-
-    const key = selectedSort.sortBy
-    const order = selectedSort.sortOrder
-
-    result.sort((a, b) => {
-      let valA: string | number = 0
-      let valB: string | number = 0
-
-      if (key === "name") {
-        valA = a.name.toLowerCase()
-        valB = b.name.toLowerCase()
-      } else if (key === "amount") {
-        valA = a.contributionAmount
-        valB = b.contributionAmount
-      } else if (key === "members") {
-        valA = a.memberCount ?? 0
-        valB = b.memberCount ?? 0
-      } else if (key === "date") {
-        valA = a.createdAt ? new Date(a.createdAt).getTime() : 0
-        valB = b.createdAt ? new Date(b.createdAt).getTime() : 0
-      }
-
-      if (valA < valB) return order === "asc" ? -1 : 1
-      if (valA > valB) return order === "asc" ? 1 : -1
-      return 0
-    })
-
-    return result
-  }, [circles, currencyFilter, selectedSort])
 
   const hasNext = meta ? meta.page < meta.totalPages : false
   const hasPrev = page > 1
@@ -343,7 +310,7 @@ export default function CirclesBrowsePage() {
           title="Failed to load circles"
           description="Something went wrong. Please try again later."
         />
-      ) : filteredCircles.length === 0 ? (
+      ) : circles.length === 0 ? (
         <EmptyState
           icon={<Search className="h-6 w-6" />}
           title={t("circles.noCircles")}
@@ -356,7 +323,7 @@ export default function CirclesBrowsePage() {
           animate="show"
           className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"
         >
-          {filteredCircles.map((circle) => (
+          {circles.map((circle) => (
             <CircleGridCard key={circle.id} circle={circle} />
           ))}
         </motion.div>

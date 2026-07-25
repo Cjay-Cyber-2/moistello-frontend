@@ -22,6 +22,7 @@ interface CircleFilters {
   search?: string;
   status?: string;
   type?: string;
+  currency?: string;
   page?: number;
   limit?: number;
   organizerId?: string;
@@ -82,6 +83,7 @@ export function useCircles(filters?: CircleFilters) {
       if (filters?.search) params.set("search", filters.search);
       if (filters?.status) params.set("status", filters.status);
       if (filters?.type) params.set("type", filters.type);
+      if (filters?.currency) params.set("currency", filters.currency);
       if (filters?.page) params.set("page", String(filters.page));
       if (filters?.limit) params.set("limit", String(filters.limit));
       if (filters?.organizerId) params.set("organizerId", filters.organizerId);
