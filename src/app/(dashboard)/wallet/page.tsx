@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import Link from "next/link"
-import { ArrowUpRight, ArrowDownRight, Wallet as WalletIcon, Settings, Clock, ArrowRight, ListOrdered, BookCopy } from "lucide-react"
+import { ArrowUpRight, ArrowDownRight, Wallet as WalletIcon, Settings, Clock, ArrowRight, ListOrdered, BookCopy, ExternalLink, QrCode, Copy, Check } from "lucide-react"
 import { PageHeader } from "@/components/shared/page-header"
 import { CopyButton } from "@/components/shared/copy-button"
 import { Button } from "@/components/ui/button"
@@ -10,6 +10,8 @@ import { get } from "@/lib/api-client"
 import { useTranslate } from "@/lib/locale/context"
 import { formatAddress } from "@/lib/formatters"
 import { cn } from "@/lib/cn"
+import { copyToClipboard } from "@/lib/clipboard"
+import { useUIStore } from "@/stores/ui-store"
 
 interface WalletInfo {
   id: string
@@ -29,14 +31,21 @@ interface TransactionItem {
   amount: number
   description: string
   createdAt: string
+  txnHash?: string
 }
+
+const STELLAR_EXPLORER_TX = "https://stellar.expert/explorer/testnet/tx"
 
 export default function WalletPage() {
   const { t } = useTranslate()
+  const addToast = useUIStore((s) => s.addToast)
   const [wallet, setWallet] = useState<WalletInfo | null>(null)
   const [balance, setBalance] = useState<BalanceInfo | null>(null)
   const [transactions, setTransactions] = useState<TransactionItem[]>([])
   const [loading, setLoading] = useState(true)
+  const [showReceive, setShowReceive] = useState(false)
+  const [copied, setCopied] = useState(false)
+
   useEffect(() => {
     async function load() {
       setLoading(true)
@@ -64,17 +73,17 @@ export default function WalletPage() {
 
         if (contribRes.status === "fulfilled") {
           const cd = (contribRes.value as Record<string, unknown>)?.data as Record<string, unknown> ?? contribRes.value as Record<string, unknown>
-          const list = (cd?.contributions ?? []) as { id: string; amount: number; createdAt: string; circleId: string }[]
+          const list = (cd?.contributions ?? []) as { id: string; amount: number; createdAt: string; circleId: string; txnHash?: string }[]
           list.forEach((c) => {
-            all.push({ id: "c-" + c.id, type: "sent", amount: c.amount, description: "Contribution", createdAt: c.createdAt })
+            all.push({ id: "c-" + c.id, type: "sent", amount: c.amount, description: "Contribution", createdAt: c.createdAt, txnHash: c.txnHash })
           })
         }
 
         if (payoutRes.status === "fulfilled") {
           const pd = (payoutRes.value as Record<string, unknown>)?.data as Record<string, unknown> ?? payoutRes.value as Record<string, unknown>
-          const list = (pd?.payouts ?? []) as { id: string; amount: number; createdAt: string; circleId: string }[]
+          const list = (pd?.payouts ?? []) as { id: string; amount: number; createdAt: string; circleId: string; txnHash?: string }[]
           list.forEach((p) => {
-            all.push({ id: "p-" + p.id, type: "received", amount: p.amount, description: "Payout", createdAt: p.createdAt })
+            all.push({ id: "p-" + p.id, type: "received", amount: p.amount, description: "Payout", createdAt: p.createdAt, txnHash: p.txnHash })
           })
         }
 
@@ -91,9 +100,45 @@ export default function WalletPage() {
 
   const walletId = wallet?.publicKey ?? ""
 
+  const copyKey = async () => {
+    if (!wallet) return
+    const success = await copyToClipboard(wallet.publicKey)
+    if (success) {
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+      addToast({ type: "info", title: "Address copied" })
+    } else {
+      addToast({ type: "error", title: "Failed to copy address" })
+    }
+  }
+
   return (
     <div className="space-y-8">
       <PageHeader title="Wallet" description="Manage your Stellar wallet." />
+
+      {/* Receive modal */}
+      {showReceive && wallet && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4" onClick={() => setShowReceive(false)}>
+          <div className="w-full max-w-sm rounded-2xl bg-[rgb(var(--background))] border border-white/15 p-6 space-y-5" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between">
+              <h3 className="font-heading text-base font-semibold text-foreground">Receive</h3>
+              <button onClick={() => setShowReceive(false)} className="h-7 w-7 flex items-center justify-center rounded-lg bg-white/10 text-muted-foreground hover:text-foreground text-sm">✕</button>
+            </div>
+            <div className="inline-flex items-center justify-center w-40 h-40 bg-white rounded-xl mx-auto">
+              <QrCode className="h-16 w-16 text-black/80" />
+            </div>
+            <div className="bg-white/5 rounded-xl px-4 py-3">
+              <code className="text-sm font-mono text-foreground break-all">{wallet.publicKey}</code>
+            </div>
+            <Button variant="primary" size="md" onClick={copyKey} leftIcon={copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />} className="w-full">
+              {copied ? "Copied!" : "Copy Address"}
+            </Button>
+            <p className="text-xs text-muted-foreground text-center">
+              Send only USDC or XLM to this address. Verify the network is Stellar.
+            </p>
+          </div>
+        </div>
+      )}
 
       {/* Wallet Identity — full-width accent bar style */}
       <div className="relative">
@@ -125,7 +170,7 @@ export default function WalletPage() {
         </div>
       </div>
 
-      {/* Balance area — two tiles side by side, no cards */}
+      {/* Balance area — two tiles side by side */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div className="relative overflow-hidden rounded-xl bg-gradient-to-br from-aurora-violet/10 to-aurora-indigo/5 border border-aurora-violet/15 p-6">
           <div className="absolute -top-6 -right-6 w-24 h-24 rounded-full bg-aurora-violet/5 blur-2xl pointer-events-none" />
@@ -147,14 +192,12 @@ export default function WalletPage() {
 
       {/* Action buttons — inline pill style */}
       <div className="flex flex-wrap gap-3">
-        <Link href="/wallet/deposit">
-          <Button variant="primary" size="md" leftIcon={<ArrowDownRight className="h-4 w-4" />}>
-            Deposit
-          </Button>
-        </Link>
+        <Button variant="primary" size="md" onClick={() => setShowReceive(true)} leftIcon={<ArrowDownRight className="h-4 w-4" />}>
+          Receive
+        </Button>
         <Link href="/wallet/withdraw">
           <Button variant="outline" size="md" leftIcon={<ArrowUpRight className="h-4 w-4" />}>
-            Withdraw
+            Send
           </Button>
         </Link>
         <Link href="/wallet/settings">
@@ -164,7 +207,7 @@ export default function WalletPage() {
         </Link>
       </div>
 
-      {/* Recent Transactions — timeline style, no cards */}
+      {/* Recent Transactions — timeline style */}
       <div>
         <div className="flex items-center justify-between mb-5">
           <h3 className="font-heading text-base font-semibold text-foreground flex items-center gap-2">
@@ -192,19 +235,16 @@ export default function WalletPage() {
           </div>
         ) : (
           <div className="relative">
-            {/* Vertical timeline line */}
             <div className="absolute left-[7px] top-2 bottom-2 w-px bg-white/10" />
             <div className="space-y-0">
               {transactions.map((tx) => (
                 <div key={tx.id} className="relative flex items-start gap-4 pb-5 pl-1">
-                  {/* Timeline dot */}
                   <div className={cn(
                     "relative z-10 mt-1.5 h-3.5 w-3.5 rounded-full border-2 shrink-0",
                     tx.type === "received"
                       ? "border-emerald-400 bg-emerald-500/20"
                       : "border-aurora-violet bg-aurora-violet/20",
                   )} />
-                  {/* Content */}
                   <div className="flex-1 min-w-0 flex items-center justify-between gap-3">
                     <div className="min-w-0">
                       <p className="text-sm text-foreground truncate">{tx.description}</p>
@@ -212,12 +252,25 @@ export default function WalletPage() {
                         {new Date(tx.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
                       </p>
                     </div>
-                    <span className={cn(
-                      "text-sm font-semibold font-heading shrink-0 whitespace-nowrap",
-                      tx.type === "received" ? "text-emerald-400" : "text-muted-foreground",
-                    )}>
-                      {tx.type === "received" ? "+" : "-"}{formatAmount(tx.amount)} USDC
-                    </span>
+                    <div className="flex items-center gap-2 shrink-0">
+                      <span className={cn(
+                        "text-sm font-semibold font-heading whitespace-nowrap",
+                        tx.type === "received" ? "text-emerald-400" : "text-muted-foreground",
+                      )}>
+                        {tx.type === "received" ? "+" : "-"}{formatAmount(tx.amount)} USDC
+                      </span>
+                      {tx.txnHash && (
+                        <a
+                          href={`${STELLAR_EXPLORER_TX}/${tx.txnHash}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-muted-foreground hover:text-aurora-cyan transition-colors"
+                          title="View on Stellar.Expert"
+                        >
+                          <ExternalLink className="h-3 w-3" />
+                        </a>
+                      )}
+                    </div>
                   </div>
                 </div>
               ))}
