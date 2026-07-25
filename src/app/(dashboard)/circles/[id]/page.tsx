@@ -33,6 +33,7 @@ import { formatCurrency } from "@/lib/formatters"
 import { Routes } from "@/lib/constants"
 import { copyToClipboard } from "@/lib/clipboard"
 import { cn } from "@/lib/cn"
+import { CircleMembersPreview } from "./circle-members-preview"
 
 const container = {
   hidden: { opacity: 0 },
@@ -461,29 +462,7 @@ export default function CircleDetailPage() {
             View All ({members.length}) <ChevronRight className="h-4 w-4" />
           </Link>
         </div>
-        <div className="glass rounded-2xl p-5">
-          {members.length > 0 ? (
-            <div className="flex items-center gap-2 flex-wrap">
-              {members.slice(0, 10).map((member) => (
-                <motion.div
-                  key={member.id}
-                  whileHover={{ scale: 1.1, y: -2 }}
-                  className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-aurora-violet/30 to-aurora-indigo/30 text-xs font-heading font-semibold text-foreground dark:text-white cursor-default"
-                  title={member.userName ?? member.userId}
-                >
-                  {(member.userName ?? member.userId).slice(0, 2).toUpperCase()}
-                </motion.div>
-              ))}
-              {members.length > 10 && (
-                <span className="text-sm text-muted-foreground">
-                  +{members.length - 10} more
-                </span>
-              )}
-            </div>
-          ) : (
-            <p className="text-sm text-muted-foreground">No members yet.</p>
-          )}
-        </div>
+        <CircleMembersPreview members={members} />
       </div>
 
       <div>
