@@ -20,6 +20,8 @@ export type AuthFlowStatus =
   | { status: "connected"; walletId: string; address: string }
   | { status: "signing"; address: string }
   | { status: "signed"; signature: string; nonce: string }
+  | { status: "sending_code" }
+  | { status: "code_sent" }
   | { status: "error"; code: AuthErrorCode; message: string; canRetry: boolean }
   | { status: "authenticated" }
 
@@ -32,6 +34,10 @@ export type AuthErrorCode =
   | "validation_error"
   | "passkey_revoked"
   | "internal_error"
+  | "email_send_failed"
+  | "email_code_invalid"
+  | "email_code_expired"
+  | "email_rate_limited"
 
 const STEP_ORDER: AuthStep[] = ["choose", "profile", "sign"]
 
@@ -43,6 +49,15 @@ interface RateLimitState {
   remainingAttempts: number
   cooldownUntil: number | null
   lastAttemptAt: number | null
+}
+
+interface EmailVerificationState {
+  email: string
+  verificationId: string | null
+  codeSent: boolean
+  codeVerified: boolean
+  expiresAt: number | null
+  remainingAttempts: number
 }
 
 export interface AuthFlowState {
@@ -69,6 +84,7 @@ export interface AuthFlowState {
     nonceTimestamp: number | null
   }
   rateLimit: RateLimitState
+  emailVerification: EmailVerificationState
   passkeyVersion: number
   passkeyRevoked: boolean
 }
@@ -101,6 +117,12 @@ interface AuthFlowActions {
   canProceed: () => boolean
   currentStepIndex: () => number
   totalSteps: () => number
+  sendVerificationCode: (email: string, captchaToken?: string) => Promise<void>
+  verifyCode: (code: string) => Promise<void>
+  resendCode: () => Promise<void>
+  clearEmailVerification: () => void
+  setPasskeyVersion: (version: number) => void
+  setPasskeyRevoked: (revoked: boolean) => void
 }
 
 export type AuthFlowStore = AuthFlowState & AuthFlowActions
@@ -128,6 +150,17 @@ function initialRateLimit(): RateLimitState {
   }
 }
 
+function initialEmailVerification(): EmailVerificationState {
+  return {
+    email: "",
+    verificationId: null,
+    codeSent: false,
+    codeVerified: false,
+    expiresAt: null,
+    remainingAttempts: 5,
+  }
+}
+
 function createInitialState(): AuthFlowState {
   return {
     mode: "login",
@@ -138,6 +171,7 @@ function createInitialState(): AuthFlowState {
     profile: { ...initialProfile },
     auth: { nonce: null, signature: null, nonceTimestamp: null },
     rateLimit: initialRateLimit(),
+    emailVerification: initialEmailVerification(),
     passkeyVersion: 0,
     passkeyRevoked: false,
   }
@@ -446,6 +480,100 @@ export const useAuthFlowStore = create<AuthFlowStore>()(
         },
 
         totalSteps: () => getStepsForMode(get().mode).length,
+
+        sendVerificationCode: async (email, captchaToken) => {
+          set({ status: { status: "sending_code" } })
+          try {
+            const res = await post<{
+              data: {
+                verificationId: string
+                expiresAt: number
+                remainingAttempts: number
+              }
+            }>("/auth/verification/send", { email, captchaToken })
+            const d = res.data
+            set({
+              status: { status: "code_sent" },
+              emailVerification: {
+                email,
+                verificationId: d.verificationId,
+                codeSent: true,
+                codeVerified: false,
+                expiresAt: d.expiresAt,
+                remainingAttempts: d.remainingAttempts,
+              },
+            })
+          } catch (err: unknown) {
+            const axiosErr = err as { response?: { status?: number; data?: { error?: string } } }
+            const msg = axiosErr?.response?.data?.error || "Failed to send verification code. Please try again."
+            set({
+              status: { status: "error", code: "email_send_failed", message: msg, canRetry: true },
+              error: { code: "email_send_failed", message: msg },
+            })
+            throw err
+          }
+        },
+
+        verifyCode: async (code) => {
+          const { emailVerification } = get()
+          if (!/^\d{6}$/.test(code)) {
+            const msg = "Invalid code format."
+            set({
+              status: { status: "error", code: "email_code_invalid", message: msg, canRetry: false },
+              error: { code: "email_code_invalid", message: msg },
+            })
+            throw new Error(msg)
+          }
+          try {
+            await post("/auth/verification/verify", {
+              verificationId: emailVerification.verificationId,
+              code,
+            })
+            set((state) => ({
+              status: { status: "idle" } as AuthFlowStatus,
+              emailVerification: { ...state.emailVerification, codeVerified: true },
+              error: null,
+            }))
+          } catch (err: unknown) {
+            const axiosErr = err as { response?: { status?: number; data?: { error?: string } } }
+            const status = axiosErr?.response?.status
+            const body = axiosErr?.response?.data
+
+            if (status === 429) {
+              const msg = "Too many attempts. Please wait before trying again."
+              set({
+                status: { status: "error", code: "email_rate_limited", message: msg, canRetry: true },
+                error: { code: "email_rate_limited", message: msg },
+              })
+            } else if (status === 410) {
+              const msg = "Verification code has expired. Request a new one."
+              set({
+                status: { status: "error", code: "email_code_expired", message: msg, canRetry: false },
+                error: { code: "email_code_expired", message: msg },
+              })
+            } else {
+              const msg = (body as { error?: string })?.error || "Invalid code."
+              const remaining = typeof (body as { remainingAttempts?: number })?.remainingAttempts === "number"
+                ? (body as { remainingAttempts: number }).remainingAttempts
+                : Math.max(0, emailVerification.remainingAttempts - 1)
+              set((state) => ({
+                status: { status: "error", code: "email_code_invalid", message: msg, canRetry: true },
+                error: { code: "email_code_invalid", message: msg },
+                emailVerification: { ...state.emailVerification, remainingAttempts: remaining },
+              }))
+            }
+            throw err
+          }
+        },
+
+        resendCode: async () => {
+          const { emailVerification } = get()
+          if (!emailVerification.email) return
+          await get().sendVerificationCode(emailVerification.email)
+        },
+
+        clearEmailVerification: () =>
+          set({ emailVerification: initialEmailVerification() }),
       }),
       { name: "auth-flow-store" }
     ),

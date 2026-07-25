@@ -10,6 +10,7 @@ import { useAuthStore } from "@/stores/auth-store"
 import { useUIStore } from "@/stores/ui-store"
 import { AuthLayout } from "@/components/auth/auth-layout"
 import { ProfileStep } from "@/components/auth/profile-step"
+import { VerifyEmailStep } from "@/components/auth/verify-email-step"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 
@@ -24,7 +25,7 @@ export default function RegisterPage() {
     }
   }, [router])
 
-  type Step = "email" | "otp" | "profile" | "passkey" | "done"
+  type Step = "email" | "otp" | "profile" | "verify-email" | "passkey" | "done"
   const [step, setStep] = useState<Step>("email")
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
@@ -93,7 +94,7 @@ export default function RegisterPage() {
     try {
       await patch("/users/me", { displayName: displayName || undefined, preferredLanguage: language })
       addToast({ type: "success", title: "Profile saved" })
-      setStep("passkey")
+      setStep("verify-email")
     } catch {
       setError("Failed to save profile")
     } finally {
@@ -188,7 +189,12 @@ export default function RegisterPage() {
             onSubmit={handleProfile}
             isSubmitting={loading}
           />
-        ) : (
+        ) : step === "verify-email" ? (
+          <VerifyEmailStep
+            onVerified={() => setStep("passkey")}
+            onBack={() => setStep("profile")}
+          />
+        ) : step === "passkey" ? (
           <>
             <div className="flex flex-col items-center justify-center py-4 space-y-4 text-center">
               <Shield className="h-10 w-10 text-aurora-violet" />
