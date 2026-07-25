@@ -14,13 +14,14 @@ import {
 } from "lucide-react"
 import { useQuery } from "@tanstack/react-query"
 import { get } from "@/lib/api-client"
+import { usePayouts } from "@/hooks/use-payouts"
 import { PageHeader } from "@/components/shared/page-header"
 import { EmptyState } from "@/components/shared/empty-state"
 import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
 import { formatCurrency, formatDate, formatAddress } from "@/lib/formatters"
 import { cn } from "@/lib/cn"
-import type { ApiResponse, Payout as PayoutType, Circle } from "@/types"
+import type { ApiResponse, Circle } from "@/types"
 
 function TransactionLink({ hash }: { hash: string }) {
   return (
@@ -84,21 +85,7 @@ export default function PayoutsPage() {
   const [page, setPage] = useState(1)
   const limit = 20
 
-  const { data, isLoading, isError } = useQuery({
-    queryKey: ["payouts", page, limit],
-    queryFn: async () => {
-      const params = new URLSearchParams()
-      params.set("page", String(page))
-      params.set("limit", String(limit))
-      const query = params.toString()
-      const url = `/payouts?${query}`
-      const response = await get<ApiResponse<{ payouts: PayoutType[] }>>(url)
-      return {
-        payouts: response.data?.payouts ?? [],
-        meta: response.meta ?? { page, limit, total: 0, totalPages: 0 },
-      }
-    },
-  })
+  const { data, isLoading, isError } = usePayouts({ page, limit })
 
   const { data: circlesData } = useQuery({
     queryKey: ["circles", "payouts-filter"],
