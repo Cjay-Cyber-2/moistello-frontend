@@ -14,6 +14,7 @@ import {
 } from "lucide-react"
 import { useQuery } from "@tanstack/react-query"
 import { get } from "@/lib/api-client"
+import { useContributions } from "@/hooks/use-contributions"
 import { PageHeader } from "@/components/shared/page-header"
 import { EmptyState } from "@/components/shared/empty-state"
 import { Button } from "@/components/ui/button"
@@ -24,7 +25,6 @@ import { Input } from "@/components/ui/input"
 import { formatCurrency, formatDate, formatAddress } from "@/lib/formatters"
 import type {
   ApiResponse,
-  Contribution as ContributionType,
   Circle,
   ContributionStatus,
 } from "@/types"
@@ -78,26 +78,14 @@ export default function ContributionsPage() {
     ...circles.map((c) => ({ label: c.name, value: c.id })),
   ]
 
-  const { data, isLoading, isError } = useQuery({
-    queryKey: ["contributions", searchQuery, circleFilter, amountFilter, dateFilter, sortOption, page, limit],
-    queryFn: async () => {
-      const params = new URLSearchParams()
-      if (searchQuery) params.set("search", searchQuery)
-      if (circleFilter) params.set("circleId", circleFilter)
-      if (amountFilter) params.set("amount", amountFilter)
-      if (dateFilter) params.set("date", dateFilter)
-      if (sortOption) params.set("sort", sortOption)
-      params.set("page", String(page))
-      params.set("limit", String(limit))
-      const query = params.toString()
-      const url = `/contributions?${query}`
-      const response = await get<ApiResponse<{ contributions: ContributionType[], summary?: { totalContributed: number, average: number, count: number } }>>(url)
-      return {
-        contributions: response.data?.contributions ?? [],
-        summary: response.data?.summary ?? null,
-        meta: response.meta ?? { page, limit, total: 0, totalPages: 0 },
-      }
-    },
+  const { data, isLoading, isError } = useContributions({
+    search: searchQuery,
+    circleId: circleFilter,
+    amount: amountFilter,
+    date: dateFilter,
+    sort: sortOption,
+    page,
+    limit,
   })
 
   const contributions = data?.contributions ?? []
