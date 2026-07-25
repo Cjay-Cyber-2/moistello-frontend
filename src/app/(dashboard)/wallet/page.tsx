@@ -6,19 +6,12 @@ import { ArrowUpRight, ArrowDownRight, Wallet as WalletIcon, Settings, Clock, Ar
 import { PageHeader } from "@/components/shared/page-header"
 import { CopyButton } from "@/components/shared/copy-button"
 import { Button } from "@/components/ui/button"
+import { WalletSettings } from "@/components/wallet/wallet-settings"
 import { get } from "@/lib/api-client"
 import { useTranslate } from "@/lib/locale/context"
 import { formatAddress } from "@/lib/formatters"
 import { cn } from "@/lib/cn"
-import { copyToClipboard } from "@/lib/clipboard"
-import { useUIStore } from "@/stores/ui-store"
-
-interface WalletInfo {
-  id: string
-  publicKey: string
-  walletType: string
-  createdAt: string
-}
+import { useMultiWallet } from "@/hooks/use-multi-wallet"
 
 interface BalanceInfo {
   xlm: string
@@ -38,30 +31,20 @@ const STELLAR_EXPLORER_TX = "https://stellar.expert/explorer/testnet/tx"
 
 export default function WalletPage() {
   const { t } = useTranslate()
-  const addToast = useUIStore((s) => s.addToast)
-  const [wallet, setWallet] = useState<WalletInfo | null>(null)
+  const { address, activeWalletId, wallets, refreshBalance } = useMultiWallet()
   const [balance, setBalance] = useState<BalanceInfo | null>(null)
   const [transactions, setTransactions] = useState<TransactionItem[]>([])
   const [loading, setLoading] = useState(true)
-  const [showReceive, setShowReceive] = useState(false)
-  const [copied, setCopied] = useState(false)
 
   useEffect(() => {
     async function load() {
       setLoading(true)
       try {
-        const [walletRes, balanceRes, contribRes, payoutRes] = await Promise.allSettled([
-          get("/wallets"),
+        const [balanceRes, contribRes, payoutRes] = await Promise.allSettled([
           get("/wallets/balance"),
           get("/contributions?limit=5"),
           get("/payouts?limit=5"),
         ])
-
-        if (walletRes.status === "fulfilled") {
-          const wd = (walletRes.value as Record<string, unknown>)?.data as Record<string, unknown> ?? walletRes.value as Record<string, unknown>
-          const list = (wd?.wallets ?? []) as WalletInfo[]
-          if (list.length > 0) setWallet(list[0])
-        }
 
         if (balanceRes.status === "fulfilled") {
           const bd = (balanceRes.value as Record<string, unknown>)?.data as Record<string, unknown> ?? balanceRes.value as Record<string, unknown>
@@ -98,7 +81,8 @@ export default function WalletPage() {
     load()
   }, [])
 
-  const walletId = wallet?.publicKey ?? ""
+  const walletId = address ?? ""
+  const activeWallet = activeWalletId ? wallets[activeWalletId] : null
 
   const copyKey = async () => {
     if (!wallet) return
@@ -144,17 +128,17 @@ export default function WalletPage() {
       <div className="relative">
         <div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-aurora-violet to-aurora-indigo rounded-full" />
         <div className="pl-6 py-5">
-          {loading && !wallet ? (
+          {loading && !activeWallet ? (
             <div className="space-y-2">
               <div className="h-4 w-48 bg-white/10 rounded animate-pulse" />
               <div className="h-3 w-72 bg-white/10 rounded animate-pulse" />
             </div>
-          ) : wallet ? (
+          ) : activeWallet ? (
             <>
               <div className="flex items-center gap-2 mb-1">
                 <WalletIcon className="h-4 w-4 text-aurora-violet" />
                 <span className="text-xs font-heading font-semibold text-muted-foreground uppercase tracking-wider">
-                  Auto-Created Wallet
+                  {activeWallet.adapter.meta.name}
                 </span>
               </div>
               <div className="flex items-center gap-2 mt-2">
@@ -295,13 +279,11 @@ export default function WalletPage() {
           </span>
           <ArrowRight className="h-4 w-4 group-hover:translate-x-0.5 transition-transform" />
         </Link>
-        <Link href="/wallet/settings" className="flex items-center justify-between px-1 py-3 text-sm text-muted-foreground hover:text-foreground transition-colors group border-t border-white/[0.04]">
-          <span className="flex items-center gap-3">
-            <Settings className="h-4 w-4" />
-            Settings
-          </span>
-          <ArrowRight className="h-4 w-4 group-hover:translate-x-0.5 transition-transform" />
-        </Link>
+      </div>
+
+      {/* Multi-Wallet Settings */}
+      <div className="border-t border-white/[0.06] pt-6">
+        <WalletSettings />
       </div>
     </div>
   )

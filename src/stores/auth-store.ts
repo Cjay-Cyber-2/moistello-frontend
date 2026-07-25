@@ -5,6 +5,8 @@ import { devtools } from "zustand/middleware";
 import { ApiResponse, User } from "@/types";
 import { post } from "@/lib/api-client";
 
+const isDev = process.env.NODE_ENV === "development"
+
 // ── Single source of truth for token storage ──
 
 const ACCESS_TOKEN_KEY = "moistello_token";
@@ -122,7 +124,7 @@ interface AuthActions {
 
 type AuthStore = AuthState & AuthActions;
 
-export const useAuthStore = create<AuthStore>()(devtools((set, get) => ({
+const baseStore = (set: any, get: any): AuthStore => ({
   isAuthenticated: !!getStoredAccessToken(),
   user: getStoredUser(),
   token: getStoredAccessToken(),
@@ -167,8 +169,7 @@ export const useAuthStore = create<AuthStore>()(devtools((set, get) => ({
   },
 
   logout: () => {
-    // Attempt server-side session invalidation (best-effort)
-    post("/auth/logout").catch(() => { /* best-effort server logout */ })
+    post("/auth/logout").catch(() => {})
     get().clearTokens()
     set({
       isAuthenticated: false,
@@ -192,7 +193,6 @@ export const useAuthStore = create<AuthStore>()(devtools((set, get) => ({
       return;
     }
 
-    // If token hasn't expired yet, skip the HTTP call
     const exp = extractTokenExpiry(token);
     if (exp && Date.now() < exp) {
       set({ isLoading: false, isAuthenticated: true, token, refreshToken: getStoredRefreshToken(), tokenExpiresAt: exp, user: getStoredUser() });
@@ -243,7 +243,6 @@ export const useAuthStore = create<AuthStore>()(devtools((set, get) => ({
     removeStoredAccessToken();
     removeStoredRefreshToken();
     removeStoredUser();
-    // Also clean up any legacy keys
     if (typeof window !== "undefined") {
       try {
         localStorage.removeItem("moistello_access_token");
@@ -254,4 +253,8 @@ export const useAuthStore = create<AuthStore>()(devtools((set, get) => ({
     removeCookie("moistello_refresh");
     set({ token: null, refreshToken: null, tokenExpiresAt: null });
   },
-})));
+});
+
+export const useAuthStore = create<AuthStore>()(
+  isDev ? devtools(baseStore) : baseStore
+)

@@ -4,13 +4,14 @@
 import React, { useState, useCallback, useEffect } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { Mail, LogIn, Shield, Lock, ArrowLeft } from "lucide-react"
+import { Mail, LogIn, Shield, Lock, ArrowLeft, Wallet } from "lucide-react"
 import { post } from "@/lib/api-client"
 import { useAuthStore } from "@/stores/auth-store"
 import { useUIStore } from "@/stores/ui-store"
 import { AuthLayout } from "@/components/auth/auth-layout"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { WalletSelector } from "@/components/wallet/wallet-selector"
 
 export default function LoginPage() {
   const router = useRouter()
@@ -23,7 +24,7 @@ export default function LoginPage() {
     }
   }, [router])
 
-  const [method, setMethod] = useState<"password" | "otp" | "passkey">("password")
+  const [method, setMethod] = useState<"password" | "otp" | "passkey" | "wallet">("wallet")
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [code, setCode] = useState("")
@@ -127,6 +128,10 @@ export default function LoginPage() {
         ) : (
           <>
             <div className="flex gap-2 mb-2">
+              <button type="button" onClick={() => setMethod("wallet")}
+                className={`flex-1 rounded-xl py-2 text-sm font-heading font-medium transition-all ${method === "wallet" ? "gradient-bg-extended text-white" : "glass text-muted-foreground"}`}>
+                Wallet
+              </button>
               <button type="button" onClick={() => setMethod("password")}
                 className={`flex-1 rounded-xl py-2 text-sm font-heading font-medium transition-all ${method === "password" ? "gradient-bg-extended text-white" : "glass text-muted-foreground"}`}>
                 Password
@@ -137,7 +142,9 @@ export default function LoginPage() {
               </button>
             </div>
 
-            {method === "password" ? (
+            {method === "wallet" ? (
+              <WalletSelector variant="overlay" />
+            ) : method === "password" ? (
               <>
                 <Input label="Email" type="email" placeholder="you@example.com" value={email}
                   onChange={(e) => setEmail(e.target.value)} leftIcon={<Mail className="h-4 w-4" />}
