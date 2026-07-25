@@ -7,6 +7,7 @@ import {
   ApiResponse,
   Circle,
   CircleMember,
+  CircleRound,
   Contribution,
 } from "@/types";
 
@@ -270,7 +271,13 @@ export function useCircleRounds(circleId: string) {
   return useQuery({
     queryKey: ["circle-rounds", circleId],
     queryFn: async () => {
-      const response = await get<ApiResponse<{ rounds: Contribution[] }>>(
+      const response = await get<
+        ApiResponse<{
+          rounds: CircleRound[]
+          currentRound: number
+          totalMembers: number
+        }>
+      >(
         `/circles/${circleId}/rounds`
       );
       return response.data?.rounds ?? [];

@@ -22,6 +22,7 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { formatCurrency, formatDate, formatAddress } from "@/lib/formatters"
 import { cn } from "@/lib/cn"
 import type { ApiResponse, Circle } from "@/types"
+import { getCurrentPagePayoutTotal } from "./payout-summary"
 
 function TransactionLink({ hash }: { hash: string }) {
   return (
@@ -101,7 +102,7 @@ export default function PayoutsPage() {
   const hasNext = meta ? meta.page < meta.totalPages : false
   const hasPrev = page > 1
 
-  const totalReceived = payouts.reduce((sum, p) => sum + p.amount, 0)
+  const currentPageTotal = getCurrentPagePayoutTotal(payouts)
 
   const getCircleName = (circleId: string): string =>
     circles.find((c) => c.id === circleId)?.name ?? "Unknown"
@@ -115,8 +116,8 @@ export default function PayoutsPage() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <SummaryCard
-          label="Total Received"
-          value={formatCurrency(totalReceived, "USDC")}
+          label="Total on This Page"
+          value={formatCurrency(currentPageTotal, "USDC")}
           icon={<DollarSign className="h-6 w-6" />}
           gradient="from-emerald-500 to-aurora-cyan"
         />
@@ -214,7 +215,7 @@ export default function PayoutsPage() {
                     : "—"}
                 </div>
                 <div className="w-28 text-sm text-muted-foreground font-body">
-                  {formatDate(payout.executedAt)}
+                  {formatDate(payout.createdAt)}
                 </div>
                 <div className="w-36">
                   {payout.txnHash ? (

@@ -27,7 +27,7 @@ export type NotificationChannel = "email" | "push" | "in_app" | "sms"
 
 export type PenaltyType = "late_fee" | "strike" | "collateral_loss" | "suspension"
 
-export type ContributionStatus = "pending" | "completed" | "missed" | "late"
+export type ContributionStatus = "confirmed" | "pending" | "failed" | "late"
 
 /* ───── Domain Models ───── */
 
@@ -92,7 +92,7 @@ export interface Contribution {
   txnHash?: string | null
   status: ContributionStatus
   onTime: boolean
-  submittedAt: string
+  createdAt: string
 }
 
 export interface Payout {
@@ -104,7 +104,13 @@ export interface Payout {
   feeAmount?: number | null
   txnHash?: string | null
   payoutType: PayoutType
-  executedAt: string
+  createdAt: string
+}
+
+export interface CircleRound {
+  roundNumber: number
+  contributions: Contribution[]
+  payout?: Payout
 }
 
 export interface Penalty {

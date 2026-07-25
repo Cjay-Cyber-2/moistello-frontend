@@ -183,7 +183,7 @@ export default function DashboardContent() {
       items.push({ id: `c-${c.id}`, description: `Contribution in round ${c.roundNumber}`, amount: formatCurrency(c.amount, "USDC"), date: c.submittedAt, type: "contribution" })
     }
     for (const p of payouts) {
-      items.push({ id: `p-${p.id}`, description: `Payout received — round ${p.roundNumber}`, amount: formatCurrency(p.amount, "USDC"), date: p.executedAt, type: "payout" })
+      items.push({ id: `p-${p.id}`, description: `Payout received — round ${p.roundNumber}`, amount: formatCurrency(p.amount, "USDC"), date: p.createdAt, type: "payout" })
     }
     items.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
     return items.slice(0, 5)

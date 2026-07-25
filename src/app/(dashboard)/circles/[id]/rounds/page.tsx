@@ -1,27 +1,35 @@
 "use client"
 
-import React, { useMemo } from "react"
+import React from "react"
 import { useParams } from "next/navigation"
 import Link from "next/link"
 import { motion } from "framer-motion"
-import { ArrowLeft, CheckCircle, Inbox, RotateCw } from "lucide-react"
+import {
+  ArrowLeft,
+  CheckCircle,
+  ExternalLink,
+  Inbox,
+  RotateCw,
+  WalletCards,
+} from "lucide-react"
 import { useCircle, useCircleRounds } from "@/hooks/use-circles"
 import { PageHeader } from "@/components/shared/page-header"
 import { EmptyState } from "@/components/shared/empty-state"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
-import { formatCurrency } from "@/lib/formatters"
+import { formatAddress, formatCurrency, formatDate } from "@/lib/formatters"
 import { cn } from "@/lib/cn"
-import type { Contribution, ContributionStatus } from "@/types"
+import type { ContributionStatus } from "@/types"
+import { calculateRoundTotals } from "./round-totals"
 
 const statusStyles: Record<
   ContributionStatus,
   { variant: "success" | "warning" | "destructive" | "default" }
 > = {
-  completed: { variant: "success" },
+  confirmed: { variant: "success" },
   pending: { variant: "warning" },
-  missed: { variant: "destructive" },
+  failed: { variant: "destructive" },
   late: { variant: "destructive" },
 }
 
@@ -42,25 +50,14 @@ export default function CircleRoundsPage() {
   const { data: circle } = useCircle(circleId)
   const { data: rounds = [], isLoading, isError } = useCircleRounds(circleId)
 
-  const groupedRounds = useMemo(() => {
-    const map = new Map<number, Contribution[]>()
-    for (const r of rounds) {
-      const existing = map.get(r.roundNumber) || []
-      existing.push(r)
-      map.set(r.roundNumber, existing)
-    }
-    const entries: [number, Contribution[]][] = []
-    map.forEach((value, key) => entries.push([key, value]))
-    return entries
-      .sort(([a], [b]) => b - a)
-      .map(([num, contributions]) => ({
-        roundNumber: num,
-        contributions,
-        isCurrent: num === (circle?.currentRound ?? 0),
-        isCompleted: num < (circle?.currentRound ?? 0),
-        isUpcoming: num > (circle?.currentRound ?? 0),
-      }))
-  }, [rounds, circle])
+  const groupedRounds = [...rounds]
+    .sort((a, b) => b.roundNumber - a.roundNumber)
+    .map((round) => ({
+      ...round,
+      isCurrent: round.roundNumber === (circle?.currentRound ?? 0),
+      isCompleted: round.roundNumber < (circle?.currentRound ?? 0),
+      isUpcoming: round.roundNumber > (circle?.currentRound ?? 0),
+    }))
 
   if (isLoading) {
     return (
@@ -155,6 +152,13 @@ export default function CircleRoundsPage() {
                 round.isCurrent && "holo-border",
               )}
             >
+              {(() => {
+                const totals = calculateRoundTotals(round.contributions)
+                const expectedTotal =
+                  (circle?.contributionAmount ?? 0) * (circle?.maxMembers ?? 0)
+
+                return (
+                  <>
               <div className="flex items-center justify-between mb-5">
                 <div className="flex items-center gap-3">
                   <motion.div
@@ -199,6 +203,68 @@ export default function CircleRoundsPage() {
                 </Badge>
               </div>
 
+              <div className="mb-5 grid gap-px overflow-hidden border-y border-border bg-border sm:grid-cols-3">
+                <div className="bg-background/80 px-4 py-3">
+                  <p className="text-2xs uppercase tracking-wider text-muted-foreground">Settled total</p>
+                  <p className="mt-1 font-heading text-xl font-bold text-foreground">
+                    {formatCurrency(totals.settledAmount, circle?.currency ?? "USDC")}
+                  </p>
+                </div>
+                <div className="bg-background/80 px-4 py-3">
+                  <p className="text-2xs uppercase tracking-wider text-muted-foreground">Expected pool</p>
+                  <p className="mt-1 font-heading text-xl font-bold text-foreground">
+                    {formatCurrency(expectedTotal, circle?.currency ?? "USDC")}
+                  </p>
+                </div>
+                <div className="bg-background/80 px-4 py-3">
+                  <p className="text-2xs uppercase tracking-wider text-muted-foreground">Contributors settled</p>
+                  <p className="mt-1 font-mono text-xl font-bold text-foreground">
+                    {totals.settledCount}/{circle?.maxMembers ?? 0}
+                  </p>
+                </div>
+              </div>
+
+              {round.payout && (
+                <div className="mb-5 border-l-4 border-l-emerald-400 bg-emerald-500/[0.06] px-4 py-4">
+                  <div className="flex flex-col justify-between gap-4 md:flex-row md:items-center">
+                    <div className="flex items-start gap-3">
+                      <WalletCards className="mt-0.5 h-5 w-5 text-emerald-400" />
+                      <div>
+                        <p className="text-2xs uppercase tracking-wider text-emerald-400">Payout completed</p>
+                        <p className="mt-1 font-heading text-2xl font-bold text-foreground">
+                          {formatCurrency(round.payout.amount, circle?.currency ?? "USDC")}
+                        </p>
+                        <p className="mt-1 font-mono text-xs text-muted-foreground">
+                          Recipient {formatAddress(round.payout.recipientId)}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-x-6 gap-y-2 text-sm md:text-right">
+                      <span className="text-muted-foreground">Fee</span>
+                      <span className="font-mono text-foreground">
+                        {formatCurrency(round.payout.feeAmount ?? 0, circle?.currency ?? "USDC")}
+                      </span>
+                      <span className="text-muted-foreground">Date</span>
+                      <span className="text-foreground">{formatDate(round.payout.createdAt)}</span>
+                      {round.payout.txnHash && (
+                        <>
+                          <span className="text-muted-foreground">Transaction</span>
+                          <a
+                            href={`https://stellar.expert/explorer/testnet/tx/${round.payout.txnHash}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center justify-end gap-1 font-mono text-xs text-aurora-cyan hover:underline"
+                          >
+                            {formatAddress(round.payout.txnHash, 6, 4)}
+                            <ExternalLink className="h-3 w-3" />
+                          </a>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )}
+
               {round.contributions.length > 0 && (
                 <div className="overflow-hidden rounded-xl border border-border">
                   <table className="w-full text-sm">
@@ -218,7 +284,7 @@ export default function CircleRoundsPage() {
                     <tbody className="divide-y divide-border">
                       {round.contributions.map((c) => {
                         const st = statusStyles[c.status] || statusStyles.pending
-                        const label = c.onTime ? "On Time" : c.status
+                        const label = c.onTime && c.status === "confirmed" ? "On Time" : c.status
                         return (
                           <tr
                             key={c.id}
@@ -232,7 +298,7 @@ export default function CircleRoundsPage() {
                             </td>
                             <td className="px-4 py-2.5 text-right">
                               <Badge
-                                variant={c.onTime ? "success" : st.variant}
+                                variant={c.onTime && c.status === "confirmed" ? "success" : st.variant}
                                 size="sm"
                               >
                                 {label}
@@ -251,6 +317,9 @@ export default function CircleRoundsPage() {
                   No contributions recorded for this round yet.
                 </p>
               )}
+                  </>
+                )
+              })()}
             </motion.div>
           ))}
         </motion.div>
