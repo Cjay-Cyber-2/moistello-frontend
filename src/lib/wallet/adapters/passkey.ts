@@ -1,4 +1,5 @@
 import { WalletAdapter, WalletMeta, SignOptions, NetworkType } from "../types"
+import { STELLAR_NETWORK } from "@/lib/constants"
 import {
   deriveStellarKeypair,
   publicKeyToStellarAddress,
@@ -106,7 +107,7 @@ export function createPasskeyAdapter(): WalletAdapter {
 
       // Stored credential path — existing user logging in
       if (stored) {
-        const { options } = await apiPost<{ options: Record<string, unknown> }>(
+        const { options, tempKey } = await apiPost<{ options: Record<string, unknown>; tempKey: string }>(
           "/api/auth/passkey/generate-options",
           { credentialId: stored.credentialId, mode: "authenticate" }
         )
@@ -125,7 +126,7 @@ export function createPasskeyAdapter(): WalletAdapter {
 
         const verifyResult = await apiPost<{ verified: boolean; credentialId: string; pepper: string }>(
           "/api/auth/passkey/auth-verify",
-          { credentialId: stored.credentialId, assertion }
+          { credentialId: stored.credentialId, assertion, tempKey }
         )
 
         const keypair = await deriveStellarKeypair(stored.credentialId, verifyResult.pepper)
@@ -152,7 +153,7 @@ export function createPasskeyAdapter(): WalletAdapter {
         }
       }
 
-      const { options } = await apiPost<{ options: Record<string, unknown> }>(
+      const { options, tempKey } = await apiPost<{ options: Record<string, unknown>; tempKey: string }>(
         "/api/auth/passkey/generate-options",
         { mode: "register" }
       )
@@ -174,7 +175,7 @@ export function createPasskeyAdapter(): WalletAdapter {
 
       const registerResult = await apiPost<{ verified: boolean; credentialId: string; pepper: string }>(
         "/api/auth/passkey/register",
-        { attestation }
+        { attestation, tempKey }
       )
 
       const keypair = await deriveStellarKeypair(credentialId, registerResult.pepper)
@@ -315,7 +316,7 @@ export function createPasskeyAdapter(): WalletAdapter {
     },
 
     async getNetwork() {
-      return "testnet" as NetworkType
+      return STELLAR_NETWORK as NetworkType
     },
   }
 }

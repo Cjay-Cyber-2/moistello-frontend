@@ -1,9 +1,5 @@
 const CHALLENGE_TTL_MS = 5 * 60 * 1000
-
-interface ChallengeEntry {
-  challenge: string
-  expiresAt: number
-}
+const CHALLENGE_TTL_SECONDS = Math.floor(CHALLENGE_TTL_MS / 1000)
 
 export type CredentialRecord = {
   credentialId: string
@@ -13,51 +9,57 @@ export type CredentialRecord = {
   userId?: string
 }
 
-const challengeStore = new Map<string, ChallengeEntry>()
-const credentialStore = new Map<string, CredentialRecord>()
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:1100"
 
-// ── Challenge store (in-memory, short-lived) ──
+// ── Challenge store (Redis-backed for serverless compatibility) ──
 
-function isExpired(entry: ChallengeEntry): boolean {
-  return Date.now() > entry.expiresAt
+import { getRedisClient } from "@/lib/redis/client"
+
+const CHALLENGE_KEY_PREFIX = "passkey:challenge:"
+
+async function getRedis() {
+  if (typeof window !== "undefined") {
+    throw new Error("Challenge store should only be used server-side")
+  }
+  return getRedisClient()
 }
 
-function sweepExpired(): void {
-  const now = Date.now()
-  Array.from(challengeStore.entries()).forEach(([key, entry]) => {
-    if (now > entry.expiresAt) {
-      challengeStore.delete(key)
-    }
-  })
+export async function setChallenge(key: string, challenge: string): Promise<void> {
+  const redis = await getRedis()
+  const redisKey = `${CHALLENGE_KEY_PREFIX}${key}`
+  await redis.set(redisKey, challenge, "EX", CHALLENGE_TTL_SECONDS)
 }
 
-export function setChallenge(key: string, challenge: string, _context?: string): void {
-  challengeStore.set(key, { challenge, expiresAt: Date.now() + CHALLENGE_TTL_MS })
-}
-
-export function setTempChallenge(challenge: string): string {
+export async function setTempChallenge(challenge: string): Promise<string> {
+  const redis = await getRedis()
   const key = "tmp-" + crypto.randomUUID()
-  challengeStore.set(key, { challenge, expiresAt: Date.now() + CHALLENGE_TTL_MS })
+  const redisKey = `${CHALLENGE_KEY_PREFIX}${key}`
+  await redis.set(redisKey, challenge, "EX", CHALLENGE_TTL_SECONDS)
   return key
 }
 
-export function getAndVerifyTempChallenge(key: string, challenge: string): boolean {
-  const entry = challengeStore.get(key)
-  if (!entry) return false
-  challengeStore.delete(key)
-  if (isExpired(entry)) return false
-  if (entry.challenge !== challenge) return false
-  return true
+export async function getAndVerifyTempChallenge(key: string, challenge: string): Promise<boolean> {
+  const redis = await getRedis()
+  const redisKey = `${CHALLENGE_KEY_PREFIX}${key}`
+  const storedChallenge = await redis.get(redisKey)
+  
+  if (!storedChallenge) return false
+  
+  await redis.del(redisKey)
+  
+  return storedChallenge === challenge
 }
 
-export function getAndVerifyChallenge(key: string, challenge: string, _expectedContext?: string): boolean {
-  const entry = challengeStore.get(key)
-  if (!entry) return false
-  challengeStore.delete(key)
-  if (isExpired(entry)) return false
-  if (entry.challenge !== challenge) return false
-  return true
+export async function getAndVerifyChallenge(key: string, challenge: string): Promise<boolean> {
+  const redis = await getRedis()
+  const redisKey = `${CHALLENGE_KEY_PREFIX}${key}`
+  const storedChallenge = await redis.get(redisKey)
+  
+  if (!storedChallenge) return false
+  
+  await redis.del(redisKey)
+  
+  return storedChallenge === challenge
 }
 
 // ── Credential store (persisted in PostgreSQL via Go backend) ──

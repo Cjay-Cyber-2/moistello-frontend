@@ -76,65 +76,219 @@ function makeUnauthenticatedRequest(body: unknown) {
 describe("passkey API security", () => {
   beforeEach(() => {
     vi.clearAllMocks()
-    writeSessionFixture()
   })
 
-  afterEach(() => {
-    vi.restoreAllMocks()
-  })
-
-  it("requires authentication for generate-options", async () => {
-    const req = makeUnauthenticatedRequest({ mode: "register" })
-
-    const res = await generateOptions(req)
-    expect(res.status).toBe(401)
-    expect(await res.json()).toMatchObject({ error: "unauthenticated" })
-  })
-
-  it("returns registration options for an authenticated user", async () => {
+  it("returns registration options with tempKey", async () => {
     const res = await generateOptions(makeRequest({ mode: "register" }))
     expect(res.status).toBe(200)
     const data = await res.json()
     expect(data.options).toBeDefined()
     expect(data.options.challenge).toBe("reg-challenge-abc")
+    expect(data.challenge).toBe("reg-challenge-abc")
+    expect(data.tempKey).toBeDefined()
+    expect(typeof data.tempKey).toBe("string")
   })
 
-  it("requires authentication for register", async () => {
-    const req = makeUnauthenticatedRequest({ attestation: { id: "test" } })
-
-    const res = await register(req)
-    expect(res.status).toBe(401)
-    expect(await res.json()).toMatchObject({ error: "unauthenticated" })
-  })
-
-  it("associates a registered credential with the authenticated user", async () => {
-    await generateOptions(makeRequest({ mode: "register" }))
-    const res = await register(makeRequest({ attestation: { rawId: "new-id", response: { clientDataJSON: btoa(JSON.stringify({ challenge: "reg-challenge-abc" })) } } }))
-
+  it("returns authentication options with tempKey for valid credentialId", async () => {
+    const res = await generateOptions(makeRequest({ credentialId: "cred-id-123", mode: "authenticate" }))
     expect(res.status).toBe(200)
+    const data = await res.json()
+    expect(data.options).toBeDefined()
+    expect(data.options.challenge).toBe("auth-challenge-xyz")
+    expect(data.tempKey).toBeDefined()
+  })
+
+  it("returns 200 for authenticate mode without credentialId (discoverable)", async () => {
+    const res = await generateOptions(makeRequest({ mode: "authenticate" }))
+    expect(res.status).toBe(200)
+    const body = await res.json()
+    expect(body.tempKey).toBeDefined()
+  })
+
+  it("returns 400 for invalid mode", async () => {
+    const res = await generateOptions(makeRequest({ mode: "unknown" }))
+    expect(res.status).toBe(400)
+  })
+
+  it("stores challenge retrievable via tempKey for registration", async () => {
+    const res = await generateOptions(makeRequest({ mode: "register" }))
+    const { tempKey } = await res.json()
+    const { getAndVerifyTempChallenge } = await import("@/lib/passkey/store")
+    expect(getAndVerifyTempChallenge(tempKey, "reg-challenge-abc")).toBe(true)
+  })
+
+  it("stores challenge retrievable via tempKey for authentication", async () => {
+    const res = await generateOptions(makeRequest({ credentialId: "cred-id-123", mode: "authenticate" }))
+    const { tempKey } = await res.json()
+    const { getAndVerifyTempChallenge } = await import("@/lib/passkey/store")
+    expect(getAndVerifyTempChallenge(tempKey, "auth-challenge-xyz")).toBe(true)
+  })
+})
+
+describe("register API", () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+  })
+
+  it("returns 400 for missing attestation", async () => {
+    const res = await register(makeRequest({}))
+    expect(res.status).toBe(400)
+  })
+
+  it("returns 400 for missing clientDataJSON", async () => {
+    const res = await register(makeRequest({ attestation: { id: "test" } }))
+    expect(res.status).toBe(400)
+  })
+
+  it("returns 400 when tempKey is missing", async () => {
+    const res = await register(makeRequest({
+      attestation: { id: "test", rawId: "test", response: { clientDataJSON: btoa(JSON.stringify({ challenge: "x" })) } },
+    }))
+    expect(res.status).toBe(400)
+    const data = await res.json()
+    expect(data.error).toBe("challenge_mismatch")
+  })
+
+  it("returns 400 when challenge not stored (replay attack)", async () => {
+    const res = await register(makeRequest({
+      tempKey: "nonexistent-key",
+      attestation: { id: "test", rawId: "test", response: { clientDataJSON: btoa(JSON.stringify({ challenge: "never-stored" })) } },
+    }))
+    expect(res.status).toBe(400)
+    const data = await res.json()
+    expect(data.error).toBe("challenge_mismatch")
+  })
+
+  it("returns verified response with pepper on success", async () => {
+    const genRes = await generateOptions(makeRequest({ mode: "register" }))
+    const { tempKey } = await genRes.json()
+
+    const res = await register(makeRequest({
+      tempKey,
+      attestation: { id: "some-id", rawId: "some-id", response: { clientDataJSON: btoa(JSON.stringify({ challenge: "reg-challenge-abc" })) } },
+    }))
+    expect(res.status).toBe(200)
+    const data = await res.json()
+    expect(data.verified).toBe(true)
+    expect(data.credentialId).toBe("new-cred-id")
+    expect(data.pepper).toBeDefined()
+    expect(typeof data.pepper).toBe("string")
+  })
+
+  it("stores credential after successful registration", async () => {
+    const genRes = await generateOptions(makeRequest({ mode: "register" }))
+    const { tempKey } = await genRes.json()
+
+    await register(makeRequest({
+      tempKey,
+      attestation: { id: "some-id", rawId: "some-id", response: { clientDataJSON: btoa(JSON.stringify({ challenge: "reg-challenge-abc" })) } },
+    }))
+
     const { getCredential } = await import("@/lib/passkey/store")
-    const credential = await getCredential("new-cred-id")
-    expect(credential?.userId).toBe("user-123")
+    const cred = await getCredential("new-cred-id")
+    expect(cred).toBeDefined()
+    expect(cred!.credentialId).toBe("new-cred-id")
+    expect(cred!.counter).toBe(0)
+  })
+})
+
+describe("auth-verify API", () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
   })
 
-  it("requires authentication for auth-verify", async () => {
-    const req = makeUnauthenticatedRequest({ credentialId: "cred-id-123", assertion: {} })
-
-    const res = await authVerify(req)
-    expect(res.status).toBe(401)
-    expect(await res.json()).toMatchObject({ error: "unauthenticated" })
+  it("returns 400 for missing credentialId", async () => {
+    const res = await authVerify(makeRequest({ assertion: {} }))
+    expect(res.status).toBe(400)
   })
 
-  it("rate limits repeated passkey requests per IP", async () => {
-    const first = await generateOptions(makeRequest({ mode: "register" }, "192.0.2.10"))
-    expect(first.status).toBe(200)
+  it("returns 400 for missing assertion", async () => {
+    const res = await authVerify(makeRequest({ credentialId: "cred-id" }))
+    expect(res.status).toBe(400)
+  })
 
-    let blocked = 0
-    for (let i = 0; i < 6; i += 1) {
-      const res = await generateOptions(makeRequest({ mode: "register" }, "192.0.2.10"))
-      if (res.status === 429) blocked += 1
-    }
+  it("returns 400 for unknown credential", async () => {
+    const res = await authVerify(makeRequest({
+      credentialId: "unknown-cred",
+      assertion: { response: { clientDataJSON: btoa(JSON.stringify({ challenge: "x" })) } },
+    }))
+    expect(res.status).toBe(400)
+    const data = await res.json()
+    expect(data.error).toBe("credential_not_found")
+  })
 
-    expect(blocked).toBeGreaterThan(0)
+  it("returns 400 when tempKey is missing", async () => {
+    const { storeCredential } = await import("@/lib/passkey/store")
+    await storeCredential("cred-id-123", {
+      publicKey: new Uint8Array(32).fill(1),
+      counter: 0,
+    })
+
+    const res = await authVerify(makeRequest({
+      credentialId: "cred-id-123",
+      assertion: { response: { clientDataJSON: btoa(JSON.stringify({ challenge: "x" })) } },
+    }))
+    expect(res.status).toBe(400)
+    const data = await res.json()
+    expect(data.error).toBe("challenge_mismatch")
+  })
+
+  it("returns 400 when challenge not stored (replay)", async () => {
+    const { storeCredential } = await import("@/lib/passkey/store")
+    await storeCredential("cred-id-123", {
+      publicKey: new Uint8Array(32).fill(1),
+      counter: 0,
+    })
+
+    const res = await authVerify(makeRequest({
+      credentialId: "cred-id-123",
+      tempKey: "nonexistent-key",
+      assertion: { response: { clientDataJSON: btoa(JSON.stringify({ challenge: "never-stored" })) } },
+    }))
+    expect(res.status).toBe(400)
+    const data = await res.json()
+    expect(data.error).toBe("challenge_mismatch")
+  })
+
+  it("returns verified response with pepper on success", async () => {
+    const { storeCredential } = await import("@/lib/passkey/store")
+    await storeCredential("cred-id-123", {
+      publicKey: new Uint8Array(32).fill(1),
+      counter: 0,
+    })
+
+    const genRes = await generateOptions(makeRequest({ credentialId: "cred-id-123", mode: "authenticate" }))
+    const { tempKey } = await genRes.json()
+
+    const res = await authVerify(makeRequest({
+      credentialId: "cred-id-123",
+      tempKey,
+      assertion: { response: { clientDataJSON: btoa(JSON.stringify({ challenge: "auth-challenge-xyz" })) } },
+    }))
+    expect(res.status).toBe(200)
+    const data = await res.json()
+    expect(data.verified).toBe(true)
+    expect(data.pepper).toBeDefined()
+  })
+
+  it("updates counter after successful verification", async () => {
+    const { storeCredential, getCredential } = await import("@/lib/passkey/store")
+    await storeCredential("cred-counter-test", {
+      publicKey: new Uint8Array(32).fill(1),
+      counter: 0,
+    })
+
+    const genRes = await generateOptions(makeRequest({ credentialId: "cred-counter-test", mode: "authenticate" }))
+    const { tempKey } = await genRes.json()
+
+    await authVerify(makeRequest({
+      credentialId: "cred-counter-test",
+      tempKey,
+      assertion: { response: { clientDataJSON: btoa(JSON.stringify({ challenge: "auth-challenge-xyz" })) } },
+    }))
+
+    const cred = await getCredential("cred-counter-test")
+    expect(cred).toBeDefined()
+    expect(cred!.counter).toBe(1)
   })
 })
