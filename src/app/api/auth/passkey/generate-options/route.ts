@@ -1,11 +1,22 @@
 import { NextRequest, NextResponse } from "next/server"
 import { generateRegistrationOptions, generateAuthenticationOptions } from "@simplewebauthn/server"
-import { setChallenge, setTempChallenge, getRpId } from "@/lib/passkey/store"
+import { getCredential, setChallenge, setTempChallenge, getRpId } from "@/lib/passkey/store"
+import { checkRateLimit, requireAuthenticatedUser } from "@/lib/passkey/auth-guard"
 
 const RP_NAME = "Moistello"
 
 export async function POST(req: NextRequest) {
   try {
+    const auth = requireAuthenticatedUser(req)
+    if (!auth.ok) {
+      return auth.response
+    }
+
+    const rateLimit = checkRateLimit(req, "generate-options")
+    if (!rateLimit.allowed) {
+      return NextResponse.json({ error: "rate_limited" }, { status: 429, headers: { "Retry-After": String(Math.ceil(rateLimit.retryAfterMs / 1000)) } })
+    }
+
     const body = await req.json()
     const { mode, credentialId } = body
 
@@ -25,12 +36,19 @@ export async function POST(req: NextRequest) {
         timeout: 120_000,
       })
 
-      setChallenge(options.challenge, options.challenge)
+      setChallenge(`register:${auth.user.id}`, options.challenge)
 
       return NextResponse.json({ options, challenge: options.challenge })
     }
 
     if (mode === "authenticate") {
+      if (credentialId) {
+        const storedCredential = await getCredential(credentialId)
+        if (!storedCredential || storedCredential.userId !== auth.user.id) {
+          return NextResponse.json({ error: "credential_not_found" }, { status: 404 })
+        }
+      }
+
       const rpID = getRpId()
       const options = await generateAuthenticationOptions({
         rpID,
@@ -42,9 +60,8 @@ export async function POST(req: NextRequest) {
       })
 
       if (credentialId) {
-        setChallenge(credentialId, options.challenge)
+        setChallenge(`auth:${credentialId}`, options.challenge)
       } else {
-        // Discoverable credential — no credentialId, store challenge with temp key
         const tempKey = setTempChallenge(options.challenge)
         return NextResponse.json({ options, challenge: options.challenge, tempKey })
       }

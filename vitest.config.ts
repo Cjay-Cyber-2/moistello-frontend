@@ -12,6 +12,12 @@ export default defineConfig({
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
+      "next/server": path.resolve(__dirname, "./node_modules/next/server.js"),
+      "next/dist/server/web/spec-extension/request": path.resolve(__dirname, "./node_modules/next/dist/server/web/spec-extension/request.js"),
+      "next/dist/server/web/spec-extension/response": path.resolve(__dirname, "./node_modules/next/dist/server/web/spec-extension/response.js"),
+      "next/dist/server/web/spec-extension/image-response": path.resolve(__dirname, "./node_modules/next/dist/server/web/spec-extension/image-response.js"),
+      "next/dist/server/web/spec-extension/user-agent": path.resolve(__dirname, "./node_modules/next/dist/server/web/spec-extension/user-agent.js"),
+      "next/dist/server/web/spec-extension/url-pattern": path.resolve(__dirname, "./node_modules/next/dist/server/web/spec-extension/url-pattern.js"),
     },
   },
 })

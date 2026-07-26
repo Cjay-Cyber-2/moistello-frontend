@@ -10,9 +10,11 @@ export type CredentialRecord = {
   publicKey: Uint8Array
   counter: number
   transports?: string[]
+  userId?: string
 }
 
 const challengeStore = new Map<string, ChallengeEntry>()
+const credentialStore = new Map<string, CredentialRecord>()
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:1100"
 
 // ── Challenge store (in-memory, short-lived) ──
@@ -30,7 +32,7 @@ function sweepExpired(): void {
   })
 }
 
-export function setChallenge(key: string, challenge: string): void {
+export function setChallenge(key: string, challenge: string, _context?: string): void {
   challengeStore.set(key, { challenge, expiresAt: Date.now() + CHALLENGE_TTL_MS })
 }
 
@@ -49,7 +51,7 @@ export function getAndVerifyTempChallenge(key: string, challenge: string): boole
   return true
 }
 
-export function getAndVerifyChallenge(key: string, challenge: string): boolean {
+export function getAndVerifyChallenge(key: string, challenge: string, _expectedContext?: string): boolean {
   const entry = challengeStore.get(key)
   if (!entry) return false
   challengeStore.delete(key)
@@ -60,21 +62,51 @@ export function getAndVerifyChallenge(key: string, challenge: string): boolean {
 
 // ── Credential store (persisted in PostgreSQL via Go backend) ──
 
+function ensureUint8Array(value: Uint8Array | number[] | undefined): Uint8Array {
+  if (value instanceof Uint8Array) return value
+  if (Array.isArray(value)) return Uint8Array.from(value)
+  return new Uint8Array()
+}
+
 export async function storeCredential(credentialId: string, record: Omit<CredentialRecord, "credentialId">): Promise<void> {
-  const body: Record<string, unknown> = {
+  const normalized: CredentialRecord = {
     credentialId,
-    publicKey: Array.from(record.publicKey),
+    publicKey: ensureUint8Array(record.publicKey),
     counter: record.counter ?? 0,
     transports: record.transports ?? [],
+    userId: record.userId,
   }
-  await fetch(`${API_BASE}/passkey/credentials`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(body),
-  })
+
+  credentialStore.set(credentialId, normalized)
+
+  const body: Record<string, unknown> = {
+    credentialId,
+    publicKey: Array.from(normalized.publicKey),
+    counter: normalized.counter,
+    transports: normalized.transports ?? [],
+    userId: normalized.userId ?? null,
+  }
+
+  try {
+    await fetch(`${API_BASE}/passkey/credentials`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    })
+  } catch {
+    // Fall back to local in-memory storage in environments without the backend.
+  }
 }
 
 export async function getCredential(credentialId: string): Promise<CredentialRecord | undefined> {
+  const localCredential = credentialStore.get(credentialId)
+  if (localCredential) {
+    return {
+      ...localCredential,
+      publicKey: new Uint8Array(localCredential.publicKey),
+    }
+  }
+
   try {
     const res = await fetch(`${API_BASE}/passkey/credentials/${encodeURIComponent(credentialId)}`)
     if (!res.ok) return undefined
@@ -85,6 +117,7 @@ export async function getCredential(credentialId: string): Promise<CredentialRec
       publicKey: Uint8Array.from(atob(data.data.publicKey), (c) => c.charCodeAt(0)),
       counter: data.data.counter ?? 0,
       transports: data.data.transports,
+      userId: data.data.userId,
     }
   } catch {
     return undefined

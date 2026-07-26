@@ -9,9 +9,20 @@ import {
   getRpId,
   getExpectedOrigin,
 } from "@/lib/passkey/store"
+import { checkRateLimit, requireAuthenticatedUser } from "@/lib/passkey/auth-guard"
 
 export async function POST(req: NextRequest) {
   try {
+    const auth = requireAuthenticatedUser(req)
+    if (!auth.ok) {
+      return auth.response
+    }
+
+    const rateLimit = checkRateLimit(req, "auth-verify")
+    if (!rateLimit.allowed) {
+      return NextResponse.json({ error: "rate_limited" }, { status: 429, headers: { "Retry-After": String(Math.ceil(rateLimit.retryAfterMs / 1000)) } })
+    }
+
     const body = await req.json()
     const { credentialId, assertion, tempKey } = body
 
@@ -19,7 +30,6 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "invalid_assertion" }, { status: 400 })
     }
 
-    // Extract credential ID from assertion if not provided (discoverable)
     const assertionRecord = assertion as { rawId?: string; id?: string; response?: { clientDataJSON?: string } }
     const resolvedCredentialId = credentialId || assertionRecord.rawId || assertionRecord.id || ""
     if (!resolvedCredentialId) {
@@ -29,6 +39,10 @@ export async function POST(req: NextRequest) {
     const storedCredential = await getCredential(resolvedCredentialId)
     if (!storedCredential) {
       return NextResponse.json({ error: "credential_not_found" }, { status: 400 })
+    }
+
+    if (storedCredential.userId !== auth.user.id) {
+      return NextResponse.json({ error: "forbidden" }, { status: 403 })
     }
 
     const clientDataJSON = assertionRecord.response?.clientDataJSON
@@ -43,12 +57,11 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "invalid_client_data" }, { status: 400 })
     }
 
-    // Verify challenge
     if (tempKey) {
       if (!getAndVerifyTempChallenge(tempKey, parsed.challenge)) {
         return NextResponse.json({ error: "challenge_mismatch" }, { status: 400 })
       }
-    } else if (!getAndVerifyChallenge(resolvedCredentialId, parsed.challenge)) {
+    } else if (!getAndVerifyChallenge(`auth:${resolvedCredentialId}`, parsed.challenge)) {
       return NextResponse.json({ error: "challenge_mismatch" }, { status: 400 })
     }
 
