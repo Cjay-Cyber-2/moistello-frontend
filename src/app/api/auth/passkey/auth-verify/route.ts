@@ -45,10 +45,10 @@ export async function POST(req: NextRequest) {
 
     // Verify challenge
     if (tempKey) {
-      if (!getAndVerifyTempChallenge(tempKey, parsed.challenge)) {
+      if (!(await getAndVerifyTempChallenge(tempKey, parsed.challenge))) {
         return NextResponse.json({ error: "challenge_mismatch" }, { status: 400 })
       }
-    } else if (!getAndVerifyChallenge(resolvedCredentialId, parsed.challenge)) {
+    } else if (!(await getAndVerifyChallenge(resolvedCredentialId, parsed.challenge))) {
       return NextResponse.json({ error: "challenge_mismatch" }, { status: 400 })
     }
 

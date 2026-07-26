@@ -25,7 +25,7 @@ export async function POST(req: NextRequest) {
         timeout: 120_000,
       })
 
-      setChallenge(options.challenge, options.challenge)
+      await setChallenge(options.challenge, options.challenge)
 
       return NextResponse.json({ options, challenge: options.challenge })
     }
@@ -42,10 +42,10 @@ export async function POST(req: NextRequest) {
       })
 
       if (credentialId) {
-        setChallenge(credentialId, options.challenge)
+        await setChallenge(credentialId, options.challenge)
       } else {
         // Discoverable credential — no credentialId, store challenge with temp key
-        const tempKey = setTempChallenge(options.challenge)
+        const tempKey = await setTempChallenge(options.challenge)
         return NextResponse.json({ options, challenge: options.challenge, tempKey })
       }
 
