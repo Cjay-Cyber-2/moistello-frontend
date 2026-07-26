@@ -1,11 +1,13 @@
-import { describe, it, expect, vi, beforeEach } from "vitest"
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest"
+import fs from "fs"
+import path from "path"
+import { NextRequest } from "next/server"
 
-// Mock @simplewebauthn/server before any imports
 vi.mock("@simplewebauthn/server", () => ({
   generateRegistrationOptions: vi.fn().mockResolvedValue({
     challenge: "reg-challenge-abc",
     rp: { name: "Moistello", id: "localhost" },
-    user: { id: "dXNlckB0ZXN0LmNvbQ", name: "user@test.com", displayName: "user@test.com" },
+    user: { id: "user-123", name: "user@test.com", displayName: "user@test.com" },
     pubKeyCredParams: [{ alg: -7, type: "public-key" }],
     authenticatorSelection: { authenticatorAttachment: "platform", userVerification: "required", residentKey: "required" },
     timeout: 120000,
@@ -41,17 +43,37 @@ vi.mock("@simplewebauthn/server", () => ({
 import { POST as generateOptions } from "../generate-options/route"
 import { POST as register } from "../register/route"
 import { POST as authVerify } from "../auth-verify/route"
-import { NextRequest } from "next/server"
 
-function makeRequest(body: unknown): NextRequest {
+function writeSessionFixture(userId = "user-123") {
+  const contentDir = path.join(process.cwd(), "content")
+  fs.mkdirSync(contentDir, { recursive: true })
+  fs.writeFileSync(path.join(contentDir, "sessions.json"), JSON.stringify([{ token: "session-token", userId, createdAt: Date.now() }], null, 2))
+  fs.writeFileSync(path.join(contentDir, "users.json"), JSON.stringify([{ id: userId, username: "demo", role: "user" }], null, 2))
+}
+
+function makeRequest(body: unknown, ip = "127.0.0.1") {
   return new NextRequest("http://localhost:1110/api/auth/passkey/test", {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: {
+      "Content-Type": "application/json",
+      "x-forwarded-for": ip,
+      Cookie: "moistello_session=session-token",
+    },
     body: JSON.stringify(body),
   })
 }
 
-describe("generate-options API", () => {
+function makeUnauthenticatedRequest(body: unknown) {
+  return new NextRequest("http://localhost:1110/api/auth/passkey/test", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(body),
+  })
+}
+
+describe("passkey API security", () => {
   beforeEach(() => {
     vi.clearAllMocks()
   })

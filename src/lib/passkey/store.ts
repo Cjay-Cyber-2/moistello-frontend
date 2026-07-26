@@ -6,6 +6,7 @@ export type CredentialRecord = {
   publicKey: Uint8Array
   counter: number
   transports?: string[]
+  userId?: string
 }
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:1100"
@@ -63,21 +64,51 @@ export async function getAndVerifyChallenge(key: string, challenge: string): Pro
 
 // ── Credential store (persisted in PostgreSQL via Go backend) ──
 
+function ensureUint8Array(value: Uint8Array | number[] | undefined): Uint8Array {
+  if (value instanceof Uint8Array) return value
+  if (Array.isArray(value)) return Uint8Array.from(value)
+  return new Uint8Array()
+}
+
 export async function storeCredential(credentialId: string, record: Omit<CredentialRecord, "credentialId">): Promise<void> {
-  const body: Record<string, unknown> = {
+  const normalized: CredentialRecord = {
     credentialId,
-    publicKey: Array.from(record.publicKey),
+    publicKey: ensureUint8Array(record.publicKey),
     counter: record.counter ?? 0,
     transports: record.transports ?? [],
+    userId: record.userId,
   }
-  await fetch(`${API_BASE}/passkey/credentials`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(body),
-  })
+
+  credentialStore.set(credentialId, normalized)
+
+  const body: Record<string, unknown> = {
+    credentialId,
+    publicKey: Array.from(normalized.publicKey),
+    counter: normalized.counter,
+    transports: normalized.transports ?? [],
+    userId: normalized.userId ?? null,
+  }
+
+  try {
+    await fetch(`${API_BASE}/passkey/credentials`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    })
+  } catch {
+    // Fall back to local in-memory storage in environments without the backend.
+  }
 }
 
 export async function getCredential(credentialId: string): Promise<CredentialRecord | undefined> {
+  const localCredential = credentialStore.get(credentialId)
+  if (localCredential) {
+    return {
+      ...localCredential,
+      publicKey: new Uint8Array(localCredential.publicKey),
+    }
+  }
+
   try {
     const res = await fetch(`${API_BASE}/passkey/credentials/${encodeURIComponent(credentialId)}`)
     if (!res.ok) return undefined
@@ -88,6 +119,7 @@ export async function getCredential(credentialId: string): Promise<CredentialRec
       publicKey: Uint8Array.from(atob(data.data.publicKey), (c) => c.charCodeAt(0)),
       counter: data.data.counter ?? 0,
       transports: data.data.transports,
+      userId: data.data.userId,
     }
   } catch {
     return undefined

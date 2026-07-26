@@ -6,6 +6,16 @@ const RP_NAME = "Moistello"
 
 export async function POST(req: NextRequest) {
   try {
+    const auth = requireAuthenticatedUser(req)
+    if (!auth.ok) {
+      return auth.response
+    }
+
+    const rateLimit = checkRateLimit(req, "generate-options")
+    if (!rateLimit.allowed) {
+      return NextResponse.json({ error: "rate_limited" }, { status: 429, headers: { "Retry-After": String(Math.ceil(rateLimit.retryAfterMs / 1000)) } })
+    }
+
     const body = await req.json()
     const { mode, credentialId } = body
 
@@ -31,6 +41,13 @@ export async function POST(req: NextRequest) {
     }
 
     if (mode === "authenticate") {
+      if (credentialId) {
+        const storedCredential = await getCredential(credentialId)
+        if (!storedCredential || storedCredential.userId !== auth.user.id) {
+          return NextResponse.json({ error: "credential_not_found" }, { status: 404 })
+        }
+      }
+
       const rpID = getRpId()
       const options = await generateAuthenticationOptions({
         rpID,

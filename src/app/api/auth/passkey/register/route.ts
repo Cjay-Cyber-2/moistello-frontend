@@ -7,9 +7,20 @@ import {
   getRpId,
   getExpectedOrigin,
 } from "@/lib/passkey/store"
+import { checkRateLimit, requireAuthenticatedUser } from "@/lib/passkey/auth-guard"
 
 export async function POST(req: NextRequest) {
   try {
+    const auth = requireAuthenticatedUser(req)
+    if (!auth.ok) {
+      return auth.response
+    }
+
+    const rateLimit = checkRateLimit(req, "register")
+    if (!rateLimit.allowed) {
+      return NextResponse.json({ error: "rate_limited" }, { status: 429, headers: { "Retry-After": String(Math.ceil(rateLimit.retryAfterMs / 1000)) } })
+    }
+
     const body = await req.json()
     const { attestation, tempKey } = body
 
@@ -56,6 +67,7 @@ export async function POST(req: NextRequest) {
 
     const { credential } = verification.registrationInfo
     await storeCredential(credential.id, {
+      userId: auth.user.id,
       publicKey: credential.publicKey,
       counter: credential.counter,
       transports: credential.transports as string[] | undefined,
