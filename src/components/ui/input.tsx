@@ -40,7 +40,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
     );
 
     return (
-      <div className="w-full">
+      <div className="w-full scroll-mt-[40vh]" data-field-error={Boolean(error)}>
         {label && (
           <label
             htmlFor={inputId}
@@ -69,7 +69,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
             onFocus={handleFocus}
             onBlur={handleBlur}
             className={cn(
-              "block w-full h-11 bg-transparent px-3 py-2 text-base md:text-sm text-foreground placeholder:text-muted-foreground/50",
+              "block w-full h-11 scroll-mt-[40vh] bg-transparent px-3 py-2 text-base md:text-sm text-foreground placeholder:text-muted-foreground/50",
               "border-b-2 border-border",
               "transition-all duration-300 rounded-none",
               "focus:outline-none",
@@ -92,7 +92,11 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
           )}
         </div>
         {error && (
-          <p id={errorId} className="mt-1.5 text-xs text-red-400" role="alert">
+          <p
+            id={errorId}
+            className="mt-1.5 min-h-5 text-xs leading-5 text-red-400"
+            role="alert"
+          >
             {error}
           </p>
         )}

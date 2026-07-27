@@ -4,7 +4,7 @@
 import React, { useState, useCallback, useEffect } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { Mail, UserPlus, ArrowRight, ArrowLeft, CheckCircle, Shield, Lock } from "lucide-react"
+import { Mail, UserPlus, ArrowRight, ArrowLeft, CheckCircle, Shield, Lock, Wallet, Copy } from "lucide-react"
 import { post, patch } from "@/lib/api-client"
 import { useAuthStore } from "@/stores/auth-store"
 import { useUIStore } from "@/stores/ui-store"
@@ -25,7 +25,7 @@ export default function RegisterPage() {
     }
   }, [router])
 
-  type Step = "email" | "otp" | "profile" | "verify-email" | "passkey" | "done"
+  type Step = "email" | "otp" | "profile" | "verify-email" | "wallet" | "passkey" | "done"
   const [step, setStep] = useState<Step>("email")
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
@@ -35,6 +35,11 @@ export default function RegisterPage() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
   const [cooldown, setCooldown] = useState(0)
+  const [walletInfo, setWalletInfo] = useState<{
+    publicKey: string
+    fundingStatus: "pending" | "funded"
+    trustlineStatus: "pending" | "ready"
+  } | null>(null)
 
   useEffect(() => {
     if (cooldown <= 0) return
@@ -105,6 +110,36 @@ export default function RegisterPage() {
   const handleUpdateLanguage = useCallback((lang: string) => {
     setLanguage(lang)
   }, [])
+
+  const handleCreateWallet = useCallback(async () => {
+    setLoading(true)
+    setError("")
+    try {
+      const response: any = await post("/wallet/create", {
+        asset: "USDC",
+        network: "testnet",
+      })
+      const body = response?.data ?? response
+      const publicKey = body?.publicKey ?? body?.public_key ?? body?.wallet?.publicKey
+      if (!publicKey) throw new Error("Wallet service did not return a public key")
+
+      setWalletInfo({
+        publicKey,
+        fundingStatus: body?.funded || body?.fundingStatus === "funded" ? "funded" : "pending",
+        trustlineStatus:
+          body?.usdcTrustline || body?.trustlineStatus === "ready" ? "ready" : "pending",
+      })
+      addToast({
+        type: "success",
+        title: "Stellar wallet created",
+        description: "Your public key is ready. Funding may take a few moments.",
+      })
+    } catch (err: any) {
+      setError(err?.response?.data?.error || err?.message || "Failed to create wallet")
+    } finally {
+      setLoading(false)
+    }
+  }, [addToast])
 
   const skipPasskey = useCallback(() => {
     setStep("done")
@@ -193,9 +228,76 @@ export default function RegisterPage() {
           />
         ) : step === "verify-email" ? (
           <VerifyEmailStep
-            onVerified={() => setStep("passkey")}
+            onVerified={() => setStep("wallet")}
             onBack={() => setStep("profile")}
           />
+        ) : step === "wallet" ? (
+          <div className="space-y-5">
+            <div className="flex items-start gap-3 border-l-4 border-l-aurora-violet pl-4">
+              <Wallet className="mt-1 h-7 w-7 shrink-0 text-aurora-violet" />
+              <div>
+                <p className="font-heading text-lg font-semibold text-foreground">
+                  Create your Stellar wallet
+                </p>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  We generate your account, request funding from the master pool,
+                  and prepare a USDC trustline.
+                </p>
+              </div>
+            </div>
+
+            {!walletInfo ? (
+              <Button
+                variant="premium"
+                size="lg"
+                className="w-full"
+                onClick={handleCreateWallet}
+                isLoading={loading}
+                leftIcon={<Wallet className="h-4 w-4" />}
+              >
+                Create Stellar Wallet
+              </Button>
+            ) : (
+              <>
+                <div className="border-y border-white/10 py-4">
+                  <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">
+                    Stellar public key
+                  </p>
+                  <div className="mt-2 flex items-center gap-2">
+                    <code className="min-w-0 flex-1 break-all font-mono text-sm text-foreground">
+                      {walletInfo.publicKey}
+                    </code>
+                    <button
+                      type="button"
+                      aria-label="Copy Stellar public key"
+                      onClick={() => void navigator.clipboard.writeText(walletInfo.publicKey)}
+                      className="shrink-0 text-aurora-violet hover:text-foreground"
+                    >
+                      <Copy className="h-4 w-4" />
+                    </button>
+                  </div>
+                </div>
+                <ol className="space-y-3" aria-label="Wallet provisioning status">
+                  <li className="flex items-center justify-between text-sm">
+                    <span>Account funding</span>
+                    <span className={walletInfo.fundingStatus === "funded" ? "text-emerald-400" : "text-amber-400"}>
+                      {walletInfo.fundingStatus === "funded" ? "Funded" : "Pending from master pool"}
+                    </span>
+                  </li>
+                  <li className="flex items-center justify-between text-sm">
+                    <span>USDC trustline</span>
+                    <span className={walletInfo.trustlineStatus === "ready" ? "text-emerald-400" : "text-amber-400"}>
+                      {walletInfo.trustlineStatus === "ready" ? "Ready" : "Being configured"}
+                    </span>
+                  </li>
+                </ol>
+                <Button className="w-full" onClick={() => setStep("passkey")}>
+                  Continue
+                </Button>
+              </>
+            )}
+            {error && <p role="alert" className="text-sm text-red-400">{error}</p>}
+          </div>
         ) : step === "passkey" ? (
           <>
             <div className="flex flex-col items-center justify-center py-4 space-y-4 text-center">

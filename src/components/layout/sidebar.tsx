@@ -17,6 +17,8 @@ import {
   BookOpen,
   HelpCircle,
   LifeBuoy,
+  Vote,
+  Gift,
 } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { Routes } from "@/lib/constants";
@@ -68,6 +70,8 @@ export function Sidebar() {
         { label: t("nav.communities"), href: Routes.COMMUNITIES, icon: <Users className="h-[18px] w-[18px]" /> },
         { label: t("nav.contributions"), href: Routes.CONTRIBUTIONS, icon: <ArrowUpCircle className="h-[18px] w-[18px]" /> },
         { label: t("nav.payouts"), href: Routes.PAYOUTS, icon: <ArrowDownCircle className="h-[18px] w-[18px]" /> },
+        { label: "Governance", href: Routes.GOVERNANCE, icon: <Vote className="h-[18px] w-[18px]" /> },
+        { label: "Referrals", href: Routes.REFERRALS, icon: <Gift className="h-[18px] w-[18px]" /> },
       ],
     },
     {
