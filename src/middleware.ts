@@ -1,13 +1,32 @@
 import { NextResponse } from "next/server"
 import type { NextRequest } from "next/server"
 import { buildCsp, generateNonce } from "@/lib/security/csp"
-import { ACCESS_TOKEN_COOKIE } from "@/lib/auth/session-cookies"
+import {
+  ACCESS_TOKEN_COOKIE,
+  CSRF_TOKEN_COOKIE,
+  CSRF_TOKEN_MAX_AGE,
+  SESSION_COOKIE_OPTIONS,
+} from "@/lib/auth/session-cookies"
 
 // Protected routes that require authentication
 const PROTECTED_PATHS = ["/circles", "/communities", "/wallet", "/settings", "/profile", "/notifications", "/contributions", "/payouts"]
 
 /** Request header the root layout reads to nonce its inline <script> tags. */
 export const NONCE_HEADER = "x-nonce"
+export const CSRF_HEADER = "x-csrf-token"
+
+function generateCsrfToken(): string {
+  const bytes = crypto.getRandomValues(new Uint8Array(32))
+  return btoa(String.fromCharCode(...bytes))
+}
+
+function attachCsrfCookie(response: NextResponse, csrfToken: string) {
+  response.cookies.set(CSRF_TOKEN_COOKIE, csrfToken, {
+    ...SESSION_COOKIE_OPTIONS,
+    httpOnly: false,
+    maxAge: CSRF_TOKEN_MAX_AGE,
+  })
+}
 
 export function middleware(request: NextRequest) {
   const token = request.cookies.get(ACCESS_TOKEN_COOKIE)?.value
@@ -18,9 +37,12 @@ export function middleware(request: NextRequest) {
   // response inside the CSP header the browser enforces.
   const nonce = generateNonce()
   const csp = buildCsp(nonce)
+  const csrfToken = request.cookies.get(CSRF_TOKEN_COOKIE)?.value || generateCsrfToken()
+  const shouldSetCsrfCookie = !request.cookies.has(CSRF_TOKEN_COOKIE)
 
   const requestHeaders = new Headers(request.headers)
   requestHeaders.set(NONCE_HEADER, nonce)
+  requestHeaders.set(CSRF_HEADER, csrfToken)
 
   // Redirect unauthenticated users to login for protected routes
   if (!token) {
@@ -29,6 +51,7 @@ export function middleware(request: NextRequest) {
         const url = new URL("/login", request.url)
         const redirect = NextResponse.redirect(url)
         redirect.headers.set("Content-Security-Policy", csp)
+        if (shouldSetCsrfCookie) attachCsrfCookie(redirect, csrfToken)
         return redirect
       }
     }
@@ -36,6 +59,7 @@ export function middleware(request: NextRequest) {
 
   const response = NextResponse.next({ request: { headers: requestHeaders } })
   response.headers.set("Content-Security-Policy", csp)
+  if (shouldSetCsrfCookie) attachCsrfCookie(response, csrfToken)
   return response
 }
 

@@ -3,6 +3,7 @@ import fs from "fs";
 import path from "path";
 import crypto from "crypto";
 import { blockInProduction } from "@/lib/security/dev-only-route";
+import { CSRF_TOKEN_COOKIE, CSRF_TOKEN_MAX_AGE, SESSION_COOKIE_OPTIONS } from "@/lib/auth/session-cookies";
 
 const USERS_FILE = path.join(process.cwd(), "content", "users.json");
 
@@ -13,6 +14,10 @@ const PBKDF2_ITERATIONS_LEGACY = 100_000;
 
 function hashPassword(password: string, salt: string, iterations = PBKDF2_ITERATIONS): string {
   return crypto.pbkdf2Sync(password, salt, iterations, 64, "sha512").toString("hex");
+}
+
+function generateCsrfToken(): string {
+  return crypto.randomBytes(32).toString("base64url");
 }
 
 function createSession(userId: string): string {
@@ -78,6 +83,12 @@ export async function POST(request: NextRequest) {
     sameSite: "lax",
     maxAge: 7 * 24 * 60 * 60,
     path: "/",
+  });
+
+  response.cookies.set(CSRF_TOKEN_COOKIE, generateCsrfToken(), {
+    ...SESSION_COOKIE_OPTIONS,
+    httpOnly: false,
+    maxAge: CSRF_TOKEN_MAX_AGE,
   });
 
   return response;
