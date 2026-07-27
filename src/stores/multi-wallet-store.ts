@@ -53,7 +53,7 @@ interface MultiWalletState {
 
   /* WC2-specific state */
   wc2PairingUri: string | null;
-  wc2PairingState: "idle" | "pairing" | "awaiting_approval" | "approved" | "rejected" | "timeout" | "error";
+  wc2PairingState: "idle" | "connecting" | "pairing" | "awaiting_approval" | "approved" | "rejected" | "timeout" | "error";
   wc2RelayStatus: "healthy" | "degraded" | "down";
   wc2PairingError: string | null;
   wc2QrExpiresAt: number | null;
