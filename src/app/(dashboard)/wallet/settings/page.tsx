@@ -6,7 +6,7 @@ import { ArrowLeft, Copy, Check, Trash2, Edit3, X, CheckCircle, Wallet as Wallet
 import { PageHeader } from "@/components/shared/page-header"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { get, del } from "@/lib/api-client"
+import { get, del, patch } from "@/lib/api-client"
 import { useAuth } from "@/hooks/use-auth"
 import { useUIStore } from "@/stores/ui-store"
 import { formatAddress } from "@/lib/formatters"
@@ -27,6 +27,7 @@ export default function WalletSettingsPage() {
   const [nickname, setNickname] = useState("")
   const [editingNickname, setEditingNickname] = useState(false)
   const [copied, setCopied] = useState(false)
+  const [savingNickname, setSavingNickname] = useState(false)
   const [deleteConfirm, setDeleteConfirm] = useState("")
   const [deleting, setDeleting] = useState(false)
 
@@ -54,10 +55,20 @@ export default function WalletSettingsPage() {
     }
   }
 
-  const saveNickname = () => {
-    localStorage.setItem("wallet_nickname", nickname)
-    setEditingNickname(false)
-    addToast({ type: "success", title: "Saved", description: "Wallet nickname updated." })
+  const saveNickname = async () => {
+    if (!wallet) return
+    setSavingNickname(true)
+    try {
+      await patch(`/wallets/${wallet.id}`, { nickname })
+      localStorage.setItem("wallet_nickname", nickname)
+      setEditingNickname(false)
+      addToast({ type: "success", title: "Saved", description: "Wallet nickname updated." })
+    } catch (e) {
+      console.error("[wallet-settings] Failed to update nickname:", e)
+      addToast({ type: "error", title: "Failed", description: "Could not update nickname." })
+    } finally {
+      setSavingNickname(false)
+    }
   }
 
   const handleDelete = async () => {
@@ -98,8 +109,10 @@ export default function WalletSettingsPage() {
                 {editingNickname ? (
                   <div className="flex items-center gap-2">
                     <Input value={nickname} onChange={(e) => setNickname(e.target.value)} placeholder="Nickname" className="w-40 h-8 text-sm" />
-                    <button onClick={saveNickname} className="text-emerald-400 hover:text-emerald-300"><CheckCircle className="h-4 w-4" /></button>
-                    <button onClick={() => setEditingNickname(false)} className="text-muted-foreground hover:text-foreground"><X className="h-4 w-4" /></button>
+                    <button onClick={saveNickname} disabled={savingNickname} className="text-emerald-400 hover:text-emerald-300 disabled:opacity-50">
+                      {savingNickname ? <Clock className="h-4 w-4 animate-spin" /> : <CheckCircle className="h-4 w-4" />}
+                    </button>
+                    <button onClick={() => setEditingNickname(false)} disabled={savingNickname} className="text-muted-foreground hover:text-foreground disabled:opacity-50"><X className="h-4 w-4" /></button>
                   </div>
                 ) : (
                   <>

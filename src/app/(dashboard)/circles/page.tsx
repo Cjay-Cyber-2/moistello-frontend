@@ -2,6 +2,7 @@
 
 import React, { useState, useDeferredValue } from "react"
 import Link from "next/link"
+import { useSearchParams, useRouter, usePathname } from "next/navigation"
 import { motion } from "framer-motion"
 import {
   Search,
@@ -31,6 +32,7 @@ import { useTranslate } from "@/lib/locale/context"
 
 const TYPE_TABS = [
   { value: "all", label: "All" },
+  { value: "my-circles", label: "My Circles" },
   { value: "public", label: "Public" },
   { value: "private", label: "Private" },
   { value: "community", label: "Community" },
@@ -149,13 +151,31 @@ function CircleGridCard({ circle }: { circle: Circle }) {
 
 export default function CirclesBrowsePage() {
   const { t } = useTranslate()
+  const router = useRouter()
+  const pathname = usePathname()
+  const searchParams = useSearchParams()
+  const initialType = searchParams.get("tab") || "all"
+
   const [search, setSearch] = useState("")
   const deferredSearch = useDeferredValue(search)
-  const [typeFilter, setTypeFilter] = useState("all")
+  const [typeFilter, setTypeFilter] = useState(initialType)
   const [currencyFilter, setCurrencyFilter] = useState<Currency | null>(null)
   const [sortValue, setSortValue] = useState("date-desc")
   const [page, setPage] = useState(1)
   const limit = 12
+
+  // Sync tab with URL
+  const updateTypeFilter = (newType: string) => {
+    setTypeFilter(newType)
+    setPage(1)
+    const params = new URLSearchParams(searchParams)
+    if (newType === "all") {
+      params.delete("tab")
+    } else {
+      params.set("tab", newType)
+    }
+    router.replace(`${pathname}?${params.toString()}`)
+  }
 
   const selectedSort = SORT_OPTIONS.find((s) => s.value === sortValue) ?? SORT_OPTIONS[0]
 
@@ -212,10 +232,7 @@ export default function CirclesBrowsePage() {
                 type="button"
                 whileHover={{ scale: 1.03 }}
                 whileTap={{ scale: 0.97 }}
-                onClick={() => {
-                  setTypeFilter(f.value)
-                  setPage(1)
-                }}
+                onClick={() => updateTypeFilter(f.value)}
                 className={cn(
                   "inline-flex items-center rounded-full px-4 py-1.5 text-xs font-body font-medium transition-all duration-300",
                   typeFilter === f.value

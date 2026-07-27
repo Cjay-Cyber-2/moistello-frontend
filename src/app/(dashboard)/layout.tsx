@@ -1,16 +1,17 @@
-"use client"
+import { Metadata } from "next"
+import ClientLayout from "./client-layout"
 
-import { DashboardLayout } from "@/components/layout/dashboard-layout"
-import { useRequireAuth } from "@/hooks/use-auth"
+export const metadata: Metadata = {
+  robots: {
+    index: false,
+    follow: false,
+  },
+}
 
 export default function DashboardRootLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
-  const { isAuthenticated } = useRequireAuth()
-
-  if (!isAuthenticated) return null
-
-  return <DashboardLayout>{children}</DashboardLayout>
+  return <ClientLayout>{children}</ClientLayout>
 }
