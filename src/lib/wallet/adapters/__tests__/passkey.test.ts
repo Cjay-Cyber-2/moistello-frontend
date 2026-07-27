@@ -6,44 +6,6 @@ vi.mock("@simplewebauthn/browser", () => ({
   startAuthentication: vi.fn(),
 }))
 
-// Mock @noble/ed25519
-vi.mock("@noble/ed25519", () => ({
-  getPublicKey: vi.fn((seed: Uint8Array) => seed.slice(0, 32)),
-  sign: vi.fn(() => new Uint8Array(64).fill(99)),
-  etc: {
-    bytesToHex: vi.fn((b: Uint8Array) => Array.from(b).map(x => x.toString(16).padStart(2, '0')).join('')),
-    concatBytes: vi.fn((...arrays: Uint8Array[]) => {
-      let len = 0
-      for (const a of arrays) len += a.length
-      const r = new Uint8Array(len)
-      let pos = 0
-      for (const a of arrays) { r.set(a, pos); pos += a.length }
-      return r
-    }),
-  },
-}))
-
-// Mock @stellar/stellar-base
-const mockSignedXdr = "AAAAAgAAAAAZf2sj4WyFMsaryDj6zV6nib4MdrKSAzQDm/qLPTaNYQAAAGQAAAAAAAAAAQAAAAEAAAAAAAAAAAAAAABqF+POAAAAAAAAAAEAAAAAAAAAAQAAAABCzwVZeQ9sO2TeFRIN8Lslyqt9wttPtKGKNeiBvzI69wAAAAAAAAAAAJiWgAAAAAAAAAABPTaNYQAAAEBATUu5C3pxDGuXruyHgDvDHwgJZBlklafJMM8VSy2EMTUhk4Ez+ewCF/sekMAX5VynMxCdtfsd/KHR3gvI0HYK"
-function MockTransaction() {
-  this.sign = function() {}
-  this.toEnvelope = function() { return { toXDR: function() { return mockSignedXdr } } }
-}
-vi.mock("@stellar/stellar-base", () => ({
-  Keypair: {
-    fromRawEd25519Seed: vi.fn(() => ({
-      sign: vi.fn(() => {}),
-      signatureHint: vi.fn(() => Buffer.from("test")),
-    })),
-  },
-  Transaction: MockTransaction,
-  xdr: {
-    TransactionEnvelope: {
-      fromXDR: vi.fn(() => ({})),
-    },
-  },
-}))
-
 // Polyfill PublicKeyCredential for jsdom
 Object.defineProperty(globalThis, "PublicKeyCredential", {
   value: class MockPublicKeyCredential {},
@@ -94,7 +56,11 @@ const keypairResponse = {
   verified: true,
   email: "user@test.com",
   publicKey: "a".repeat(64),
-  secretKey: "b".repeat(64),
+}
+
+const signMessageResponse = { signature: "c".repeat(128), publicKey: "a".repeat(64) }
+const signTransactionResponse = {
+  signedXdr: "AAAAAgAAAAAZf2sj4WyFMsaryDj6zV6nib4MdrKSAzQDm/qLPTaNYQAAAGQAAAAAAAAAAQAAAAEAAAAAAAAAAAAAAABqF+POAAAAAAAAAAEAAAAAAAAAAQAAAABCzwVZeQ9sO2TeFRIN8Lslyqt9wttPtKGKNeiBvzI69wAAAAAAAAAAAJiWgAAAAAAAAAABPTaNYQAAAEBATUu5C3pxDGuXruyHgDvDHwgJZBlklafJMM8VSy2EMTUhk4Ez+ewCF/sekMAX5VynMxCdtfsd/KHR3gvI0HYK",
 }
 
 describe("Passkey adapter", () => {
@@ -111,6 +77,12 @@ describe("Passkey adapter", () => {
       }
       if (url.includes("/auth-verify")) {
         return new Response(JSON.stringify(keypairResponse))
+      }
+      if (url.includes("/sign-message")) {
+        return new Response(JSON.stringify(signMessageResponse))
+      }
+      if (url.includes("/sign-transaction")) {
+        return new Response(JSON.stringify(signTransactionResponse))
       }
       return new Response(JSON.stringify({}), { status: 404 })
     })

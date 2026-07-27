@@ -173,8 +173,8 @@ describe("register API", () => {
     expect(data.credentialId).toBe("new-cred-id")
     expect(data.publicKey).toBeDefined()
     expect(typeof data.publicKey).toBe("string")
-    expect(data.secretKey).toBeDefined()
-    expect(typeof data.secretKey).toBe("string")
+    // The Stellar secret key must never be sent to the client.
+    expect(data.secretKey).toBeUndefined()
   })
 
   it("stores credential after successful registration", async () => {
@@ -272,8 +272,8 @@ describe("auth-verify API", () => {
     expect(data.verified).toBe(true)
     expect(data.publicKey).toBeDefined()
     expect(typeof data.publicKey).toBe("string")
-    expect(data.secretKey).toBeDefined()
-    expect(typeof data.secretKey).toBe("string")
+    // The Stellar secret key must never be sent to the client.
+    expect(data.secretKey).toBeUndefined()
   })
 
   it("updates counter after successful verification", async () => {
