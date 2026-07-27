@@ -11,6 +11,7 @@ import { AuthProvider } from "@/providers/auth-provider"
 import { ToastProvider } from "@/providers/toast-provider"
 import { MonitoringProvider } from "@/providers/monitoring-provider"
 import { LocaleProvider } from "@/lib/locale/context"
+import { PwaRegister } from "@/components/pwa-register"
 
 const spaceGrotesk = Space_Grotesk({
   subsets: ["latin"],
@@ -46,6 +47,11 @@ export const metadata: Metadata = {
     index: true,
     follow: true,
     nocache: false,
+  },
+  manifest: "/manifest.json",
+  appleWeb: {
+    capable: true,
+    statusBarStyle: "black-translucent",
   },
   openGraph: {
     type: "website",
@@ -164,6 +170,7 @@ ym(109691925, 'init', {ssr:true, webvisor:true, clickmap:true, ecommerce:"dataLa
       <body
         className={`${spaceGrotesk.variable} ${inter.variable} ${jetbrainsMono.variable} font-body bg-[rgb(var(--background))] text-[rgb(var(--foreground))] antialiased`}
       >
+        <PwaRegister />
         <QueryProvider>
           <WsProvider>
           <ThemeProvider>
