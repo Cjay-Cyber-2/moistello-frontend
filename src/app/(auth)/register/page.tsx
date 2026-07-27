@@ -215,7 +215,7 @@ export default function RegisterPage() {
               Skip — I&apos;ll do it later
             </Button>
           </>
-        )}
+        ) : null}
 
         {step === "email" && (
           <p className="text-center text-xs text-muted-foreground pt-2 border-t border-border">

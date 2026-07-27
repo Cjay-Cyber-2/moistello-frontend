@@ -13,6 +13,19 @@ function apiHostname() {
   }
 }
 
+
+const apiCsp = [
+  "default-src 'none'",
+  "script-src 'none'",
+  "connect-src 'self'",
+  "frame-src 'none'",
+  "img-src 'self' data:",
+  "style-src 'self'",
+  "base-uri 'self'",
+  "form-action 'none'",
+  "frame-ancestors 'none'",
+].join("; ")
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   images: {
@@ -49,11 +62,20 @@ const nextConfig = {
   async headers() {
     return [
       {
+        source: "/api/:path*",
+        headers: [
+          {
+            key: "Content-Security-Policy",
+            value: apiCsp,
+          },
+        ],
+      },
+      {
         source: "/(.*)",
-        // Content-Security-Policy is deliberately absent here: it carries a
-        // per-request nonce for the root layout's inline scripts, so it is
-        // built and attached in src/middleware.ts instead. Static headers that
-        // do not vary per request belong below.
+        // Page CSP is built in src/middleware.ts because it carries a
+        // per-request nonce for the root layout's inline scripts. API routes
+        // receive the static CSP entry above. Static headers that do not vary
+        // per request belong below.
         headers: [
           {
             key: "X-Frame-Options",

@@ -14,13 +14,7 @@ import {
 function getCsrfToken(): string {
   if (typeof document === "undefined") return ""
   const meta = document.querySelector('meta[name="csrf-token"]')
-  const metaContent = meta?.getAttribute("content")
-  if (metaContent) return metaContent
-
-  // Fallback: derive from auth token if meta tag hasn't been populated yet
-  const token = getAccessToken()
-  if (!token) return ""
-  return token.slice(-32)
+  return meta?.getAttribute("content") || ""
 }
 
 const apiClient = axios.create({
