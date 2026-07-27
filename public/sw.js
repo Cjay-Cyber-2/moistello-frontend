@@ -2,6 +2,13 @@ const CACHE_VERSION = 'v1'
 const STATIC_CACHE = `static-${CACHE_VERSION}`
 const DYNAMIC_CACHE = `dynamic-${CACHE_VERSION}`
 const API_CACHE = `api-${CACHE_VERSION}`
+const API_CACHE_TTL = 5 * 60 * 1000 // 5 minutes
+
+// Set self.__DEBUG = true in development to see SW logs.
+const DEBUG = false
+function swLog(...args: unknown[]) {
+  if (DEBUG) console.log('[SW]', ...args)
+}
 
 // Static assets to cache on install
 const STATIC_ASSETS = [
@@ -10,11 +17,11 @@ const STATIC_ASSETS = [
 ]
 
 self.addEventListener('install', (event) => {
-  console.log('[SW] Installing service worker')
+  swLog('Installing service worker')
   event.waitUntil(
     caches.open(STATIC_CACHE).then((cache) => {
       return cache.addAll(STATIC_ASSETS).catch((err) => {
-        console.warn('[SW] Failed to cache some assets:', err)
+        swLog('Failed to cache some assets:', err)
       })
     })
   )
@@ -22,13 +29,13 @@ self.addEventListener('install', (event) => {
 })
 
 self.addEventListener('activate', (event) => {
-  console.log('[SW] Activating service worker')
+  swLog('Activating service worker')
   event.waitUntil(
     caches.keys().then((cacheNames) => {
       return Promise.all(
         cacheNames.map((cacheName) => {
           if (cacheName !== STATIC_CACHE && cacheName !== DYNAMIC_CACHE && cacheName !== API_CACHE) {
-            console.log('[SW] Deleting old cache:', cacheName)
+            swLog('Deleting old cache:', cacheName)
             return caches.delete(cacheName)
           }
         })
@@ -83,7 +90,7 @@ async function cacheFirstStatic(request) {
 
     return response
   } catch (err) {
-    console.warn('[SW] Fetch failed, returning offline page:', err)
+    swLog('Fetch failed, returning offline page:', err)
     return caches.match('/') || new Response('Offline - please check your connection', {
       status: 503,
       statusText: 'Service Unavailable',
@@ -108,7 +115,7 @@ async function networkFirst(request) {
     }
     return response
   } catch (err) {
-    console.warn('[SW] Network request failed:', err)
+    swLog('Network request failed:', err)
     const cached = await caches.match(request)
     if (cached) {
       return cached
@@ -138,7 +145,7 @@ async function networkFirstApi(request) {
     }
     return response
   } catch (err) {
-    console.warn('[SW] API request failed:', err)
+    swLog('API request failed:', err)
     const cached = await caches.match(request)
     if (cached) {
       return cached

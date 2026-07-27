@@ -15,20 +15,17 @@ export function PwaRegister() {
   const [isInstalled, setIsInstalled] = useState(false)
 
   useEffect(() => {
+    const cleanup: (() => void)[] = []
+
     // Register service worker
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('/sw.js').then((registration) => {
-        console.log('[PWA] Service worker registered:', registration)
-
         // Check for updates periodically
         const interval = setInterval(() => {
           registration.update()
-        }, 60000) // Check every minute
-
-        return () => clearInterval(interval)
-      }).catch((error) => {
-        console.error('[PWA] Service worker registration failed:', error)
-      })
+        }, 60000)
+        cleanup.push(() => clearInterval(interval))
+      }).catch(() => {})
     }
 
     // Handle install prompt
@@ -36,12 +33,10 @@ export function PwaRegister() {
       const e = event as BeforeInstallPromptEvent
       e.preventDefault()
       setInstallPrompt(e)
-      console.log('[PWA] Install prompt available')
     }
 
     // Check if app is already installed
     const handleAppInstalled = () => {
-      console.log('[PWA] App installed')
       setIsInstalled(true)
       setInstallPrompt(null)
     }
@@ -57,6 +52,7 @@ export function PwaRegister() {
     return () => {
       window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt)
       window.removeEventListener('appinstalled', handleAppInstalled)
+      for (const fn of cleanup) fn()
     }
   }, [])
 
