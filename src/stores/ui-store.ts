@@ -52,7 +52,13 @@ export const useUIStore = create<UIStore>()(
 
       toggleTheme: () => {
         const { theme } = get();
-        set({ theme: theme === "dark" ? "light" : "dark" });
+        if (theme === "light") {
+          set({ theme: "dark" });
+        } else if (theme === "dark") {
+          set({ theme: "system" });
+        } else {
+          set({ theme: "light" });
+        }
       },
 
       setTheme: (theme: Theme) => set({ theme }),

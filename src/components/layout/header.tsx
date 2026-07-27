@@ -17,6 +17,7 @@ import { cn } from "@/lib/cn";
 import { formatAddress } from "@/lib/formatters";
 import { Routes } from "@/lib/constants";
 import { Button } from "@/components/ui/button";
+import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { useMultiWallet } from "@/hooks/use-multi-wallet";
 import { useNotificationStore } from "@/stores/notification-store";
 import { useTranslate } from "@/lib/locale/context";
@@ -90,6 +91,7 @@ export function Header({ onToggleMobileMenu, isMobileMenuOpen }: HeaderProps) {
           </nav>
 
           <div className="flex items-center gap-1.5">
+            <ThemeToggle />
             <button
               onClick={onToggleMobileMenu}
               className={cn(
