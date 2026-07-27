@@ -1,7 +1,10 @@
 import { NextRequest, NextResponse } from "next/server"
+import crypto from "crypto"
 import {
   ACCESS_TOKEN_COOKIE,
   ACCESS_TOKEN_MAX_AGE,
+  CSRF_TOKEN_COOKIE,
+  CSRF_TOKEN_MAX_AGE,
   LEGACY_TOKEN_COOKIES,
   REFRESH_TOKEN_COOKIE,
   REFRESH_TOKEN_MAX_AGE,
@@ -26,6 +29,10 @@ import {
 export const runtime = "nodejs"
 
 /** Milliseconds remaining on a JWT, or null if it carries no readable `exp`. */
+function generateCsrfToken(): string {
+  return crypto.randomBytes(32).toString("base64url")
+}
+
 function readExpiry(token: string): number | null {
   const parts = token.split(".")
   if (parts.length !== 3) return null
@@ -80,6 +87,12 @@ export async function POST(request: NextRequest) {
     maxAge: ACCESS_TOKEN_MAX_AGE,
   })
 
+  response.cookies.set(CSRF_TOKEN_COOKIE, generateCsrfToken(), {
+    ...SESSION_COOKIE_OPTIONS,
+    httpOnly: false,
+    maxAge: CSRF_TOKEN_MAX_AGE,
+  })
+
   if (typeof refreshToken === "string" && refreshToken.length > 0) {
     response.cookies.set(REFRESH_TOKEN_COOKIE, refreshToken, {
       ...SESSION_COOKIE_OPTIONS,
@@ -94,7 +107,7 @@ export async function POST(request: NextRequest) {
 export async function DELETE() {
   const response = NextResponse.json({ success: true })
 
-  for (const name of [ACCESS_TOKEN_COOKIE, REFRESH_TOKEN_COOKIE]) {
+  for (const name of [ACCESS_TOKEN_COOKIE, REFRESH_TOKEN_COOKIE, CSRF_TOKEN_COOKIE]) {
     response.cookies.set(name, "", { ...SESSION_COOKIE_OPTIONS, maxAge: 0 })
   }
 

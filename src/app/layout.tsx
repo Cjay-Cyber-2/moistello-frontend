@@ -95,11 +95,14 @@ export default function RootLayout({
 }>) {
   // Minted by middleware for this request. Every inline script below must
   // carry it or the Content-Security-Policy will refuse to execute it.
-  const nonce = headers().get("x-nonce") ?? undefined
+  const requestHeaders = headers()
+  const nonce = requestHeaders.get("x-nonce") ?? undefined
+  const csrfToken = requestHeaders.get("x-csrf-token") ?? undefined
 
   return (
     <html lang="en" className="dark" suppressHydrationWarning>
 <head>
+        {csrfToken ? <meta name="csrf-token" content={csrfToken} /> : null}
          <script
             nonce={nonce}
             dangerouslySetInnerHTML={{

@@ -42,6 +42,13 @@ export const LEGACY_TOKEN_COOKIES = [
 export const ACCESS_TOKEN_MAX_AGE = 60 * 60 * 24 // 24 hours
 export const REFRESH_TOKEN_MAX_AGE = 60 * 60 * 24 * 7 // 7 days
 
+/** Cookie holding an independent CSRF token for double-submit protection. */
+export const CSRF_TOKEN_COOKIE = isProduction
+  ? "__Host-moistello_csrf"
+  : "moistello_csrf"
+
+export const CSRF_TOKEN_MAX_AGE = REFRESH_TOKEN_MAX_AGE
+
 /**
  * Attributes shared by both session cookies. `secure` tracks NODE_ENV because
  * a `Secure` cookie is dropped outright over plain http://, which would break

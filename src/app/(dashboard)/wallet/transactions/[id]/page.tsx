@@ -55,24 +55,24 @@ export default function TransactionDetailPage() {
         } catch (e) {
           console.warn("[tx-detail] Contribution fetch failed, trying payout:", e)
         }
-          try {
-            const pRes = await get(`/payouts/${txId}`)
-            const d = (pRes as Record<string, unknown>)?.data as Record<string, unknown> ?? pRes as Record<string, unknown>
-            const p = d?.payout as Record<string, unknown> ?? d as Record<string, unknown>
-            if (p?.id) {
-              found = {
-                id: String(p.id),
-                type: "received",
-                amount: Number(p.amount ?? 0),
-                description: "Payout",
-                createdAt: String(p.createdAt ?? ""),
-                txnHash: String(p.txnHash ?? ""),
-                source: "payout",
-              }
+
+        try {
+          const pRes = await get(`/payouts/${txId}`)
+          const d = (pRes as Record<string, unknown>)?.data as Record<string, unknown> ?? pRes as Record<string, unknown>
+          const p = d?.payout as Record<string, unknown> ?? d as Record<string, unknown>
+          if (p?.id) {
+            found = {
+              id: String(p.id),
+              type: "received",
+              amount: Number(p.amount ?? 0),
+              description: "Payout",
+              createdAt: String(p.createdAt ?? ""),
+              txnHash: String(p.txnHash ?? ""),
+              source: "payout",
             }
+          }
         } catch (e) {
           console.warn("[tx-detail] Payout not found:", e)
-        }
         }
 
         setTx(found)

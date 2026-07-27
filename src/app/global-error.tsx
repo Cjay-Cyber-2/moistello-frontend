@@ -1,8 +1,12 @@
 "use client"
 
-import Link from "next/link"
-import { Home, RefreshCw, ShieldAlert } from "lucide-react"
-
+export default function GlobalError({
+  error,
+  reset,
+}: {
+  error: Error & { digest?: string }
+  reset: () => void
+}) {
   const errorMessage =
     process.env.NODE_ENV === "development"
       ? error?.stack || error?.message || String(error)
