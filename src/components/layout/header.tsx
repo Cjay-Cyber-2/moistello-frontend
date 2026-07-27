@@ -20,6 +20,7 @@ import { Button } from "@/components/ui/button";
 import { useMultiWallet } from "@/hooks/use-multi-wallet";
 import { useNotificationStore } from "@/stores/notification-store";
 import { useTranslate } from "@/lib/locale/context";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 interface HeaderProps {
   onToggleMobileMenu: () => void;
@@ -90,6 +91,8 @@ export function Header({ onToggleMobileMenu, isMobileMenuOpen }: HeaderProps) {
           </nav>
 
           <div className="flex items-center gap-1.5">
+            <ThemeToggle />
+
             <button
               onClick={onToggleMobileMenu}
               className={cn(

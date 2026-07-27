@@ -106,13 +106,13 @@ export default function RootLayout({
   const csrfToken = requestHeaders.get("x-csrf-token") ?? undefined
 
   return (
-    <html lang="en" className="dark" suppressHydrationWarning>
+    <html lang="en" suppressHydrationWarning>
 <head>
         {csrfToken ? <meta name="csrf-token" content={csrfToken} /> : null}
          <script
             nonce={nonce}
             dangerouslySetInnerHTML={{
-              __html: `(function(){try{var t=localStorage.getItem('moistello_theme');if(t){var p=JSON.parse(t);if(p.state&&p.state.theme==='light'){document.documentElement.classList.remove('dark')}else if(p.state&&p.state.theme==='system'){if(!window.matchMedia('(prefers-color-scheme: dark)').matches){document.documentElement.classList.remove('dark')}}if(p.state&&p.state.density){document.documentElement.setAttribute('data-density',p.state.density)}if(p.state&&p.state.fontSize){document.documentElement.setAttribute('data-font-size',p.state.fontSize)}}else{document.documentElement.setAttribute('data-density','comfortable');document.documentElement.setAttribute('data-font-size','medium')}}catch(e){console.warn('[layout] Failed to apply theme:',e)}})()`,
+              __html: `(function(){try{var t=localStorage.getItem('moistello_theme');var theme='system';var density='comfortable';var fontSize='medium';if(t){var p=JSON.parse(t);if(p.state){theme=p.state.theme||'system';density=p.state.density||'comfortable';fontSize=p.state.fontSize||'medium'}}if(theme==='light'){document.documentElement.classList.remove('dark')}else if(theme==='dark'){document.documentElement.classList.add('dark')}else{var prefersDark=window.matchMedia('(prefers-color-scheme: dark)').matches;if(prefersDark){document.documentElement.classList.add('dark')}else{document.documentElement.classList.remove('dark')}}document.documentElement.setAttribute('data-density',density);document.documentElement.setAttribute('data-font-size',fontSize)}catch(e){console.warn('[layout] Failed to apply theme:',e)}})()`,
             }}
           />
          <script
