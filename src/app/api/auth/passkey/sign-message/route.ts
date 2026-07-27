@@ -3,14 +3,35 @@ import { getCredential, getPepper } from "@/lib/passkey/store"
 import { checkRateLimit, requireAuthenticatedUser } from "@/lib/passkey/auth-guard"
 import { deriveStellarKeypair, hexEncode, signWithSeed, secureZeroMemory } from "@/lib/crypto/key-derivation"
 
+// Allowed origins for CSRF protection (shared with sign-transaction).
+const ALLOWED_ORIGINS = process.env.ALLOWED_ORIGINS?.split(",") || []
+
+function checkCsrf(req: NextRequest): Response | null {
+  if (process.env.NODE_ENV === "development") return null
+  const origin = req.headers.get("origin")
+  const referer = req.headers.get("referer")
+  const source = origin || (referer ? new URL(referer).origin : null)
+  if (!source) {
+    return NextResponse.json({ error: "missing_origin" }, { status: 403 })
+  }
+  if (ALLOWED_ORIGINS.length > 0 && !ALLOWED_ORIGINS.includes(source)) {
+    return NextResponse.json({ error: "forbidden_origin" }, { status: 403 })
+  }
+  return null
+}
+
 export async function POST(req: NextRequest) {
   try {
+    const csrfErr = checkCsrf(req)
+    if (csrfErr) return csrfErr
+
     const auth = requireAuthenticatedUser(req)
     if (!auth.ok) {
       return auth.response
     }
 
-    const rateLimit = checkRateLimit(req, "sign-message")
+    // Shared rate-limit bucket with sign-transaction.
+    const rateLimit = checkRateLimit(req, "sign")
     if (!rateLimit.allowed) {
       return NextResponse.json({ error: "rate_limited" }, { status: 429, headers: { "Retry-After": String(Math.ceil(rateLimit.retryAfterMs / 1000)) } })
     }
@@ -37,6 +58,8 @@ export async function POST(req: NextRequest) {
     // this signing operation and is zeroed immediately after use — it is
     // never serialized into a response or persisted anywhere.
     const keypair = await deriveStellarKeypair(credentialId, getPepper())
+    const publicKeyHex = hexEncode(keypair.publicKey)
+
     let signature: Uint8Array
     try {
       const { sha256 } = await import("@noble/hashes/sha2.js")
@@ -48,7 +71,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({
       signature: hexEncode(signature),
-      publicKey: hexEncode(keypair.publicKey),
+      publicKey: publicKeyHex,
     })
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err)
