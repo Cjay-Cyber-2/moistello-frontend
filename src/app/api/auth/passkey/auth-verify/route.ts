@@ -9,7 +9,7 @@ import {
   getExpectedOrigin,
 } from "@/lib/passkey/store"
 import { checkRateLimit, requireAuthenticatedUser } from "@/lib/passkey/auth-guard"
-import { deriveStellarKeypair, hexEncode } from "@/lib/crypto/key-derivation"
+import { deriveStellarKeypair, hexEncode, secureZeroMemory } from "@/lib/crypto/key-derivation"
 
 export async function POST(req: NextRequest) {
   try {
@@ -86,12 +86,18 @@ export async function POST(req: NextRequest) {
       storedCredential.counter = verification.authenticationInfo.newCounter ?? storedCredential.counter
     }
 
+    // The Stellar secret key is derived here only to compute the public key.
+    // It must never be sent to the client — signing happens exclusively via
+    // the /sign-transaction and /sign-message routes, which re-derive it
+    // server-side on demand.
     const keypair = await deriveStellarKeypair(resolvedCredentialId, getPepper())
+    const publicKey = hexEncode(keypair.publicKey)
+    secureZeroMemory(keypair.secretKey)
+
     return NextResponse.json({
       verified: true,
       credentialId: resolvedCredentialId,
-      publicKey: hexEncode(keypair.publicKey),
-      secretKey: hexEncode(keypair.secretKey),
+      publicKey,
     })
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err)

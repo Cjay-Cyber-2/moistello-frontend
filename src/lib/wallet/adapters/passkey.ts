@@ -2,7 +2,6 @@ import { WalletAdapter, WalletMeta, SignOptions, NetworkType } from "../types"
 import { STELLAR_NETWORK } from "@/lib/constants"
 import {
   publicKeyToStellarAddress,
-  secureZeroMemory,
   hexEncode,
 } from "@/lib/crypto/key-derivation"
 import { hexToBytes } from "@noble/hashes/utils.js"
@@ -18,10 +17,12 @@ interface StoredCredential {
 // The wallet seed is derived from credentialId + server pepper (server-side only).
 // Do NOT encrypt this value — it must be readable across tabs and browser sessions.
 
+// The Stellar secret key never exists client-side: it is derived from
+// credentialId + server pepper exclusively inside the /sign-transaction and
+// /sign-message API routes. This session only ever holds public material.
 interface PasskeySession {
   credentialId: string
   publicKey: Uint8Array
-  secretKey: Uint8Array
   stellarAddress: string
 }
 
@@ -70,9 +71,6 @@ export function createPasskeyAdapter(): WalletAdapter {
   }
 
   function zeroSession(): void {
-    if (session) {
-      secureZeroMemory(session.secretKey)
-    }
     session = null
   }
 
@@ -123,18 +121,16 @@ export function createPasskeyAdapter(): WalletAdapter {
           throw { adapter: "passkey", code: "internal" as const, message: cause, cause: String(err) }
         }
 
-        const verifyResult = await apiPost<{ verified: boolean; credentialId: string; publicKey: string; secretKey: string }>(
+        const verifyResult = await apiPost<{ verified: boolean; credentialId: string; publicKey: string }>(
           "/api/auth/passkey/auth-verify",
           { credentialId: stored.credentialId, assertion, tempKey }
         )
 
         const publicKey = hexToBytes(verifyResult.publicKey)
-        const secretKey = hexToBytes(verifyResult.secretKey)
         const publicKeyHex = verifyResult.publicKey
         session = {
           credentialId: stored.credentialId,
           publicKey,
-          secretKey,
           stellarAddress: publicKeyToStellarAddress(publicKey),
         }
         return { publicKey: publicKeyHex }
@@ -172,13 +168,12 @@ export function createPasskeyAdapter(): WalletAdapter {
       const attestationRecord = attestation as { rawId?: string; id?: string }
       const credentialId = attestationRecord.rawId || attestationRecord.id || ""
 
-      const registerResult = await apiPost<{ verified: boolean; credentialId: string; publicKey: string; secretKey: string }>(
+      const registerResult = await apiPost<{ verified: boolean; credentialId: string; publicKey: string }>(
         "/api/auth/passkey/register",
         { attestation, tempKey }
       )
 
       const publicKey = hexToBytes(registerResult.publicKey)
-      const secretKey = hexToBytes(registerResult.secretKey)
       const publicKeyHex = registerResult.publicKey
 
       storeCredential({
@@ -189,7 +184,6 @@ export function createPasskeyAdapter(): WalletAdapter {
       session = {
         credentialId,
         publicKey,
-        secretKey,
         stellarAddress: publicKeyToStellarAddress(publicKey),
       }
 
@@ -221,24 +215,12 @@ export function createPasskeyAdapter(): WalletAdapter {
         throw { adapter: "passkey", code: "not_installed" as const, message: "Not authenticated" }
       }
 
-      try {
-        const { sign } = await import("@noble/ed25519") as unknown as { sign: (m: Uint8Array, k: Uint8Array) => Uint8Array }
-        const { sha256 } = await import("@noble/hashes/sha2.js")
-        const msgBytes = new TextEncoder().encode(message)
-        const hashBytes = sha256(msgBytes)
-        const signature = sign(hashBytes, session.secretKey)
-        return {
-          signature: hexEncode(signature),
-          publicKey: hexEncode(session.publicKey),
-        }
-      } catch (err: unknown) {
-        throw {
-          adapter: "passkey",
-          code: "internal" as const,
-          message: "Failed to sign message",
-          cause: err instanceof Error ? err.message : String(err),
-        }
-      }
+      const result = await apiPost<{ signature: string; publicKey: string }>(
+        "/api/auth/passkey/sign-message",
+        { credentialId: session.credentialId, message }
+      )
+
+      return { signature: result.signature, publicKey: result.publicKey }
     },
 
     async signTransaction(xdr: string, opts?: SignOptions) {
@@ -246,72 +228,13 @@ export function createPasskeyAdapter(): WalletAdapter {
         throw { adapter: "passkey", code: "not_installed" as const, message: "Not authenticated" }
       }
 
-      try {
-        const { Keypair, Transaction, xdr: stellarXdr } = await import("@stellar/stellar-base")
-        const networkPassphrase = resolveNetworkPassphrase(opts?.network, opts?.networkPassphrase)
+      const networkPassphrase = resolveNetworkPassphrase(opts?.network, opts?.networkPassphrase)
+      const result = await apiPost<{ signedXdr: string }>(
+        "/api/auth/passkey/sign-transaction",
+        { credentialId: session.credentialId, xdr, networkPassphrase }
+      )
 
-        let envelope
-        try {
-          envelope = stellarXdr.TransactionEnvelope.fromXDR(xdr, "base64")
-        } catch (parseErr: unknown) {
-          throw {
-            adapter: "passkey",
-            code: "internal" as const,
-            message: "Invalid transaction XDR format",
-            cause: parseErr instanceof Error ? parseErr.message : String(parseErr),
-          }
-        }
-
-        let tx
-        try {
-          tx = new Transaction(envelope, networkPassphrase)
-        } catch (txErr: unknown) {
-          throw {
-            adapter: "passkey",
-            code: "internal" as const,
-            message: "Failed to create transaction from envelope",
-            cause: txErr instanceof Error ? txErr.message : String(txErr),
-          }
-        }
-
-        let kp
-        try {
-          const secretKeyBytes = new Uint8Array(session.secretKey)
-          kp = Keypair.fromRawEd25519Seed(Buffer.from(secretKeyBytes))
-        } catch (kpErr: unknown) {
-          throw {
-            adapter: "passkey",
-            code: "internal" as const,
-            message: "Failed to create keypair from session key",
-            cause: kpErr instanceof Error ? kpErr.message : String(kpErr),
-          }
-        }
-
-        try {
-          tx.sign(kp)
-        } catch (signErr: unknown) {
-          throw {
-            adapter: "passkey",
-            code: "internal" as const,
-            message: "Failed to apply signature to transaction",
-            cause: signErr instanceof Error ? signErr.message : String(signErr),
-          }
-        }
-
-        const signedXdr = tx.toEnvelope().toXDR("base64")
-        return { signedXdr }
-      } catch (err: unknown) {
-        // Re-throw already-formatted errors from granular try/catch blocks
-        if (err && typeof err === "object" && "adapter" in err) {
-          throw err
-        }
-        throw {
-          adapter: "passkey",
-          code: "internal" as const,
-          message: "Failed to sign transaction",
-          cause: err instanceof Error ? err.message : String(err),
-        }
-      }
+      return { signedXdr: result.signedXdr }
     },
 
     async getNetwork() {

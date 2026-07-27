@@ -5,22 +5,6 @@ vi.mock("@simplewebauthn/browser", () => ({
   startAuthentication: vi.fn(),
 }))
 
-vi.mock("@noble/ed25519", () => ({
-  getPublicKey: vi.fn((seed: Uint8Array) => seed.slice(0, 32)),
-  sign: vi.fn(() => new Uint8Array(64).fill(99)),
-  etc: {
-    bytesToHex: vi.fn((b: Uint8Array) => Array.from(b).map(x => x.toString(16).padStart(2, '0')).join('')),
-    concatBytes: vi.fn((...arrays: Uint8Array[]) => {
-      let len = 0
-      for (const a of arrays) len += a.length
-      const r = new Uint8Array(len)
-      let pos = 0
-      for (const a of arrays) { r.set(a, pos); pos += a.length }
-      return r
-    }),
-  },
-}))
-
 const mockFetch = vi.fn()
 global.fetch = mockFetch
 
@@ -57,7 +41,8 @@ const mockAssertion = {
   response: { clientDataJSON: "{}", authenticatorData: "{}", signature: "{}" },
 }
 
-const keypairResponse = { verified: true, email: "user@test.com", publicKey: "a".repeat(64), secretKey: "b".repeat(64) }
+const keypairResponse = { verified: true, email: "user@test.com", publicKey: "a".repeat(64) }
+const signMessageResponse = { signature: "c".repeat(128), publicKey: "a".repeat(64) }
 
 describe("Passkey Integration — end-to-end flows", () => {
   beforeEach(() => {
@@ -73,6 +58,9 @@ describe("Passkey Integration — end-to-end flows", () => {
       }
       if (url.includes("/auth-verify")) {
         return new Response(JSON.stringify(keypairResponse))
+      }
+      if (url.includes("/sign-message")) {
+        return new Response(JSON.stringify(signMessageResponse))
       }
       return new Response(JSON.stringify({}), { status: 404 })
     })

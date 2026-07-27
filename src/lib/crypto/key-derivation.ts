@@ -72,6 +72,28 @@ function base32Encode(data: Uint8Array): string {
   return result
 }
 
+type Ed25519Module = {
+  etc: { sha512Sync?: (...msgs: Uint8Array[]) => Uint8Array; concatBytes: (...arrs: Uint8Array[]) => Uint8Array }
+  getPublicKey: (seed: Uint8Array) => Uint8Array
+  sign: (msg: Uint8Array, key: Uint8Array) => Uint8Array
+}
+
+async function getEd25519(): Promise<Ed25519Module> {
+  const ed = await import("@noble/ed25519") as unknown as Ed25519Module
+  if (!ed.etc.sha512Sync) {
+    const { sha512: sha512Hash } = await import("@noble/hashes/sha2.js") as unknown as { sha512: (...msgs: Uint8Array[]) => Uint8Array }
+    ed.etc.sha512Sync = (...msgs: Uint8Array[]) => sha512Hash(ed.etc.concatBytes(...msgs))
+  }
+  return ed
+}
+
+/**
+ * Derives the Stellar Ed25519 keypair from a passkey credential ID and the
+ * server-side pepper. This must only ever be called server-side — the pepper
+ * is never sent to the client, and the returned secretKey must never be
+ * serialized into an API response. Callers are responsible for zeroing
+ * `secretKey` (via `secureZeroMemory`) once signing is complete.
+ */
 export async function deriveStellarKeypair(
   credentialId: string,
   serverPepper?: string,
@@ -90,14 +112,19 @@ export async function deriveStellarKeypair(
     { c: PBKDF2_ITERATIONS, dkLen: 32 }
   )
 
-  const ed = await import("@noble/ed25519") as unknown as { etc: { sha512Sync?: (...msgs: Uint8Array[]) => Uint8Array; concatBytes: (...arrs: Uint8Array[]) => Uint8Array }; getPublicKey: (seed: Uint8Array) => Uint8Array; sign: (msg: Uint8Array, key: Uint8Array) => Uint8Array }
-  if (!ed.etc.sha512Sync) {
-    const { sha512: sha512Hash } = await import("@noble/hashes/sha2.js") as unknown as { sha512: (...msgs: Uint8Array[]) => Uint8Array }
-    ed.etc.sha512Sync = (...msgs: Uint8Array[]) => sha512Hash(ed.etc.concatBytes(...msgs))
-  }
+  const ed = await getEd25519()
   const publicKey = ed.getPublicKey(seed)
 
   return { publicKey, secretKey: seed }
+}
+
+/**
+ * Signs a message with a raw Ed25519 seed. Used by server-side signing
+ * routes so the derived secret key never has to leave the server process.
+ */
+export async function signWithSeed(message: Uint8Array, seed: Uint8Array): Promise<Uint8Array> {
+  const ed = await getEd25519()
+  return ed.sign(message, seed)
 }
 
 export function publicKeyToStellarAddress(publicKey: Uint8Array): string {

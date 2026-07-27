@@ -6,46 +6,6 @@ vi.mock("@simplewebauthn/browser", () => ({
   startAuthentication: vi.fn(),
 }))
 
-// Mock noble-ed25519
-vi.mock("@noble/ed25519", () => ({
-  getPublicKey: vi.fn((seed: Uint8Array) => seed.slice(0, 32)),
-  sign: vi.fn(() => new Uint8Array(64).fill(99)),
-  etc: {
-    bytesToHex: vi.fn((b: Uint8Array) => Array.from(b).map(x => x.toString(16).padStart(2, '0')).join('')),
-    concatBytes: vi.fn((...arrays: Uint8Array[]) => {
-      let len = 0
-      for (const a of arrays) len += a.length
-      const r = new Uint8Array(len)
-      let pos = 0
-      for (const a of arrays) { r.set(a, pos); pos += a.length }
-      return r
-    }),
-  },
-}))
-
-// Mock stellar-base for controlled test behavior
-const mockSignedXdr =
-  "AAAAAgAAAAAZf2sj4WyFMsaryDj6zV6nib4MdrKSAzQDm/qLPTaNYQAAAGQAAAAAAAAAAQAAAAEAAAAAAAAAAAAAAABqF+POAAAAAAAAAAEAAAAAAAAAAQAAAABCzwVZeQ9sO2TeFRIN8Lslyqt9wttPtKGKNeiBvzI69wAAAAAAAAAAAJiWgAAAAAAAAAABPTaNYQAAAEBATUu5C3pxDGuXruyHgDvDHwgJZBlklafJMM8VSy2EMTUhk4Ez+ewCF/sekMAX5VynMxCdtfsd/KHR3gvI0HYK"
-
-vi.mock("@stellar/stellar-base", () => {
-  function MockTransaction(...args: unknown[]) {
-    const instance = {
-      sign: vi.fn(),
-      toEnvelope: vi.fn(() => ({ toXDR: vi.fn(() => mockSignedXdr) })),
-    }
-    // Store for test inspection
-    ;(globalThis as Record<string, unknown>).__lastTxCall = { args, instance }
-    return instance
-  }
-  return {
-    Keypair: { fromRawEd25519Seed: vi.fn(() => ({ sign: vi.fn(), signatureHint: vi.fn(() => Buffer.from("hint")) })) },
-    Transaction: MockTransaction,
-    xdr: {
-      TransactionEnvelope: { fromXDR: vi.fn(() => ({})) },
-    },
-  }
-})
-
 // Polyfill PublicKeyCredential for jsdom
 Object.defineProperty(globalThis, "PublicKeyCredential", {
   value: class MockPublicKeyCredential {},
@@ -74,13 +34,22 @@ import { startRegistration } from "@simplewebauthn/browser"
 const validUnsignedXdr =
   "AAAAAgAAAAAZf2sj4WyFMsaryDj6zV6nib4MdrKSAzQDm/qLPTaNYQAAAGQAAAAAAAAAAQAAAAEAAAAAAAAAAAAAAABqF+POAAAAAAAAAAEAAAAAAAAAAQAAAABCzwVZeQ9sO2TeFRIN8Lslyqt9wttPtKGKNeiBvzI69wAAAAAAAAAAAJiWgAAAAAAAAAAA"
 
+const mockSignedXdr =
+  "AAAAAgAAAAAZf2sj4WyFMsaryDj6zV6nib4MdrKSAzQDm/qLPTaNYQAAAGQAAAAAAAAAAQAAAAEAAAAAAAAAAAAAAABqF+POAAAAAAAAAAEAAAAAAAAAAQAAAABCzwVZeQ9sO2TeFRIN8Lslyqt9wttPtKGKNeiBvzI69wAAAAAAAAAAAJiWgAAAAAAAAAABPTaNYQAAAEBATUu5C3pxDGuXruyHgDvDHwgJZBlklafJMM8VSy2EMTUhk4Ez+ewCF/sekMAX5VynMxCdtfsd/KHR3gvI0HYK"
+
 const mockAttestation = {
   id: "test-credential-id-123",
   rawId: "test-credential-id-123",
   response: { clientDataJSON: "{}", attestationObject: "{}" },
 }
 
-const keypairResponse = { verified: true, email: "user@test.com", publicKey: "a".repeat(64), secretKey: "b".repeat(64) }
+const keypairResponse = { verified: true, email: "user@test.com", publicKey: "a".repeat(64) }
+
+function lastSignTransactionBody(): Record<string, unknown> {
+  const call = mockFetch.mock.calls.find(([url]) => String(url).includes("/sign-transaction"))
+  if (!call) throw new Error("sign-transaction was never called")
+  return JSON.parse(call[1].body)
+}
 
 describe("signTransaction — comprehensive", () => {
   beforeEach(() => {
@@ -94,6 +63,9 @@ describe("signTransaction — comprehensive", () => {
       if (url.includes("/register")) {
         return new Response(JSON.stringify({ ...keypairResponse, credentialId: "test-credential-id-123" }))
       }
+      if (url.includes("/sign-transaction")) {
+        return new Response(JSON.stringify({ signedXdr: mockSignedXdr }))
+      }
       return new Response(JSON.stringify({}), { status: 404 })
     })
   })
@@ -101,7 +73,7 @@ describe("signTransaction — comprehensive", () => {
   it("returns a signed XDR string different from input", async () => {
     vi.mocked(startRegistration).mockResolvedValueOnce(mockAttestation as never)
     const adapter = createPasskeyAdapter()
-    await adapter.connect("user@test.com")
+    await adapter.connect()
 
     const result = await adapter.signTransaction(validUnsignedXdr)
 
@@ -123,59 +95,52 @@ describe("signTransaction — comprehensive", () => {
     }
   })
 
-  it("passes network passphrase to Transaction constructor", async () => {
+  it("never sends a secret key — only credentialId and xdr are forwarded to the server", async () => {
     vi.mocked(startRegistration).mockResolvedValueOnce(mockAttestation as never)
     const adapter = createPasskeyAdapter()
-    await adapter.connect("user@test.com")
+    await adapter.connect()
+
+    await adapter.signTransaction(validUnsignedXdr)
+    const body = lastSignTransactionBody()
+    expect(body.credentialId).toBe("test-credential-id-123")
+    expect(body.xdr).toBe(validUnsignedXdr)
+    expect(body).not.toHaveProperty("secretKey")
+  })
+
+  it("passes mainnet passphrase to the sign-transaction endpoint", async () => {
+    vi.mocked(startRegistration).mockResolvedValueOnce(mockAttestation as never)
+    const adapter = createPasskeyAdapter()
+    await adapter.connect()
 
     await adapter.signTransaction(validUnsignedXdr, { network: "mainnet" })
-    const lastCall = (globalThis as Record<string, unknown>).__lastTxCall as { args: unknown[] }
-    expect(lastCall).toBeDefined()
-    expect(lastCall.args[1]).toBe("Public Global Stellar Network ; September 2015")
+    expect(lastSignTransactionBody().networkPassphrase).toBe("Public Global Stellar Network ; September 2015")
   })
 
   it("passes testnet passphrase by default", async () => {
     vi.mocked(startRegistration).mockResolvedValueOnce(mockAttestation as never)
     const adapter = createPasskeyAdapter()
-    await adapter.connect("user@test.com")
+    await adapter.connect()
 
     await adapter.signTransaction(validUnsignedXdr)
-    const lastCall = (globalThis as Record<string, unknown>).__lastTxCall as { args: unknown[] }
-    expect(lastCall).toBeDefined()
-    expect(lastCall.args[1]).toBe("Test SDF Network ; September 2015")
+    expect(lastSignTransactionBody().networkPassphrase).toBe("Test SDF Network ; September 2015")
   })
 
   it("uses networkPassphrase option over network shorthand", async () => {
     vi.mocked(startRegistration).mockResolvedValueOnce(mockAttestation as never)
     const adapter = createPasskeyAdapter()
-    await adapter.connect("user@test.com")
+    await adapter.connect()
 
     await adapter.signTransaction(validUnsignedXdr, {
       network: "testnet",
       networkPassphrase: "Custom Network ; 2024",
     })
-    const lastCall = (globalThis as Record<string, unknown>).__lastTxCall as { args: unknown[] }
-    expect(lastCall).toBeDefined()
-    expect(lastCall.args[1]).toBe("Custom Network ; 2024")
+    expect(lastSignTransactionBody().networkPassphrase).toBe("Custom Network ; 2024")
   })
 
-  it("uses secret key bytes from session to create keypair", async () => {
+  it("returns the signedXdr from the server response verbatim", async () => {
     vi.mocked(startRegistration).mockResolvedValueOnce(mockAttestation as never)
     const adapter = createPasskeyAdapter()
-    await adapter.connect("user@test.com")
-
-    await adapter.signTransaction(validUnsignedXdr)
-    const { Keypair } = await import("@stellar/stellar-base")
-    expect(Keypair.fromRawEd25519Seed).toHaveBeenCalledTimes(1)
-    const seedArg = (Keypair.fromRawEd25519Seed as ReturnType<typeof vi.fn>).mock.calls[0][0]
-    expect(Buffer.isBuffer(seedArg)).toBe(true)
-    expect(seedArg.length).toBe(32)
-  })
-
-  it("returns signed XDR from envelope.toXDR", async () => {
-    vi.mocked(startRegistration).mockResolvedValueOnce(mockAttestation as never)
-    const adapter = createPasskeyAdapter()
-    await adapter.connect("user@test.com")
+    await adapter.connect()
 
     const result = await adapter.signTransaction(validUnsignedXdr)
     expect(result.signedXdr).toBe(mockSignedXdr)
@@ -198,46 +163,35 @@ describe("signTransaction — error handling", () => {
     })
   })
 
-  it("throws internal error with descriptive message on invalid XDR", async () => {
+  it("throws internal error with the server's error message on invalid XDR", async () => {
     vi.mocked(startRegistration).mockResolvedValueOnce(mockAttestation as never)
     const adapter = createPasskeyAdapter()
-    await adapter.connect("user@test.com")
+    await adapter.connect()
 
-    const { xdr: stellarXdr } = await import("@stellar/stellar-base")
-    ;(stellarXdr.TransactionEnvelope.fromXDR as ReturnType<typeof vi.fn>).mockImplementationOnce(() => {
-      throw new Error("XDR read error: invalid buffer")
+    mockFetch.mockImplementation(async (url: string) => {
+      if (url.includes("/sign-transaction")) {
+        return new Response(JSON.stringify({ error: "invalid_xdr" }), { status: 400 })
+      }
+      return new Response(JSON.stringify({}), { status: 404 })
     })
 
     try {
       await adapter.signTransaction("not-valid-base64!!!")
       expect.unreachable("Should have thrown")
     } catch (e) {
-      const err = e as { code: string; message: string; cause?: string }
+      const err = e as { code: string; message: string; adapter: string }
       expect(err.code).toBe("internal")
-      expect(err.message).toContain("Invalid transaction XDR")
-      expect(err.cause).toBeDefined()
+      expect(err.message).toBe("invalid_xdr")
+      expect(err.adapter).toBe("passkey")
     }
   })
 
-  it("throws internal error when Transaction construction fails", async () => {
-    vi.mocked(startRegistration).mockResolvedValueOnce(mockAttestation as never)
-    // The mock already has MockTransaction as a constructor, so this error path won't
-    // be hit unless we mock it differently. Let's test the base case differently.
-    const adapter = createPasskeyAdapter()
-    await adapter.connect("user@test.com")
-    const result = await adapter.signTransaction(validUnsignedXdr)
-    expect(result.signedXdr).toBeDefined()
-  })
-
-  it("preserves adapter field in error objects", async () => {
+  it("preserves adapter field in error objects when the server request fails", async () => {
     vi.mocked(startRegistration).mockResolvedValueOnce(mockAttestation as never)
     const adapter = createPasskeyAdapter()
-    await adapter.connect("user@test.com")
+    await adapter.connect()
 
-    const { xdr: stellarXdr } = await import("@stellar/stellar-base")
-    ;(stellarXdr.TransactionEnvelope.fromXDR as ReturnType<typeof vi.fn>).mockImplementationOnce(() => {
-      throw new Error("parse error")
-    })
+    mockFetch.mockImplementation(async () => new Response(JSON.stringify({ error: "internal_error" }), { status: 500 }))
 
     try {
       await adapter.signTransaction(validUnsignedXdr)
