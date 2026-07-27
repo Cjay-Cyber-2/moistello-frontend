@@ -131,6 +131,8 @@ export const Routes = {
   WALLET_ADDRESSES: "/wallet/addresses",
   WALLET_SETTINGS: "/wallet/settings",
   NOTIFICATIONS: "/notifications",
+  GOVERNANCE: "/governance",
+  REFERRALS: "/referrals",
   INVITE: (code: string) => `/invite/${code}`,
   TERMS: "/terms",
   PRIVACY: "/privacy",
