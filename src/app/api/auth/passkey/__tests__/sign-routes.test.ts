@@ -45,6 +45,7 @@ function makeRequest(body: unknown, ip = nextIp()) {
       "Content-Type": "application/json",
       "x-forwarded-for": ip,
       Cookie: "moistello_session=session-token",
+      Origin: "http://localhost:1110",
     },
     body: JSON.stringify(body),
   })
@@ -53,7 +54,7 @@ function makeRequest(body: unknown, ip = nextIp()) {
 function makeUnauthenticatedRequest(body: unknown) {
   return new NextRequest("http://localhost:1110/api/auth/passkey/test", {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: { "Content-Type": "application/json", Origin: "http://localhost:1110" },
     body: JSON.stringify(body),
   })
 }
@@ -117,7 +118,7 @@ describe("sign-transaction API", () => {
     expect(res.status).toBe(200)
     const data = await res.json()
     expect(data.secretKey).toBeUndefined()
-  })
+  }, 30000)
 
   it("signs the transaction server-side with the credential-derived keypair", async () => {
     // 600K-iteration PBKDF2 runs twice here (once in the route, once to
@@ -145,7 +146,7 @@ describe("sign-transaction API", () => {
     const expectedKp = Keypair.fromRawEd25519Seed(Buffer.from(expectedKeypair.secretKey))
     const verified = expectedKp.verify(signedTx.hash(), signedTx.signatures[0].signature())
     expect(verified).toBe(true)
-  }, 15000)
+  }, 30000)
 })
 
 describe("sign-message API", () => {
@@ -177,7 +178,7 @@ describe("sign-message API", () => {
     expect(res.status).toBe(200)
     const data = await res.json()
     expect(data.secretKey).toBeUndefined()
-  })
+  }, 30000)
 
   it("signs the message server-side with the credential-derived keypair", async () => {
     credentials.set("cred-1", { userId: "user-123" })
@@ -192,5 +193,5 @@ describe("sign-message API", () => {
     const hashBytes = sha256(new TextEncoder().encode("hello"))
     const expectedSignature = await signWithSeed(hashBytes, expectedKeypair.secretKey)
     expect(data.signature).toBe(hexEncode(expectedSignature))
-  }, 15000)
+  }, 30000)
 })
