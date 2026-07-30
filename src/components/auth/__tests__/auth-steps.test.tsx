@@ -1,0 +1,176 @@
+import { render, screen, fireEvent, waitFor } from "@testing-library/react"
+import { describe, it, expect, vi } from "vitest"
+import React from "react"
+import { ChooseWalletStep } from "../choose-wallet-step"
+import { ProfileStep } from "../profile-step"
+import { SignStep } from "../sign-step"
+import { LocaleProvider } from "@/lib/locale/context"
+
+const sampleWallets = [
+  {
+    id: "freighter",
+    name: "Freighter",
+    category: "extension",
+    icon: <span>F</span>,
+    description: "Freighter wallet",
+    status: "detected" as const,
+  },
+  {
+    id: "passkey",
+    name: "Passkey",
+    category: "passkey",
+    icon: <span>P</span>,
+    description: "Biometric passkey",
+    status: "detected" as const,
+  },
+]
+
+describe("ChooseWalletStep", () => {
+  it("renders passkey recommendation button in register mode", () => {
+    render(
+      <ChooseWalletStep
+        mode="register"
+        wallets={sampleWallets}
+        isScanning={false}
+        connectingWalletId={null}
+        wc2PairingUri={null}
+        wc2PairingState="idle"
+        wc2PairingError={null}
+        wc2QrExpiresAt={null}
+        onSelectWallet={vi.fn()}
+        onWc2Cancel={vi.fn()}
+        onWc2Retry={vi.fn()}
+      />
+    )
+
+    expect(screen.getByText("Passkey")).toBeInTheDocument()
+    expect(screen.getByText("Recommended")).toBeInTheDocument()
+  })
+
+  it("calls onSelectWallet when wallet clicked", () => {
+    const handleSelect = vi.fn()
+    render(
+      <ChooseWalletStep
+        mode="register"
+        wallets={sampleWallets}
+        isScanning={false}
+        connectingWalletId={null}
+        wc2PairingUri={null}
+        wc2PairingState="idle"
+        wc2PairingError={null}
+        wc2QrExpiresAt={null}
+        onSelectWallet={handleSelect}
+        onWc2Cancel={vi.fn()}
+        onWc2Retry={vi.fn()}
+      />
+    )
+
+    fireEvent.click(screen.getByText("Freighter"))
+    expect(handleSelect).toHaveBeenCalledWith("freighter")
+  })
+
+  it("shows scanning loader when isScanning is true", () => {
+    render(
+      <ChooseWalletStep
+        mode="login"
+        wallets={[]}
+        isScanning={true}
+        connectingWalletId={null}
+        wc2PairingUri={null}
+        wc2PairingState="idle"
+        wc2PairingError={null}
+        wc2QrExpiresAt={null}
+        onSelectWallet={vi.fn()}
+        onWc2Cancel={vi.fn()}
+        onWc2Retry={vi.fn()}
+      />
+    )
+
+    expect(screen.getByText("Detecting wallets...")).toBeInTheDocument()
+  })
+})
+
+describe("ProfileStep", () => {
+  it("renders display name and language options", () => {
+    render(
+      <LocaleProvider>
+        <ProfileStep
+          displayName="Alex"
+          language="en"
+          onUpdateLanguage={vi.fn()}
+          onSubmit={vi.fn()}
+        />
+      </LocaleProvider>
+    )
+
+    expect(screen.getByText("Alex")).toBeInTheDocument()
+    expect(screen.getByText("English")).toBeInTheDocument()
+  })
+
+  it("calls onSubmit when continue button clicked", () => {
+    const handleSubmit = vi.fn()
+    render(
+      <LocaleProvider>
+        <ProfileStep
+          displayName="Alex"
+          language="en"
+          onUpdateLanguage={vi.fn()}
+          onSubmit={handleSubmit}
+        />
+      </LocaleProvider>
+    )
+
+    const continueBtn = screen.getByRole("button", { name: /continue/i })
+    fireEvent.click(continueBtn)
+    expect(handleSubmit).toHaveBeenCalledTimes(1)
+  })
+})
+
+describe("SignStep", () => {
+  const defaultProps = {
+    mode: "login" as const,
+    connection: { walletId: "freighter", address: "GAAXEXAMPLEKEY1234567890TESTNETADDRESS" },
+    profile: { displayName: "Alex", countryCode: "US", language: "en" },
+    auth: { nonce: "nonce-123", signature: null, nonceTimestamp: Date.now() },
+    status: { status: "idle" as const },
+    error: null,
+    onSign: vi.fn(),
+    onBack: vi.fn(),
+  }
+
+  it("renders connected wallet badge and sign button", () => {
+    render(
+      <LocaleProvider>
+        <SignStep {...defaultProps} />
+      </LocaleProvider>
+    )
+
+    expect(screen.getByText("freighter")).toBeInTheDocument()
+    expect(screen.getByRole("button", { name: /sign in/i })).toBeInTheDocument()
+  })
+
+  it("triggers onSign when sign button is clicked", async () => {
+    const handleSign = vi.fn().mockResolvedValue(undefined)
+    render(
+      <LocaleProvider>
+        <SignStep {...defaultProps} onSign={handleSign} />
+      </LocaleProvider>
+    )
+
+    fireEvent.click(screen.getByRole("button", { name: /sign in/i }))
+    await waitFor(() => expect(handleSign).toHaveBeenCalledTimes(1))
+  })
+
+  it("shows redirecting state when status is authenticated", () => {
+    render(
+      <LocaleProvider>
+        <SignStep
+          {...defaultProps}
+          status={{ status: "authenticated" }}
+        />
+      </LocaleProvider>
+    )
+
+    expect(screen.getByRole("status")).toBeInTheDocument()
+  })
+})
