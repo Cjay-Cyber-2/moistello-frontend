@@ -3,27 +3,27 @@ import { STELLAR_NETWORK } from "@/lib/constants"
 import {
   publicKeyToStellarAddress,
   hexEncode,
+  secureZeroMemory,
 } from "@/lib/crypto/key-derivation"
 import { hexToBytes } from "@noble/hashes/utils.js"
 
 const CREDENTIAL_STORAGE_KEY = "moistello_passkey_credential"
 
-interface StoredCredential {
+export interface StoredCredential {
   credentialId: string
   publicKeyRaw: string
+  email?: string
 }
 
 // Stored as plain JSON — credentialId is a public identifier, not a secret.
 // The wallet seed is derived from credentialId + server pepper (server-side only).
 // Do NOT encrypt this value — it must be readable across tabs and browser sessions.
 
-// The Stellar secret key never exists client-side: it is derived from
-// credentialId + server pepper exclusively inside the /sign-transaction and
-// /sign-message API routes. This session only ever holds public material.
 interface PasskeySession {
   credentialId: string
   publicKey: Uint8Array
   stellarAddress: string
+  expiresAt: number
 }
 
 function resolveNetworkPassphrase(network?: NetworkType, networkPassphrase?: string): string {
@@ -71,7 +71,10 @@ export function createPasskeyAdapter(): WalletAdapter {
   }
 
   function zeroSession(): void {
-    session = null
+    if (session) {
+      secureZeroMemory(session.publicKey)
+      session = null
+    }
   }
 
   async function apiPost<T>(url: string, body: unknown): Promise<T> {
@@ -82,7 +85,11 @@ export function createPasskeyAdapter(): WalletAdapter {
     })
     if (!res.ok) {
       const data = await res.json().catch(() => ({}))
-      throw { adapter: "passkey" as const, code: "internal" as const, message: (data as Record<string, unknown>).error as string || "Request failed" }
+      throw {
+        adapter: "passkey" as const,
+        code: "internal" as const,
+        message: ((data as Record<string, unknown>).error as string) || "Request failed",
+      }
     }
     return res.json()
   }
@@ -90,20 +97,20 @@ export function createPasskeyAdapter(): WalletAdapter {
   return {
     meta,
 
-    async connect() {
+    async connect(email?: string) {
       if (typeof window === "undefined") {
         throw { adapter: "passkey", code: "not_supported" as const, message: "Not available server-side" }
       }
 
-      if (session) {
+      if (session && Date.now() < session.expiresAt) {
         return { publicKey: hexEncode(session.publicKey) }
       }
 
       const { startRegistration, startAuthentication } = await import("@simplewebauthn/browser")
       const stored = getStoredCredential()
 
-      // Stored credential path — existing user logging in
-      if (stored) {
+      // Stored credential path — existing user logging in (unless email is explicitly provided for re-registration)
+      if (stored && !email) {
         const { options, tempKey } = await apiPost<{ options: Record<string, unknown>; tempKey: string }>(
           "/api/auth/passkey/generate-options",
           { credentialId: stored.credentialId, mode: "authenticate" }
@@ -111,8 +118,10 @@ export function createPasskeyAdapter(): WalletAdapter {
 
         let assertion: unknown
         try {
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          assertion = await startAuthentication({ optionsJSON: options as any })
+          assertion = await startAuthentication({
+            optionsJSON: options as unknown as Parameters<typeof startAuthentication>[0]["optionsJSON"],
+            useBrowserAutofill: true,
+          })
         } catch (err: unknown) {
           if (err instanceof Error && err.name === "NotAllowedError") {
             throw { adapter: "passkey", code: "user_rejected" as const, message: "Authentication cancelled" }
@@ -132,15 +141,14 @@ export function createPasskeyAdapter(): WalletAdapter {
           credentialId: stored.credentialId,
           publicKey,
           stellarAddress: publicKeyToStellarAddress(publicKey),
+          expiresAt: Date.now() + 3600000,
         }
         return { publicKey: publicKeyHex }
       }
 
-      // No stored credential — first-time registration
-      // GUARD: If there's already a credential in localStorage but we failed to read it,
-      // do NOT silently overwrite. The user must explicitly clear credentials first.
+      // No stored credential or explicit registration flow requested
       const existingRaw = localStorage.getItem(CREDENTIAL_STORAGE_KEY)
-      if (existingRaw) {
+      if (existingRaw && !email) {
         throw {
           adapter: "passkey",
           code: "credential_unreadable" as const,
@@ -150,13 +158,14 @@ export function createPasskeyAdapter(): WalletAdapter {
 
       const { options, tempKey } = await apiPost<{ options: Record<string, unknown>; tempKey: string }>(
         "/api/auth/passkey/generate-options",
-        { mode: "register" }
+        { mode: "register", email }
       )
 
       let attestation: unknown
       try {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        attestation = await startRegistration({ optionsJSON: options as any })
+        attestation = await startRegistration({
+          optionsJSON: options as unknown as Parameters<typeof startRegistration>[0]["optionsJSON"],
+        })
       } catch (err: unknown) {
         if (err instanceof Error && err.name === "NotAllowedError") {
           throw { adapter: "passkey", code: "user_rejected" as const, message: "Registration cancelled" }
@@ -170,7 +179,7 @@ export function createPasskeyAdapter(): WalletAdapter {
 
       const registerResult = await apiPost<{ verified: boolean; credentialId: string; publicKey: string }>(
         "/api/auth/passkey/register",
-        { attestation, tempKey }
+        { attestation, tempKey, email }
       )
 
       const publicKey = hexToBytes(registerResult.publicKey)
@@ -179,12 +188,14 @@ export function createPasskeyAdapter(): WalletAdapter {
       storeCredential({
         credentialId,
         publicKeyRaw: publicKeyHex,
+        email,
       })
 
       session = {
         credentialId,
         publicKey,
         stellarAddress: publicKeyToStellarAddress(publicKey),
+        expiresAt: Date.now() + 3600000,
       }
 
       return { publicKey: publicKeyHex }
@@ -200,18 +211,18 @@ export function createPasskeyAdapter(): WalletAdapter {
     },
 
     async isConnected() {
-      return session !== null
+      return session !== null && Date.now() < session.expiresAt
     },
 
     async getPublicKey() {
-      if (!session) {
+      if (!session || Date.now() >= session.expiresAt) {
         throw { adapter: "passkey", code: "not_installed" as const, message: "Not authenticated" }
       }
       return hexEncode(session.publicKey)
     },
 
     async signMessage(message: string) {
-      if (!session) {
+      if (!session || Date.now() >= session.expiresAt) {
         throw { adapter: "passkey", code: "not_installed" as const, message: "Not authenticated" }
       }
 
@@ -224,7 +235,7 @@ export function createPasskeyAdapter(): WalletAdapter {
     },
 
     async signTransaction(xdr: string, opts?: SignOptions) {
-      if (!session) {
+      if (!session || Date.now() >= session.expiresAt) {
         throw { adapter: "passkey", code: "not_installed" as const, message: "Not authenticated" }
       }
 

@@ -97,11 +97,13 @@ async function getEd25519(): Promise<Ed25519Module> {
 export async function deriveStellarKeypair(
   credentialId: string,
   serverPepper?: string,
+  email?: string,
 ): Promise<{ publicKey: Uint8Array; secretKey: Uint8Array }> {
   // Server pepper is REQUIRED for production. The fallback is for local dev only.
   const pepper = serverPepper || "moistello-local-dev"
-  const passphrase = `${credentialId}:${pepper}`
-  const saltInput = `v1:${credentialId.slice(0, 16)}`
+  const normalizedEmail = email ? email.toLowerCase().trim() : ""
+  const passphrase = normalizedEmail ? `${normalizedEmail}:${credentialId}:${pepper}` : `${credentialId}:${pepper}`
+  const saltInput = normalizedEmail ? `v1:${normalizedEmail}:${credentialId.slice(0, 16)}` : `v1:${credentialId.slice(0, 16)}`
   const salt = sha256(new TextEncoder().encode(saltInput))
   const passphraseBytes = new TextEncoder().encode(passphrase)
 

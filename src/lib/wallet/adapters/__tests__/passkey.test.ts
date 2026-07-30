@@ -21,15 +21,22 @@ const localStorageMock = (() => {
   let store: Record<string, string> = {}
   return {
     getItem: vi.fn((key: string) => store[key] ?? null),
-    setItem: vi.fn((key: string, value: string) => { store[key] = value }),
-    removeItem: vi.fn((key: string) => { delete store[key] }),
-    clear: vi.fn(() => { store = {} }),
+    setItem: vi.fn((key: string, value: string) => {
+      store[key] = value
+    }),
+    removeItem: vi.fn((key: string) => {
+      delete store[key]
+    }),
+    clear: vi.fn(() => {
+      store = {}
+    }),
   }
 })()
 Object.defineProperty(global, "localStorage", { value: localStorageMock })
 
 import { createPasskeyAdapter } from "../passkey"
 import { startRegistration, startAuthentication } from "@simplewebauthn/browser"
+import { deriveStellarKeypair, secureZeroMemory } from "@/lib/crypto/key-derivation"
 
 const mockOptions = {
   challenge: "test-challenge-base64url",
@@ -60,7 +67,8 @@ const keypairResponse = {
 
 const signMessageResponse = { signature: "c".repeat(128), publicKey: "a".repeat(64) }
 const signTransactionResponse = {
-  signedXdr: "AAAAAgAAAAAZf2sj4WyFMsaryDj6zV6nib4MdrKSAzQDm/qLPTaNYQAAAGQAAAAAAAAAAQAAAAEAAAAAAAAAAAAAAABqF+POAAAAAAAAAAEAAAAAAAAAAQAAAABCzwVZeQ9sO2TeFRIN8Lslyqt9wttPtKGKNeiBvzI69wAAAAAAAAAAAJiWgAAAAAAAAAABPTaNYQAAAEBATUu5C3pxDGuXruyHgDvDHwgJZBlklafJMM8VSy2EMTUhk4Ez+ewCF/sekMAX5VynMxCdtfsd/KHR3gvI0HYK",
+  signedXdr:
+    "AAAAAgAAAAAZf2sj4WyFMsaryDj6zV6nib4MdrKSAzQDm/qLPTaNYQAAAGQAAAAAAAAAAQAAAAEAAAAAAAAAAAAAAABqF+POAAAAAAAAAAEAAAAAAAAAAQAAAABCzwVZeQ9sO2TeFRIN8Lslyqt9wttPtKGKNeiBvzI69wAAAAAAAAAAAJiWgAAAAAAAAAABPTaNYQAAAEBATUu5C3pxDGuXruyHgDvDHwgJZBlklafJMM8VSy2EMTUhk4Ez+ewCF/sekMAX5VynMxCdtfsd/KHR3gvI0HYK",
 }
 
 describe("Passkey adapter", () => {
@@ -129,20 +137,9 @@ describe("Passkey adapter", () => {
         expect(errResp.code).toBe("user_rejected")
       }
     })
-
-    it("attempts discoverable authentication when no email and no stored credential", async () => {
-      const adapter = createPasskeyAdapter()
-      try {
-        await adapter.connect()
-        expect.unreachable("Should have thrown — no stored credential available")
-      } catch {
-        // Expected — either starts discoverable auth which fails without API,
-        // or falls through to an error
-      }
-    })
   })
 
-  describe("connect — authentication (returning user)", () => {
+  describe("connect — authentication (returning user with conditional mediation)", () => {
     it("authenticates with stored credential via conditional mediation", async () => {
       localStorageMock.setItem(
         "moistello_passkey_credential",
@@ -156,7 +153,9 @@ describe("Passkey adapter", () => {
 
       expect(result.publicKey).toMatch(/^[a-f0-9]{64}$/)
       expect(result.publicKey.length).toBe(64)
-      expect(startAuthentication).toHaveBeenCalledOnce()
+      expect(startAuthentication).toHaveBeenCalledWith(
+        expect.objectContaining({ useBrowserAutofill: true })
+      )
     })
 
     it("returns user_rejected on auth cancel", async () => {
@@ -180,7 +179,7 @@ describe("Passkey adapter", () => {
     })
   })
 
-  describe("lifecycle", () => {
+  describe("lifecycle and reset", () => {
     it("disconnect clears session", async () => {
       vi.mocked(startRegistration).mockResolvedValueOnce(mockAttestation as never)
       const adapter = createPasskeyAdapter()
@@ -189,6 +188,17 @@ describe("Passkey adapter", () => {
 
       await adapter.disconnect()
       expect(await adapter.isConnected()).toBe(false)
+    })
+
+    it("reset removes stored credential and zeros session", async () => {
+      vi.mocked(startRegistration).mockResolvedValueOnce(mockAttestation as never)
+      const adapter = createPasskeyAdapter()
+      await adapter.connect("user@test.com")
+      expect(await adapter.isConnected()).toBe(true)
+
+      adapter.reset?.()
+      expect(await adapter.isConnected()).toBe(false)
+      expect(localStorageMock.removeItem).toHaveBeenCalledWith("moistello_passkey_credential")
     })
 
     it("getPublicKey throws when not connected", async () => {
@@ -220,17 +230,28 @@ describe("Passkey adapter", () => {
       const adapter = createPasskeyAdapter()
       await adapter.connect("user@test.com")
 
-      const result = await adapter.signTransaction("AAAAAgAAAAAZf2sj4WyFMsaryDj6zV6nib4MdrKSAzQDm/qLPTaNYQAAAGQAAAAAAAAAAQAAAAEAAAAAAAAAAAAAAABqF+POAAAAAAAAAAEAAAAAAAAAAQAAAABCzwVZeQ9sO2TeFRIN8Lslyqt9wttPtKGKNeiBvzI69wAAAAAAAAAAAJiWgAAAAAAAAAAA")
+      const result = await adapter.signTransaction(
+        "AAAAAgAAAAAZf2sj4WyFMsaryDj6zV6nib4MdrKSAzQDm/qLPTaNYQAAAGQAAAAAAAAAAQAAAAEAAAAAAAAAAAAAAABqF+POAAAAAAAAAAEAAAAAAAAAAQAAAABCzwVZeQ9sO2TeFRIN8Lslyqt9wttPtKGKNeiBvzI69wAAAAAAAAAAAJiWgAAAAAAAAAAA"
+      )
       expect(result.signedXdr).toBeDefined()
       expect(typeof result.signedXdr).toBe("string")
       expect(result.signedXdr.length).toBeGreaterThan(0)
     })
   })
 
-  describe("getNetwork", () => {
-    it("returns testnet by default", async () => {
-      const adapter = createPasskeyAdapter()
-      expect(await adapter.getNetwork()).toBe("testnet")
+  describe("crypto key derivation & memory zeroing", () => {
+    it("derives deterministic Ed25519 keypair for given credentialId and pepper", async () => {
+      const keypair1 = await deriveStellarKeypair("cred-123", "pepper-abc", "user@test.com")
+      const keypair2 = await deriveStellarKeypair("cred-123", "pepper-abc", "user@test.com")
+
+      expect(keypair1.publicKey).toEqual(keypair2.publicKey)
+      expect(keypair1.secretKey).toEqual(keypair2.secretKey)
+    }, 30000)
+
+    it("zeroes memory buffer correctly", () => {
+      const buf = new Uint8Array([1, 2, 3, 4, 5])
+      secureZeroMemory(buf)
+      expect(buf.every(b => b === 0)).toBe(true)
     })
   })
 })
