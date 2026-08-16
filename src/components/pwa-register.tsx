@@ -12,7 +12,6 @@ interface BeforeInstallPromptEvent extends Event {
  */
 export function PwaRegister() {
   const [installPrompt, setInstallPrompt] = useState<BeforeInstallPromptEvent | null>(null)
-  const [isInstalled, setIsInstalled] = useState(false)
 
   useEffect(() => {
     const cleanup: (() => void)[] = []
@@ -37,17 +36,11 @@ export function PwaRegister() {
 
     // Check if app is already installed
     const handleAppInstalled = () => {
-      setIsInstalled(true)
       setInstallPrompt(null)
     }
 
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt)
     window.addEventListener('appinstalled', handleAppInstalled)
-
-    // Check if running as standalone (already installed)
-    if (window.matchMedia('(display-mode: standalone)').matches) {
-      setIsInstalled(true)
-    }
 
     return () => {
       window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt)

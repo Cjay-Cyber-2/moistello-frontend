@@ -131,7 +131,7 @@ export default function CreateCircleWizard({ communityId }: CreateCircleWizardPr
 
   return (
     <div className="mx-auto max-w-2xl">
-      <CreateStepIndicator currentStep={currentStep} steps={STEP_LABELS} />
+      <CreateStepIndicator currentStep={currentStep} steps={STEP_LABELS.map((label, i) => ({ label, number: i + 1 }))} />
       <div className="glass-premium rounded-2xl p-6 md:p-8 holo-border">
         <div key={`step-${currentStep}`}>
           <StepC

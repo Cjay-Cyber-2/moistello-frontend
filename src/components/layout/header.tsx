@@ -21,7 +21,6 @@ import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { useMultiWallet } from "@/hooks/use-multi-wallet";
 import { useNotificationStore } from "@/stores/notification-store";
 import { useTranslate } from "@/lib/locale/context";
-import { ThemeToggle } from "@/components/theme-toggle";
 
 interface HeaderProps {
   onToggleMobileMenu: () => void;

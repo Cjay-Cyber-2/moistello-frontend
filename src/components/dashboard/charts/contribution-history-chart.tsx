@@ -36,7 +36,7 @@ export function ContributionHistoryChart({
     }
 
     // Get date range based on period
-    let startDate = new Date(now)
+    const startDate = new Date(now)
     if (period === 'week') {
       startDate.setDate(now.getDate() - 7)
     } else if (period === 'month') {

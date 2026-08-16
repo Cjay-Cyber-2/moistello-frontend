@@ -294,7 +294,6 @@ export function TierCard({ score }: TierCardProps) {
             </h4>
             <div className="grid gap-2.5">
               {lockedBenefits.map((benefit) => {
-                const BIcon = getBenefitIcon(benefit)
                 return (
                   <div key={benefit} className="flex items-center gap-3 text-sm text-muted-foreground/60">
                     <span className="shrink-0 flex h-7 w-7 items-center justify-center rounded-lg bg-muted/30">
