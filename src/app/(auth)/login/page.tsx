@@ -4,7 +4,7 @@
 import React, { useState, useCallback, useEffect } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { Mail, LogIn, Shield, Lock, ArrowLeft, Wallet } from "lucide-react"
+import { Mail, LogIn, Shield, Lock, ArrowLeft } from "lucide-react"
 import { post } from "@/lib/api-client"
 import { useAuthStore } from "@/stores/auth-store"
 import { useUIStore } from "@/stores/ui-store"

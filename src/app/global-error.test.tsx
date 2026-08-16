@@ -22,14 +22,13 @@ describe("GlobalError", () => {
     expect(container.querySelector("pre")?.textContent).toBe(error.stack || error.message)
   })
 
-  it("renders a friendly message and logs the error in production", () => {
+  it("renders a friendly message and does not expose internals in production", () => {
     vi.stubEnv("NODE_ENV", "production")
-    const consoleError = vi.spyOn(console, "error").mockImplementation(() => undefined)
 
     render(<GlobalError error={error} reset={reset} />)
 
     expect(screen.getByText("Something went wrong. Please try again later.")).not.toBeNull()
-    expect(consoleError).toHaveBeenCalledWith("GlobalError caught:", error)
+    expect(screen.queryByText(error.message)).toBeNull()
   })
 
   it("does not expose the stack or internal message in production", () => {

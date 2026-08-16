@@ -1,11 +1,6 @@
-import { render, screen, fireEvent, waitFor, act } from "@testing-library/react"
-import { describe, it, expect, vi, beforeEach } from "vitest"
-import React from "react"
+import { act } from "@testing-library/react"
+import { describe, it, expect, beforeEach } from "vitest"
 import { useAuthFlowStore } from "@/stores/auth-flow-store"
-import { ChooseWalletStep } from "@/components/auth/choose-wallet-step"
-import { ProfileStep } from "@/components/auth/profile-step"
-import { SignStep } from "@/components/auth/sign-step"
-import { LocaleProvider } from "@/lib/locale/context"
 
 describe("Auth System Integration Flows", () => {
   beforeEach(() => {
@@ -78,9 +73,10 @@ describe("Auth System Integration Flows", () => {
     })
     expect(isValid).toBe(false)
 
-    // Set valid display name
+    // Set valid display name and country
     act(() => {
       useAuthFlowStore.getState().updateProfileField("displayName", "Alice")
+      useAuthFlowStore.getState().updateProfileField("countryCode", "NG")
       isValid = useAuthFlowStore.getState().validateProfile()
     })
     expect(isValid).toBe(true)

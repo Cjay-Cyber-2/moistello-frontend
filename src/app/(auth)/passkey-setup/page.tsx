@@ -2,10 +2,9 @@
 
 import { useState, useCallback, useEffect } from "react"
 import { useRouter } from "next/navigation"
-import { Shield, Fingerprint, CheckCircle, AlertCircle, ArrowLeft, Loader2 } from "lucide-react"
+import { Shield, Fingerprint, CheckCircle, AlertCircle, Loader2 } from "lucide-react"
 import { useAuthStore } from "@/stores/auth-store"
 import { useUIStore } from "@/stores/ui-store"
-import { useMultiWalletStore } from "@/stores/multi-wallet-store"
 import { AuthLayout } from "@/components/auth/auth-layout"
 import { Button } from "@/components/ui/button"
 import { post } from "@/lib/api-client"
@@ -18,7 +17,6 @@ export default function PasskeySetupPage() {
   const [step, setStep] = useState<"intro" | "registering" | "success" | "error">("intro")
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
-  const [passkeyPublicKey, setPasskeyPublicKey] = useState<string | null>(null)
 
   // Redirect if not authenticated
   useEffect(() => {
@@ -47,22 +45,22 @@ export default function PasskeySetupPage() {
       }
 
       // Register with backend
-      const res: any = await post("/auth/passkey/register", {
+      const res = await post<{ data?: Record<string, unknown> } & Record<string, unknown>>("/auth/passkey/register", {
         credentialId,
         publicKey,
         userId: user?.id,
       })
       
-      const body = res?.data ?? res
+      const body = res?.data ?? res as Record<string, unknown>
       if (body?.success) {
-        setPasskeyPublicKey(publicKey)
         setStep("success")
         addToast({ type: "success", title: "Passkey registered successfully" })
       } else {
-        throw new Error(body?.error || "Registration failed")
+        throw new Error(typeof body?.error === "string" ? body.error : "Registration failed")
       }
-    } catch (err: any) {
-      setError(err?.message || "Passkey registration failed")
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Passkey registration failed"
+      setError(msg)
       setStep("error")
     } finally {
       setLoading(false)
@@ -87,7 +85,7 @@ export default function PasskeySetupPage() {
                   Biometric Authentication
                 </h3>
                 <p className="text-sm text-muted-foreground mt-2 max-w-sm">
-                  Set up a passkey to sign in instantly using your device's biometric (Face ID, Touch ID, or fingerprint).
+                  Set up a passkey to sign in instantly using your device&apos;s biometric (Face ID, Touch ID, or fingerprint).
                 </p>
               </div>
             </div>
@@ -104,7 +102,7 @@ export default function PasskeySetupPage() {
                 <CheckCircle className="h-5 w-5 text-emerald-400 shrink-0 mt-0.5" />
                 <div>
                   <p className="font-medium text-foreground">Phishing-resistant</p>
-                  <p className="text-muted-foreground text-xs mt-0.5">Passkeys can't be stolen or reused</p>
+                  <p className="text-muted-foreground text-xs mt-0.5">Passkeys can&apos;t be stolen or reused</p>
                 </div>
               </div>
               <div className="flex items-start gap-3 text-sm">
@@ -145,7 +143,7 @@ export default function PasskeySetupPage() {
                 Registering Passkey...
               </p>
               <p className="text-sm text-muted-foreground mt-2">
-                Follow your device's prompts to complete registration
+                Follow your device&apos;s prompts to complete registration
               </p>
             </div>
           </div>
@@ -161,7 +159,7 @@ export default function PasskeySetupPage() {
                 Passkey Registered!
               </h3>
               <p className="text-sm text-muted-foreground mt-2 max-w-sm">
-                You can now sign in instantly using your device's biometric authentication.
+                You can now sign in instantly using your device&apos;s biometric authentication.
               </p>
             </div>
 

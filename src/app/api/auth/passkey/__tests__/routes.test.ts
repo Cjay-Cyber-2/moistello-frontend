@@ -1,7 +1,10 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest"
+// @vitest-environment node
+import { describe, it, expect, vi, beforeEach } from "vitest"
 import fs from "fs"
 import path from "path"
 import { NextRequest } from "next/server"
+
+vi.stubGlobal("fetch", vi.fn().mockResolvedValue({ ok: true, json: () => Promise.resolve({}) }))
 
 vi.mock("@simplewebauthn/server", () => ({
   generateRegistrationOptions: vi.fn().mockResolvedValue({
@@ -40,6 +43,22 @@ vi.mock("@simplewebauthn/server", () => ({
   }),
 }))
 
+const routeRedisStore = new Map<string, { value: string; expiresAt: number }>()
+vi.mock("@/lib/redis/client", () => ({
+  getRedisClient: vi.fn().mockResolvedValue({
+    async set(key: string, value: string, _ex: string, ttlSeconds: number) {
+      routeRedisStore.set(key, { value, expiresAt: Date.now() + ttlSeconds * 1000 })
+    },
+    async get(key: string) {
+      const entry = routeRedisStore.get(key)
+      if (!entry) return null
+      if (Date.now() > entry.expiresAt) { routeRedisStore.delete(key); return null }
+      return entry.value
+    },
+    async del(key: string) { routeRedisStore.delete(key) },
+  }),
+}))
+
 import { POST as generateOptions } from "../generate-options/route"
 import { POST as register } from "../register/route"
 import { POST as authVerify } from "../auth-verify/route"
@@ -63,18 +82,9 @@ function makeRequest(body: unknown, ip = "127.0.0.1") {
   })
 }
 
-function makeUnauthenticatedRequest(body: unknown) {
-  return new NextRequest("http://localhost:1110/api/auth/passkey/test", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(body),
-  })
-}
-
-describe("passkey API security", () => {
+  describe("passkey API security", () => {
   beforeEach(() => {
+    writeSessionFixture()
     vi.clearAllMocks()
   })
 
@@ -90,6 +100,12 @@ describe("passkey API security", () => {
   })
 
   it("returns authentication options with tempKey for valid credentialId", async () => {
+    const { storeCredential } = await import("@/lib/passkey/store")
+    await storeCredential("cred-id-123", {
+      publicKey: new Uint8Array(32).fill(42),
+      counter: 0,
+      transports: ["internal"],
+    })
     const res = await generateOptions(makeRequest({ credentialId: "cred-id-123", mode: "authenticate" }))
     expect(res.status).toBe(200)
     const data = await res.json()
@@ -114,19 +130,20 @@ describe("passkey API security", () => {
     const res = await generateOptions(makeRequest({ mode: "register" }))
     const { tempKey } = await res.json()
     const { getAndVerifyTempChallenge } = await import("@/lib/passkey/store")
-    expect(getAndVerifyTempChallenge(tempKey, "reg-challenge-abc")).toBe(true)
+    expect(await getAndVerifyTempChallenge(tempKey, "reg-challenge-abc")).toBe(true)
   })
 
   it("stores challenge retrievable via tempKey for authentication", async () => {
     const res = await generateOptions(makeRequest({ credentialId: "cred-id-123", mode: "authenticate" }))
     const { tempKey } = await res.json()
     const { getAndVerifyTempChallenge } = await import("@/lib/passkey/store")
-    expect(getAndVerifyTempChallenge(tempKey, "auth-challenge-xyz")).toBe(true)
+    expect(await getAndVerifyTempChallenge(tempKey, "auth-challenge-xyz")).toBe(true)
   })
 })
 
-describe("register API", () => {
+  describe("register API", () => {
   beforeEach(() => {
+    writeSessionFixture()
     vi.clearAllMocks()
   })
 
@@ -196,6 +213,7 @@ describe("register API", () => {
 
 describe("auth-verify API", () => {
   beforeEach(() => {
+    writeSessionFixture()
     vi.clearAllMocks()
   })
 
@@ -224,6 +242,7 @@ describe("auth-verify API", () => {
     await storeCredential("cred-id-123", {
       publicKey: new Uint8Array(32).fill(1),
       counter: 0,
+      userId: "user-123",
     })
 
     const res = await authVerify(makeRequest({
@@ -240,6 +259,7 @@ describe("auth-verify API", () => {
     await storeCredential("cred-id-123", {
       publicKey: new Uint8Array(32).fill(1),
       counter: 0,
+      userId: "user-123",
     })
 
     const res = await authVerify(makeRequest({

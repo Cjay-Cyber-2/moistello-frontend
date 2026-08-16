@@ -49,7 +49,7 @@ export const metadata: Metadata = {
     nocache: false,
   },
   manifest: "/manifest.json",
-  appleWeb: {
+  appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
   },
@@ -112,7 +112,6 @@ export default function RootLayout({
          <script
             nonce={nonce}
             dangerouslySetInnerHTML={{
-              __html: `(function(){try{var t=localStorage.getItem('moistello_theme');if(t){var p=JSON.parse(t);var theme=p.state?.theme;if(theme==='light'){document.documentElement.classList.remove('dark')}else if(theme==='dark'){document.documentElement.classList.add('dark')}else if(theme==='system'){var prefersDark=window.matchMedia('(prefers-color-scheme: dark)').matches;if(prefersDark){document.documentElement.classList.add('dark')}else{document.documentElement.classList.remove('dark')}}if(p.state?.density){document.documentElement.setAttribute('data-density',p.state.density)}if(p.state?.fontSize){document.documentElement.setAttribute('data-font-size',p.state.fontSize)}}else{var prefersDark=window.matchMedia('(prefers-color-scheme: dark)').matches;if(prefersDark){document.documentElement.classList.add('dark')}document.documentElement.setAttribute('data-density','comfortable');document.documentElement.setAttribute('data-font-size','medium')}}catch(e){console.warn('[layout] Failed to apply theme:',e)}})()`,
               __html: `(function(){try{var t=localStorage.getItem('moistello_theme');var theme='system';var density='comfortable';var fontSize='medium';if(t){var p=JSON.parse(t);if(p.state){theme=p.state.theme||'system';density=p.state.density||'comfortable';fontSize=p.state.fontSize||'medium'}}if(theme==='light'){document.documentElement.classList.remove('dark')}else if(theme==='dark'){document.documentElement.classList.add('dark')}else{var prefersDark=window.matchMedia('(prefers-color-scheme: dark)').matches;if(prefersDark){document.documentElement.classList.add('dark')}else{document.documentElement.classList.remove('dark')}}document.documentElement.setAttribute('data-density',density);document.documentElement.setAttribute('data-font-size',fontSize)}catch(e){console.warn('[layout] Failed to apply theme:',e)}})()`,
             }}
           />
