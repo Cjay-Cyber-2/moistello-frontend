@@ -137,7 +137,7 @@ describe("WalletGrid", () => {
   ]
 
   it("renders a grid of wallet cards", () => {
-    render(<WalletGrid wallets={wallets} onSelect={vi.fn()} />)
+    render(<WalletGrid wallets={wallets} connectingWalletId={null} onSelect={vi.fn()} />)
 
     expect(screen.getByText("Freighter")).toBeInTheDocument()
     expect(screen.getByText("Rabet")).toBeInTheDocument()
@@ -145,7 +145,7 @@ describe("WalletGrid", () => {
 
   it("calls onSelect with selected wallet id", () => {
     const handleSelect = vi.fn()
-    render(<WalletGrid wallets={wallets} onSelect={handleSelect} />)
+    render(<WalletGrid wallets={wallets} connectingWalletId={null} onSelect={handleSelect} />)
 
     fireEvent.click(screen.getByText("Freighter"))
     expect(handleSelect).toHaveBeenCalledWith("freighter")

@@ -1,6 +1,9 @@
 "use client"
 
+import { useState } from "react"
+import { AlertTriangle, Check, Copy, Download } from "lucide-react"
 import { copyToClipboard } from "@/lib/clipboard"
+import { Button } from "@/components/ui/button"
 
 interface BackupCodesProps {
   codes: string[]

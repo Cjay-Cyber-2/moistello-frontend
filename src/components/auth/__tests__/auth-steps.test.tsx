@@ -5,86 +5,61 @@ import { ChooseWalletStep } from "../choose-wallet-step"
 import { ProfileStep } from "../profile-step"
 import { SignStep } from "../sign-step"
 import { LocaleProvider } from "@/lib/locale/context"
-
-const sampleWallets = [
-  {
-    id: "freighter",
-    name: "Freighter",
-    category: "extension",
-    icon: <span>F</span>,
-    description: "Freighter wallet",
-    status: "detected" as const,
-  },
-  {
-    id: "passkey",
-    name: "Passkey",
-    category: "passkey",
-    icon: <span>P</span>,
-    description: "Biometric passkey",
-    status: "detected" as const,
-  },
-]
+import { useMultiWalletStore } from "@/stores/multi-wallet-store"
 
 describe("ChooseWalletStep", () => {
+  beforeEach(() => {
+    useMultiWalletStore.setState({
+      detectedWallets: [
+        {
+          id: "freighter",
+          name: "Freighter",
+          category: "extension",
+          icon: "freighter-icon",
+          installUrl: "https://example.com",
+          description: "Freighter wallet",
+          priority: 1,
+          status: "detected",
+        },
+        {
+          id: "passkey",
+          name: "Passkey",
+          category: "passkey",
+          icon: "passkey-icon",
+          installUrl: "",
+          description: "Biometric passkey",
+          priority: 2,
+          status: "detected",
+        },
+      ],
+      isScanning: false,
+      connectingWalletId: null,
+      wc2PairingState: "idle",
+      wc2PairingUri: null,
+      wc2PairingError: null,
+      wc2QrExpiresAt: null,
+    })
+  })
+
   it("renders passkey recommendation button in register mode", () => {
-    render(
-      <ChooseWalletStep
-        mode="register"
-        wallets={sampleWallets}
-        isScanning={false}
-        connectingWalletId={null}
-        wc2PairingUri={null}
-        wc2PairingState="idle"
-        wc2PairingError={null}
-        wc2QrExpiresAt={null}
-        onSelectWallet={vi.fn()}
-        onWc2Cancel={vi.fn()}
-        onWc2Retry={vi.fn()}
-      />
-    )
+    render(<ChooseWalletStep mode="register" />)
 
     expect(screen.getByText("Passkey")).toBeInTheDocument()
     expect(screen.getByText("Recommended")).toBeInTheDocument()
   })
 
-  it("calls onSelectWallet when wallet clicked", () => {
-    const handleSelect = vi.fn()
-    render(
-      <ChooseWalletStep
-        mode="register"
-        wallets={sampleWallets}
-        isScanning={false}
-        connectingWalletId={null}
-        wc2PairingUri={null}
-        wc2PairingState="idle"
-        wc2PairingError={null}
-        wc2QrExpiresAt={null}
-        onSelectWallet={handleSelect}
-        onWc2Cancel={vi.fn()}
-        onWc2Retry={vi.fn()}
-      />
-    )
+  it("calls connect store action when wallet clicked", () => {
+    const connect = vi.fn()
+    useMultiWalletStore.setState({ connect })
+    render(<ChooseWalletStep mode="register" />)
 
     fireEvent.click(screen.getByText("Freighter"))
-    expect(handleSelect).toHaveBeenCalledWith("freighter")
+    expect(connect).toHaveBeenCalledWith("freighter")
   })
 
   it("shows scanning loader when isScanning is true", () => {
-    render(
-      <ChooseWalletStep
-        mode="login"
-        wallets={[]}
-        isScanning={true}
-        connectingWalletId={null}
-        wc2PairingUri={null}
-        wc2PairingState="idle"
-        wc2PairingError={null}
-        wc2QrExpiresAt={null}
-        onSelectWallet={vi.fn()}
-        onWc2Cancel={vi.fn()}
-        onWc2Retry={vi.fn()}
-      />
-    )
+    useMultiWalletStore.setState({ isScanning: true, detectedWallets: [] })
+    render(<ChooseWalletStep mode="login" />)
 
     expect(screen.getByText("Detecting wallets...")).toBeInTheDocument()
   })
@@ -104,7 +79,7 @@ describe("ProfileStep", () => {
     )
 
     expect(screen.getByText("Alex")).toBeInTheDocument()
-    expect(screen.getByText("English")).toBeInTheDocument()
+    expect(screen.getByText("en")).toBeInTheDocument()
   })
 
   it("calls onSubmit when continue button clicked", () => {
