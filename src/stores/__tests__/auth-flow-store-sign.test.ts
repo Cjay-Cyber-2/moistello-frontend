@@ -126,7 +126,7 @@ describe("AuthFlowStore - signAndSubmit", () => {
       },
       { _retry: true },
     )
-    expect(mockSetTokens).toHaveBeenCalledWith("jwt-token", "refresh-token")
+    expect(mockSetTokens).toHaveBeenCalledWith("jwt-token", "refresh-token", { id: "user-1" })
 
     const state = useAuthFlowStore.getState()
     expect(state.status).toEqual({ status: "authenticated" })
@@ -241,7 +241,6 @@ describe("AuthFlowStore - signAndSubmit", () => {
       mode: "register",
       profile: {
         displayName: "Test User",
-        email: "test@example.com",
         countryCode: "US",
         language: "en",
         fieldErrors: {},
@@ -267,7 +266,6 @@ describe("AuthFlowStore - signAndSubmit", () => {
         nonce: "nonce-123",
         passkeyVersion: 0,
         displayName: "Test User",
-        email: "test@example.com",
         countryCode: "US",
         preferredLanguage: "en",
       },

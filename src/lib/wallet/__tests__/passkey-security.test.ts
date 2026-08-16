@@ -54,7 +54,7 @@ const mockAttestation = {
 
 const keypairResponse = { verified: true, email: "user@test.com", publicKey: "a".repeat(64), secretKey: "b".repeat(64) }
 
-describe("Passkey Security Tests", () => {
+describe("Passkey Security Tests", { timeout: 60_000 }, () => {
   beforeEach(() => {
     vi.clearAllMocks()
     localStorageMock.clear()

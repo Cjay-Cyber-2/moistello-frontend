@@ -78,7 +78,7 @@ describe("WC2 Integration — Registry", () => {
     const adapter = registry.getAdapter("walletconnect")
     const methods = ["connect", "disconnect", "isConnected", "signMessage", "signTransaction", "getPublicKey", "getNetwork"]
     for (const method of methods) {
-      expect(typeof (adapter as Record<string, unknown>)[method]).toBe("function")
+      expect(typeof (adapter as unknown as Record<string, unknown>)[method]).toBe("function")
     }
   })
 
@@ -163,7 +163,7 @@ describe("WC2 — Stellar Account Parsing", () => {
   })
 
   it("derives network type testnet from chain stellar:testnet", () => {
-    const chainId = "stellar:testnet"
+    const chainId: string = "stellar:testnet"
     const network = chainId === "stellar:pubnet" ? "mainnet" : "testnet"
     expect(network).toBe("testnet")
   })

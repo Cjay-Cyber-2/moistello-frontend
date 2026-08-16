@@ -10,10 +10,12 @@ vi.mock("@/lib/api-client", () => ({
 function makeNotification(overrides: Partial<Notification> = {}): Notification {
   return {
     id: `n-${Math.random().toString(36).slice(2, 8)}`,
+    userId: "u-test",
     type: "info",
     title: "Test notification",
-    message: "This is a test",
+    body: "This is a test",
     isRead: false,
+    channel: "in_app",
     createdAt: new Date().toISOString(),
     ...overrides,
   };

@@ -40,8 +40,11 @@ describe("useUIStore", () => {
       expect(useUIStore.getState().theme).toBe("system");
     });
 
-    it("toggles between dark and light", () => {
+    it("toggles through the cycle dark → system → light → dark", () => {
       useUIStore.setState({ theme: "dark" });
+      useUIStore.getState().toggleTheme();
+      expect(useUIStore.getState().theme).toBe("system");
+
       useUIStore.getState().toggleTheme();
       expect(useUIStore.getState().theme).toBe("light");
 

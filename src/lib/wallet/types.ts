@@ -16,7 +16,7 @@ export interface WalletMeta {
 export interface WalletAdapter {
   meta: WalletMeta
 
-  connect(): Promise<{ publicKey: string }>
+  connect(email?: string): Promise<{ publicKey: string }>
   disconnect(): Promise<void>
   isConnected(): Promise<boolean>
 

@@ -18,7 +18,7 @@ vi.mock("@walletconnect/sign-client", () => ({
 }))
 
 const mockRelay = {
-  status: "healthy" as const,
+  status: "healthy" as "healthy" | "down",
   recordOutcome: vi.fn(),
   reset: vi.fn(),
   get isDownForConnect(): boolean {
@@ -221,7 +221,7 @@ describe("WalletConnect Adapter", () => {
         await adapter.signMessage("test-message")
         expect.unreachable("Should have thrown")
       } catch (err: unknown) {
-        const e = err as { code: string }
+        const e = err as { code: string; message: string }
         expect(e.code).toBe("not_installed")
         expect(e.message).toContain("not connected")
       }

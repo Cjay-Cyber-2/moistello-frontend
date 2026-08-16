@@ -34,7 +34,7 @@ describe("useIntersectionObserver", () => {
     const entry = {
       isIntersecting: true,
       target: node,
-    } as IntersectionObserverEntry
+    } as unknown as IntersectionObserverEntry
     act(() => callback?.([entry], {} as IntersectionObserver))
     expect(result.current.entry).toBe(entry)
     expect(result.current.isIntersecting).toBe(true)

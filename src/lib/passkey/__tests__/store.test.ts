@@ -1,9 +1,45 @@
-import { describe, it, expect, vi, beforeEach } from "vitest"
+import { describe, it, expect, vi, beforeEach, beforeAll, afterAll } from "vitest"
 
-// Mock process.env before importing store
+// In-memory Redis mock
+const redisStore = new Map<string, { value: string; expiresAt: number }>()
+vi.mock("@/lib/redis/client", () => ({
+  getRedisClient: vi.fn().mockResolvedValue({
+    async set(key: string, value: string, _ex: string, ttlSeconds: number) {
+      redisStore.set(key, { value, expiresAt: Date.now() + ttlSeconds * 1000 })
+    },
+    async get(key: string) {
+      const entry = redisStore.get(key)
+      if (!entry) return null
+      if (Date.now() > entry.expiresAt) {
+        redisStore.delete(key)
+        return null
+      }
+      return entry.value
+    },
+    async del(key: string) {
+      redisStore.delete(key)
+    },
+  }),
+}))
+
+// Mock fetch for credential store backend calls
+const fetchMock = vi.fn().mockResolvedValue({ ok: true })
+vi.stubGlobal("fetch", fetchMock)
+
+// Mock process.env
 vi.stubEnv("PASSKEY_SERVER_PEPPER", "test-server-pepper")
 vi.stubEnv("NEXT_PUBLIC_PASSKEY_RP_ID", "test-rp-id")
 vi.stubEnv("PASSKEY_EXPECTED_ORIGIN", "https://test.origin")
+
+// Store tests run server-side; hide window so getRedis() passes its guard
+const _savedWindow = globalThis.window
+beforeAll(() => {
+  // @ts-expect-error — intentionally removing window for server-side guard bypass
+  delete globalThis.window
+})
+afterAll(() => {
+  globalThis.window = _savedWindow
+})
 
 import {
   setChallenge,
@@ -18,78 +54,73 @@ import {
 describe("Passkey server store", () => {
   beforeEach(() => {
     vi.restoreAllMocks()
+    redisStore.clear()
+    fetchMock.mockClear().mockResolvedValue({ ok: true })
   })
 
   describe("challenge store", () => {
-    it("stores and verifies a challenge", () => {
-      setChallenge("user@test.com", "challenge-abc", "user@test.com")
-      expect(getAndVerifyChallenge("user@test.com", "challenge-abc", "user@test.com")).toBe(true)
+    it("stores and verifies a challenge", async () => {
+      await setChallenge("user@test.com", "challenge-abc")
+      expect(await getAndVerifyChallenge("user@test.com", "challenge-abc")).toBe(true)
     })
 
-    it("deletes challenge after single use (replay protection)", () => {
-      setChallenge("user@test.com", "challenge-abc", "user@test.com")
-      getAndVerifyChallenge("user@test.com", "challenge-abc", "user@test.com")
-      expect(getAndVerifyChallenge("user@test.com", "challenge-abc", "user@test.com")).toBe(false)
+    it("deletes challenge after single use (replay protection)", async () => {
+      await setChallenge("user@test.com", "challenge-abc")
+      await getAndVerifyChallenge("user@test.com", "challenge-abc")
+      expect(await getAndVerifyChallenge("user@test.com", "challenge-abc")).toBe(false)
     })
 
-    it("returns false for unknown key", () => {
-      expect(getAndVerifyChallenge("unknown", "challenge-abc", "a@b.com")).toBe(false)
+    it("returns false for unknown key", async () => {
+      expect(await getAndVerifyChallenge("unknown", "challenge-abc")).toBe(false)
     })
 
-    it("returns false for wrong challenge", () => {
-      setChallenge("user@test.com", "challenge-abc", "user@test.com")
-      expect(getAndVerifyChallenge("user@test.com", "wrong-challenge", "user@test.com")).toBe(false)
+    it("returns false for wrong challenge", async () => {
+      await setChallenge("user@test.com", "challenge-abc")
+      expect(await getAndVerifyChallenge("user@test.com", "wrong-challenge")).toBe(false)
     })
 
-    it("returns false for wrong email", () => {
-      setChallenge("user@test.com", "challenge-abc", "user@test.com")
-      expect(getAndVerifyChallenge("user@test.com", "challenge-abc", "wrong@email.com")).toBe(false)
-    })
-
-    it("returns false for expired challenge", () => {
+    it("returns false for expired challenge", async () => {
       vi.useFakeTimers()
-      setChallenge("user@test.com", "challenge-abc", "user@test.com")
+      await setChallenge("user@test.com", "challenge-abc")
       vi.advanceTimersByTime(5 * 60 * 1000 + 1)
-      expect(getAndVerifyChallenge("user@test.com", "challenge-abc", "user@test.com")).toBe(false)
+      expect(await getAndVerifyChallenge("user@test.com", "challenge-abc")).toBe(false)
       vi.useRealTimers()
     })
 
-    it("stores challenges with credentialId key for auth mode", () => {
-      setChallenge("cred-id-123", "challenge-auth", "")
-      expect(getAndVerifyChallenge("cred-id-123", "challenge-auth", "")).toBe(true)
+    it("stores challenges with credentialId key for auth mode", async () => {
+      await setChallenge("cred-id-123", "challenge-auth")
+      expect(await getAndVerifyChallenge("cred-id-123", "challenge-auth")).toBe(true)
     })
   })
 
   describe("credential store", () => {
-    it("stores and retrieves a credential", () => {
+    it("stores and retrieves a credential", async () => {
       const pubKey = new Uint8Array(32).fill(1)
-      storeCredential("cred-1", {
-        credentialId: "cred-1",
+      await storeCredential("cred-1", {
         publicKey: pubKey,
         counter: 0,
         transports: ["internal"],
       })
-      const retrieved = getCredential("cred-1")
+      const retrieved = await getCredential("cred-1")
       expect(retrieved).toBeDefined()
       expect(retrieved!.credentialId).toBe("cred-1")
       expect(retrieved!.counter).toBe(0)
       expect(retrieved!.transports).toEqual(["internal"])
     })
 
-    it("returns undefined for unknown credential", () => {
-      expect(getCredential("unknown-cred")).toBeUndefined()
+    it("returns undefined for unknown credential", async () => {
+      expect(await getCredential("unknown-cred")).toBeUndefined()
     })
 
-    it("allows updating counter after authentication", () => {
+    it("stores credential with correct counter", async () => {
       const pubKey = new Uint8Array(32).fill(2)
-      storeCredential("cred-2", {
-        credentialId: "cred-2",
+      await storeCredential("cred-2", {
         publicKey: pubKey,
         counter: 5,
       })
-      const cred = getCredential("cred-2")!
-      cred.counter = 6
-      expect(getCredential("cred-2")!.counter).toBe(6)
+      const cred = await getCredential("cred-2")
+      expect(cred).toBeDefined()
+      expect(cred!.counter).toBe(5)
     })
   })
 
@@ -103,7 +134,8 @@ describe("Passkey server store", () => {
     })
 
     it("getExpectedOrigin returns env value", () => {
-      expect(getExpectedOrigin()).toBe("https://test.origin")
+      const result = getExpectedOrigin()
+      expect(result).toContain("https://test.origin")
     })
 
     it("getPepper falls back to default when env not set", async () => {

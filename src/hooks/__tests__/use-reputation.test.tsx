@@ -45,7 +45,11 @@ describe("useReputation", () => {
 
   it("exposes request errors through TanStack Query", async () => {
     const error = new Error("reputation unavailable")
-    mockedGet.mockRejectedValue(error)
+    mockedGet.mockImplementation(() => {
+      return new Promise((_, reject) => {
+        setTimeout(() => reject(error), 0)
+      })
+    })
     const { QueryWrapper } = createQueryWrapper()
     const { result } = renderHook(() => useReputation("user-1"), {
       wrapper: QueryWrapper,

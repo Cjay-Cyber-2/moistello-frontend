@@ -257,7 +257,7 @@ describe("useMultiWallet store via hooks", () => {
   describe("connect error handling", () => {
     it("sets error state when connect fails", async () => {
       const adapter = createMockAdapter();
-      adapter.connect.mockRejectedValue({
+      (adapter.connect as ReturnType<typeof vi.fn>).mockRejectedValue({
         adapter: "freighter",
         code: "rejected",
         message: "User rejected connection",

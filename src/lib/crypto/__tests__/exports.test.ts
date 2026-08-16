@@ -19,22 +19,12 @@ describe("crypto/index.ts re-exports", () => {
     expect(typeof mod.secureZeroMemory).toBe("function")
   })
 
-  it("re-exports hexEncode (issue #3 fix)", async () => {
+  it("re-exports hexEncode", async () => {
     const mod = await import("@/lib/crypto/index")
     expect(mod.hexEncode).toBeDefined()
     expect(typeof mod.hexEncode).toBe("function")
-    // Verify it works
     const result = mod.hexEncode(new Uint8Array([0xde, 0xad, 0xbe, 0xef]))
     expect(result).toBe("deadbeef")
-  })
-
-  it("re-exports normalizeEmail (issue #3 fix)", async () => {
-    const mod = await import("@/lib/crypto/index")
-    expect(mod.normalizeEmail).toBeDefined()
-    expect(typeof mod.normalizeEmail).toBe("function")
-    // Verify it works
-    const result = mod.normalizeEmail("  USER@Example.COM  ")
-    expect(result).toBe("user@example.com")
   })
 })
 
@@ -43,11 +33,5 @@ describe("key-derivation.ts direct exports", () => {
     const mod = await import("@/lib/crypto/key-derivation")
     expect(mod.hexEncode).toBeDefined()
     expect(typeof mod.hexEncode).toBe("function")
-  })
-
-  it("exports normalizeEmail from key-derivation.ts", async () => {
-    const mod = await import("@/lib/crypto/key-derivation")
-    expect(mod.normalizeEmail).toBeDefined()
-    expect(typeof mod.normalizeEmail).toBe("function")
   })
 })

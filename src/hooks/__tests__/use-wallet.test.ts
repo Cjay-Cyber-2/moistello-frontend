@@ -1,5 +1,5 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
-import { renderHook, act } from "@testing-library/react";
+import { beforeEach, describe, expect, it } from "vitest";
+import { renderHook } from "@testing-library/react";
 import { useWallet } from "@/hooks/use-wallet";
 import { useMultiWalletStore } from "@/stores/multi-wallet-store";
 

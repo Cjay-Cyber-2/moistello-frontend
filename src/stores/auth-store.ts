@@ -181,7 +181,7 @@ interface AuthActions {
 
 type AuthStore = AuthState & AuthActions;
 
-const baseStore = (set: any, get: any): AuthStore => ({
+const baseStore = (set: (partial: Partial<AuthStore> | ((state: AuthStore) => Partial<AuthStore>)) => void, get: () => AuthStore): AuthStore => ({
   // Nothing is known until checkAuth() has asked the server whether the
   // HttpOnly session cookie is still good — there is no token in storage to
   // seed this from any more.

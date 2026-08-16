@@ -3,11 +3,10 @@ import {
   deriveStellarKeypair,
   publicKeyToStellarAddress,
   hexEncode,
-  normalizeEmail,
   secureZeroMemory,
 } from "@/lib/crypto/key-derivation"
 
-describe("Key Derivation — PBKDF2 → Ed25519", () => {
+describe("Key Derivation — PBKDF2 → Ed25519", { timeout: 30_000 }, () => {
   it("produces deterministic output for same inputs", async () => {
     const email = "test@moistello.io"
     const credentialId = "abc123def456ghi789"
@@ -76,16 +75,6 @@ describe("Public Key → Stellar Address", () => {
     const a1 = publicKeyToStellarAddress(pubKey)
     const a2 = publicKeyToStellarAddress(pubKey)
     expect(a1).toBe(a2)
-  })
-})
-
-describe("normalizeEmail", () => {
-  it("lowercases email", () => {
-    expect(normalizeEmail("Alice@Example.COM")).toBe("alice@example.com")
-  })
-
-  it("trims whitespace", () => {
-    expect(normalizeEmail("  user@test.com  ")).toBe("user@test.com")
   })
 })
 

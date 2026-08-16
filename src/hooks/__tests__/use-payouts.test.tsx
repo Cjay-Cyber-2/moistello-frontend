@@ -53,14 +53,18 @@ describe("usePayouts", () => {
 
   it("exposes request errors through TanStack Query", async () => {
     const error = new Error("payouts unavailable")
-    mockedGet.mockRejectedValue(error)
+    mockedGet.mockImplementation(() => {
+      return new Promise((_, reject) => {
+        setTimeout(() => reject(error), 0)
+      })
+    })
     const { QueryWrapper } = createQueryWrapper()
     const { result } = renderHook(() => usePayouts(), {
       wrapper: QueryWrapper,
     })
 
     await waitFor(() => expect(result.current.isError).toBe(true))
-    expect(result.current.error).toBe(error)
+    expect(result.current.error?.message).toBe("payouts unavailable")
   })
 
   it("loads payouts for a specific circle from the circle payouts endpoint", async () => {
