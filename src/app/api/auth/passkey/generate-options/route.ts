@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { generateRegistrationOptions, generateAuthenticationOptions } from "@simplewebauthn/server"
-import { setTempChallenge, getRpId } from "@/lib/passkey/store"
+import { setTempChallenge, getCredential, getRpId } from "@/lib/passkey/store"
+import { requireAuthenticatedUser, checkRateLimit } from "@/lib/passkey/auth-guard"
 
 const RP_NAME = "Moistello"
 
@@ -35,7 +36,7 @@ export async function POST(req: NextRequest) {
         timeout: 120_000,
       })
 
-      const tempKey = setTempChallenge(options.challenge)
+      const tempKey = await setTempChallenge(options.challenge)
 
       return NextResponse.json({ options, challenge: options.challenge, tempKey })
     }
@@ -59,12 +60,12 @@ export async function POST(req: NextRequest) {
       })
 
       if (credentialId) {
-        const tempKey = setTempChallenge(options.challenge)
+        const tempKey = await setTempChallenge(options.challenge)
         return NextResponse.json({ options, challenge: options.challenge, tempKey })
       }
 
       // Discoverable credential — no credentialId, store challenge with temp key
-      const tempKey = setTempChallenge(options.challenge)
+      const tempKey = await setTempChallenge(options.challenge)
       return NextResponse.json({ options, challenge: options.challenge, tempKey })
     }
 
