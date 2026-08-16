@@ -41,7 +41,7 @@ export class WC2SessionStore {
       if (!raw) return null
 
       const payload: StoredPayload = JSON.parse(raw)
-      if (!payload.data || !payload.hmac) return null
+      if (!payload.data || payload.hmac === undefined || payload.hmac === null) return null
 
       const expectedHMAC = computeHMAC(payload.data)
       if (payload.hmac !== expectedHMAC) {

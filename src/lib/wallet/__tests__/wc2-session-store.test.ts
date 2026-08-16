@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeEach, vi } from "vitest"
 import { WC2SessionStore } from "../wc2-session-store"
+import { _setHmacKeyForTest } from "../hmac"
 
 function mockLocalStorage() {
   const store: Record<string, string> = {}
@@ -48,6 +49,7 @@ describe("WC2SessionStore", () => {
   })
 
   it("detects tampered HMAC", () => {
+    _setHmacKeyForTest("aabbccdd" + "00".repeat(29))
     const data = {
       pairingTopic: "topic123",
       publicKey: "GAX23V3WWDPPR5WRER3KTEUTDLSCGZYMSJY5FDRRKKCIQ4JADF5T27RC",
