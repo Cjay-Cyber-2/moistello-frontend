@@ -49,16 +49,17 @@ export default function AnalyticsPage() {
   const { data: rounds = [], isLoading: rLoading } = useCircleRounds(circleId)
 
   const stats = useMemo(() => {
-    const totalContributions = rounds.reduce((s, r) => s + r.amount, 0)
-    const completedRounds = Array.from(new Set(rounds.filter((r) => r.status === "completed" || r.onTime).map((r) => r.roundNumber))).length
-    const uniqueContributors = Array.from(new Set(rounds.map((r) => r.userId))).length
-    const onTimeCount = rounds.filter((r) => r.onTime).length
-    const onTimeRate = rounds.length > 0 ? Math.round((onTimeCount / rounds.length) * 100) : 0
+    const allContribs = rounds.flatMap((r) => r.contributions)
+    const totalContributions = allContribs.reduce((s, c) => s + c.amount, 0)
+    const completedRounds = Array.from(new Set(allContribs.filter((c) => c.status === "confirmed" || c.onTime).map((c) => c.roundNumber))).length
+    const uniqueContributors = Array.from(new Set(allContribs.map((c) => c.userId))).length
+    const onTimeCount = allContribs.filter((c) => c.onTime).length
+    const onTimeRate = allContribs.length > 0 ? Math.round((onTimeCount / allContribs.length) * 100) : 0
     const activeMemberCount = members.filter((m) => m.status === "active").length
 
     const memberContributionMap = new Map<string, number>()
-    for (const r of rounds) {
-      memberContributionMap.set(r.userId, (memberContributionMap.get(r.userId) ?? 0) + r.amount)
+    for (const c of allContribs) {
+      memberContributionMap.set(c.userId, (memberContributionMap.get(c.userId) ?? 0) + c.amount)
     }
     const topContributors = Array.from(memberContributionMap.entries())
       .sort(([, a], [, b]) => b - a)

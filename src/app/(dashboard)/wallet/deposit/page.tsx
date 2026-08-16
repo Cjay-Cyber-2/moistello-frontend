@@ -3,12 +3,11 @@
 import { useState, useCallback, useEffect } from "react"
 import Link from "next/link"
 import {
-  ArrowLeft, NairaIcon, DollarSign, Copy, Check,
-  ArrowDownCircle, ArrowUpRight, Loader2, AlertCircle,
-  ExternalLink, Banknote, QrCode, Clock, ChevronRight,
+  ArrowLeft, Copy, Check,
+  ArrowDownCircle, Loader2, AlertCircle,
+  ExternalLink, Banknote, QrCode, Clock,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
 import { post, get } from "@/lib/api-client"
 import { useUIStore } from "@/stores/ui-store"
 import { copyToClipboard } from "@/lib/clipboard"
@@ -65,7 +64,7 @@ export default function DepositPage() {
     setErrMsg("")
     try {
       const res = await post<Record<string, unknown>>("/wallet/deposit/quote", { amountNgn: amt })
-      const data = res?.data ?? res
+      const data = (res?.data ?? res) as Record<string, unknown>
       const qi = (data?.quote ?? data) as unknown as QuoteInfo
       if (!qi?.estimatedUsdc) throw new Error("Failed to get quote")
 
@@ -114,7 +113,7 @@ export default function DepositPage() {
     const id = setInterval(async () => {
       try {
         const res = await get<Record<string, unknown>>(`/wallet/deposit/${payment.depositId}/status`)
-        const data = res?.data ?? res
+        const data = (res?.data ?? res) as Record<string, unknown>
         if (data?.status === "completed" || data?.status === "settled") {
           clearInterval(id)
           setStep("complete")

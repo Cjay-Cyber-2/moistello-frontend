@@ -47,6 +47,7 @@ export default function CircleSettingsPage() {
 
   const [inviteMaxUses, setInviteMaxUses] = useState(5)
   const [inviteExpiration, setInviteExpiration] = useState("")
+  const [, setInviteError] = useState("")
   const [generatingInvite, setGeneratingInvite] = useState(false)
   const [generatedCode, setGeneratedCode] = useState("")
   const [existingInvites, setExistingInvites] = useState<Invite[]>([])

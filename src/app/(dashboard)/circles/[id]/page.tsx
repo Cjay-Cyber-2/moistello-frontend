@@ -33,7 +33,6 @@ import { Modal } from "@/components/ui/modal"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Badge } from "@/components/ui/badge"
 import { formatCurrency, formatDate } from "@/lib/formatters"
-import { Routes } from "@/lib/constants"
 import { copyToClipboard } from "@/lib/clipboard"
 import { cn } from "@/lib/cn"
 import type { Payout } from "@/types"
@@ -527,7 +526,7 @@ export default function CircleDetailPage() {
                         Round {payout.roundNumber} Payout
                       </p>
                       <p className="text-2xs text-muted-foreground">
-                        {formatDate(payout.executedAt)}
+                        {formatDate(payout.createdAt)}
                       </p>
                     </div>
                   </div>

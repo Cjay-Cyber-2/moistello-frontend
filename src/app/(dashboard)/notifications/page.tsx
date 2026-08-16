@@ -18,7 +18,6 @@ import {
   Archive,
   CheckSquare,
   Square,
-  Filter,
 } from "lucide-react"
 import Link from "next/link"
 import { useNotifications } from "@/hooks/use-notifications"

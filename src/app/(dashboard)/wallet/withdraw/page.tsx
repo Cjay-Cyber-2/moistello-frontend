@@ -3,16 +3,14 @@
 import { useState, useCallback, useRef, useEffect } from "react"
 import Link from "next/link"
 import {
-  ArrowLeft, Wallet, DollarSign, Banknote,
-  ArrowUpRight, Loader2, AlertCircle, CheckCircle,
-  ExternalLink, Copy, Check, ChevronRight,
+  ArrowLeft, Loader2, AlertCircle, CheckCircle,
+  ExternalLink, Check, ChevronRight,
   Landmark, Shield, Key,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { post, get } from "@/lib/api-client"
 import { useUIStore } from "@/stores/ui-store"
-import { copyToClipboard } from "@/lib/clipboard"
 import { cn } from "@/lib/cn"
 
 type WithdrawStep =
@@ -68,11 +66,6 @@ const NIGERIAN_BANKS: BankOption[] = [
   { code: "035", name: "Wema Bank" },
   { code: "057", name: "Zenith Bank" },
   { code: "000", name: "Other Bank" },
-]
-
-const ASSET_OPTIONS: { value: string; label: string; icon: string }[] = [
-  { value: "USDC", label: "USD Coin", icon: "💵" },
-  { value: "XLM", label: "Stellar Lumens", icon: "✨" },
 ]
 
 export default function WithdrawPage() {
@@ -148,7 +141,7 @@ export default function WithdrawPage() {
         accountNumber,
         accountName: accountName.trim(),
       })
-      const data = res?.data ?? res
+      const data = (res?.data ?? res) as Record<string, unknown>
       const q: WithdrawQuote = {
         estimatedNgn: Number(data.estimatedNgn ?? data.estimatedNgn ?? 0),
         rate: Number(data.rate ?? 0),

@@ -130,12 +130,12 @@ export default function ContributionsPage() {
           <div className="glass-premium rounded-2xl p-5 relative overflow-hidden group">
             <div className="absolute inset-0 bg-gradient-to-br from-aurora-teal/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
             <p className="text-sm font-medium text-muted-foreground font-heading uppercase tracking-wider mb-1">Total Contributed</p>
-            <p className="font-heading text-2xl font-bold gradient-text">{formatCurrency(summary.totalContributed)}</p>
+            <p className="font-heading text-2xl font-bold gradient-text">{formatCurrency(summary.totalContributed, "USDC")}</p>
           </div>
           <div className="glass-premium rounded-2xl p-5 relative overflow-hidden group">
             <div className="absolute inset-0 bg-gradient-to-br from-aurora-purple/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
             <p className="text-sm font-medium text-muted-foreground font-heading uppercase tracking-wider mb-1">Average Amount</p>
-            <p className="font-heading text-2xl font-bold text-foreground">{formatCurrency(summary.average)}</p>
+            <p className="font-heading text-2xl font-bold text-foreground">{formatCurrency(summary.average, "USDC")}</p>
           </div>
           <div className="glass-premium rounded-2xl p-5 relative overflow-hidden group">
             <div className="absolute inset-0 bg-gradient-to-br from-aurora-cyan/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />

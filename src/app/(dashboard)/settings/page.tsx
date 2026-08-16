@@ -2,7 +2,6 @@
 
 import Link from "next/link"
 import { useAuth } from "@/hooks/use-auth"
-import { useMultiWallet } from "@/hooks/use-multi-wallet"
 import { useTranslate } from "@/lib/locale/context"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Settings, Bell, EyeOff, Sun, CreditCard, PiggyBank, Monitor, Globe, Wallet } from "lucide-react"

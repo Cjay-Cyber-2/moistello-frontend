@@ -40,7 +40,9 @@ export default function ExportPage() {
     if (scope === "all" || scope === "contributions") {
       rows.push(["Round", "User ID", "Amount", "Status", "On Time", "Submitted At"])
       for (const r of rounds) {
-        rows.push([String(r.roundNumber), escape(r.userId), String(r.amount), r.status, String(r.onTime), r.submittedAt])
+        for (const c of r.contributions) {
+          rows.push([String(r.roundNumber), escape(c.userId), String(c.amount), c.status, String(c.onTime), c.createdAt])
+        }
       }
       rows.push([])
     }

@@ -74,14 +74,16 @@ export default function ActivityPage() {
     }
 
     for (const r of rounds) {
-      items.push({
-        id: `contrib-${r.id}`,
-        type: "contribution",
-        description: `Round ${r.roundNumber} contribution recorded`,
-        amount: r.amount,
-        timestamp: r.submittedAt,
-        userId: r.userId,
-      })
+      for (const contrib of r.contributions) {
+        items.push({
+          id: `contrib-${contrib.id}`,
+          type: "contribution",
+          description: `Round ${r.roundNumber} contribution recorded`,
+          amount: contrib.amount,
+          timestamp: contrib.createdAt,
+          userId: contrib.userId,
+        })
+      }
     }
 
     items.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
