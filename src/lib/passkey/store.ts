@@ -17,6 +17,8 @@ import { getRedisClient } from "@/lib/redis/client"
 
 const CHALLENGE_KEY_PREFIX = "passkey:challenge:"
 
+const credentialStore = new Map<string, CredentialRecord>()
+
 async function getRedis() {
   if (typeof window !== "undefined") {
     throw new Error("Challenge store should only be used server-side")
@@ -159,6 +161,3 @@ export function getExpectedOrigin(): string | string[] {
   }
   return origin
 }
-
-sweepExpired()
-setInterval(sweepExpired, 60_000)
