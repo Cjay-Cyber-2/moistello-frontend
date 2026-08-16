@@ -125,6 +125,10 @@ interface AuthFlowActions {
   verifyCode: (code: string) => Promise<void>
   resendCode: () => Promise<void>
   clearEmailVerification: () => void
+  setEmailVerificationCodeSent: (email: string, verificationId: string | null) => void
+  setEmailVerified: () => void
+  setNonce: (nonce: string | null) => void
+  setRateLimit: (remainingAttempts: number, cooldownUntil: number | null) => void
   setPasskeyVersion: (version: number) => void
   setPasskeyRevoked: (revoked: boolean) => void
 }
@@ -604,21 +608,22 @@ export const useAuthFlowStore = create<AuthFlowStore>()(
             const axiosErr = err as { response?: { status?: number; data?: { error?: string } } }
             const status = axiosErr?.response?.status
             const body = axiosErr?.response?.data
+            let msg: string
 
             if (status === 429) {
-              const msg = "Too many attempts. Please wait before trying again."
+              msg = "Too many attempts. Please wait before trying again."
               set({
                 status: { status: "error", code: "email_rate_limited", message: msg, canRetry: true },
                 error: { code: "email_rate_limited", message: msg },
               })
             } else if (status === 410) {
-              const msg = "Verification code has expired. Request a new one."
+              msg = "Verification code has expired. Request a new one."
               set({
                 status: { status: "error", code: "email_code_expired", message: msg, canRetry: false },
                 error: { code: "email_code_expired", message: msg },
               })
             } else {
-              const msg = (body as { error?: string })?.error || "Invalid code."
+              msg = (body as { error?: string })?.error || "Invalid code."
               const remaining = typeof (body as { remainingAttempts?: number })?.remainingAttempts === "number"
                 ? (body as { remainingAttempts: number }).remainingAttempts
                 : Math.max(0, emailVerification.remainingAttempts - 1)
@@ -628,7 +633,7 @@ export const useAuthFlowStore = create<AuthFlowStore>()(
                 emailVerification: { ...state.emailVerification, remainingAttempts: remaining },
               }))
             }
-            throw err
+            throw new Error(msg)
           }
         },
 
@@ -640,6 +645,30 @@ export const useAuthFlowStore = create<AuthFlowStore>()(
 
         clearEmailVerification: () =>
           set({ emailVerification: initialEmailVerification() }),
+
+        setEmailVerificationCodeSent: (email, verificationId) =>
+          set((s) => ({
+            emailVerification: {
+              ...s.emailVerification,
+              email,
+              verificationId,
+              codeSent: true,
+              codeVerified: false,
+            },
+          })),
+
+        setEmailVerified: () =>
+          set((s) => ({
+            emailVerification: { ...s.emailVerification, codeVerified: true },
+          })),
+
+        setNonce: (nonce) =>
+          set((s) => ({
+            auth: { ...s.auth, nonce, nonceTimestamp: nonce ? Date.now() : null },
+          })),
+
+        setRateLimit: (remainingAttempts, cooldownUntil) =>
+          set({ rateLimit: { remainingAttempts, cooldownUntil, lastAttemptAt: Date.now() } }),
       }),
       { name: "auth-flow-store" },
     ),
