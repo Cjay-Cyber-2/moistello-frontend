@@ -39,7 +39,7 @@ export interface MockAppFixtures {
   walletPublicKey?: string
   verificationCode?: string
   verificationId?: string
-  createdCircle?: Circle
+  createdCircle: Circle
 }
 
 export function buildMockFixtures(overrides: Partial<MockAppFixtures> = {}): MockAppFixtures {
@@ -195,7 +195,7 @@ async function parseJsonBody(request: { postDataJSON?: () => unknown; postData?:
 }
 
 function circleForRoute(fixtures: MockAppFixtures, circleId: string): Circle {
-  return fixtures.createdCircle?.id === circleId
+  return fixtures.createdCircle.id === circleId
     ? fixtures.createdCircle
     : fixtures.circles.find((circle) => circle.id === circleId) ?? fixtures.createdCircle
 }
