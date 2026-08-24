@@ -1,17 +1,19 @@
 name: "moistello: Auto-Fix"
 
-# The "moistello" bot ONLY auto-fixes MERGE CONFLICTS.
-#   - On a PR that has merge conflicts, it tries to rebase automatically.
-#   - If a rebase isn't possible, it hands the conflict to an AI agent
-#     (opencode) which resolves the conflict against the full codebase,
-#     verifies, and pushes a fix.
+# The "moistello" bot auto-fixes two things (both gated behind OPENCODE_API_KEY):
+#   1. MERGE CONFLICTS — tries a clean rebase; if impossible, an AI agent resolves.
+#   2. FAILING CI — if CI fails (tests/lint/build) on a PR or main, an AI agent
+#      diagnoses and fixes the failure, verifies, and pushes a fix.
 #
-# It does NOT run on every CI failure — if CI fails (not a conflict), the
-# PR is left for a human (you) to fix. It NEVER assigns issues/reviewers.
+# It NEVER assigns issues/reviewers. You assign those manually.
 
 on:
   pull_request:
     types: [ opened, reopened, synchronize, ready_for_review ]
+  workflow_run:
+    workflows: [ CI ]
+    types: [ completed ]
+    branches: [ master, main ]
 
 concurrency:
   group: fix-${{ github.ref }}
@@ -141,4 +143,59 @@ jobs:
           else
             git push origin "HEAD:${{ github.event.pull_request.head.ref }}" --force-with-lease \
               || echo "Push failed (branch changed concurrently)."
+          fi
+  fix-ci:
+    name: AI-fix failing CI
+    runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'failure'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_branch }}
+          fetch-depth: 0
+
+      - name: Skip when no LLM key configured
+        id: llm
+        env:
+          LLM_KEY: ${{ secrets.OPENCODE_API_KEY }}
+        run: |
+          if [ -n "$LLM_KEY" ]; then echo "configured=true" >> "$GITHUB_OUTPUT"; else echo "configured=false" >> "$GITHUB_OUTPUT"; fi
+
+      - name: Cache opencode CLI + node tooling
+        if: steps.llm.outputs.configured == 'true'
+        uses: actions/cache@v4
+        with:
+          path: ~/.npm
+          key: opencode-${{ runner.os }}-${{ hashFiles('package.json') }}
+          restore-keys: |
+            opencode-${{ runner.os }}-
+
+      - name: Diagnose and fix the failing CI with opencode
+        if: steps.llm.outputs.configured == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.BOT_TOKEN || github.token }}
+          OPENCODE_API_KEY: ${{ secrets.OPENCODE_API_KEY }}
+          OPENCODE_MODEL: ${{ secrets.OPENCODE_MODEL || 'opencode-go/deepseek-v4-flash' }}
+        run: |
+          git config user.name "moistello-bot[bot]"
+          git config user.email "bot@users.noreply.github.com"
+          git checkout "${{ github.event.workflow_run.head_branch }}"
+
+          npm install -g opencode-ai 2>/dev/null || npx opencode --version >/dev/null 2>&1 || true
+
+          opencode run \
+            --model "${OPENCODE_MODEL}" \
+            --agent-plan \
+            "CI failed on branch ${{ github.event.workflow_run.head_branch }} (commit ${{ github.event.workflow_run.head_sha }}).
+             Inspect the full repository, run the failing commands (npm run lint, npx tsc --noEmit,
+             npm run test -- --run, npm run build) to reproduce, fix the root cause(s), and make CI green.
+             Do not break other functionality and do not assign or change issues/reviewers.
+             After fixing, verify the tests pass."
+
+          if git diff --quiet && git diff --cached --quiet; then
+            echo "No changes produced; nothing to push."
+          else
+            git add -A
+            git commit -m "fix(ci): automated fix for failing CI (moistello bot)" || echo "nothing to commit"
+            git push origin "HEAD:${{ github.event.workflow_run.head_branch }}"
           fi
