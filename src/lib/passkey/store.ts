@@ -128,6 +128,23 @@ export async function getCredential(credentialId: string): Promise<CredentialRec
   }
 }
 
+export async function updateCredentialCounter(credentialId: string, counter: number): Promise<void> {
+  const local = credentialStore.get(credentialId)
+  if (local) {
+    local.counter = counter
+  }
+
+  try {
+    await fetch(`${API_BASE}/passkey/credentials/${encodeURIComponent(credentialId)}/counter`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ counter }),
+    })
+  } catch {
+    // Fall back to local in-memory storage in environments without the backend.
+  }
+}
+
 // Placeholder pepper used only for local development and tests. It was once
 // committed to the repository, so it must be treated as public: production
 // refuses to fall back to it and requires a real, rotated PASSKEY_SERVER_PEPPER.
