@@ -11,6 +11,18 @@ import {
 // Protected routes that require authentication
 const PROTECTED_PATHS = ["/circles", "/communities", "/wallet", "/settings", "/profile", "/notifications", "/contributions", "/payouts"]
 
+// Dev-only API routes backed by flat-file JSON storage.  These are useful
+// for local development but must never be reachable in a deployed environment.
+// The middleware blocks them as the first line of defence; each handler also
+// calls blockInProduction() as defence-in-depth.
+const DEV_ONLY_API_PATHS = [
+  "/api/auth/login",
+  "/api/auth/setup",
+  "/api/upload",
+  "/api/auth/logout",
+  "/api/auth",
+]
+
 /** Request header the root layout reads to nonce its inline <script> tags. */
 export const NONCE_HEADER = "x-nonce"
 export const CSRF_HEADER = "x-csrf-token"
@@ -29,8 +41,23 @@ function attachCsrfCookie(response: NextResponse, csrfToken: string) {
 }
 
 export function middleware(request: NextRequest) {
-  const token = request.cookies.get(ACCESS_TOKEN_COOKIE)?.value
   const { pathname } = request.nextUrl
+
+  // Block dev-only API routes in production at the middleware level.
+  // Returns 404 so the routes' existence is never advertised.
+  if (process.env.NODE_ENV === "production") {
+    for (const path of DEV_ONLY_API_PATHS) {
+      if (pathname === path || pathname.startsWith(path + "/")) {
+        // /api/auth is the dev-only session-check handler.  Production
+        // sub-routes (/api/auth/session, /api/auth/refresh, …) must not be
+        // blocked, so require an exact match for the bare /api/auth path.
+        if (path === "/api/auth" && pathname !== path) continue
+        return NextResponse.json({ error: "Not found" }, { status: 404 })
+      }
+    }
+  }
+
+  const token = request.cookies.get(ACCESS_TOKEN_COOKIE)?.value
 
   // A nonce is minted per request and travels two ways: forward on the request
   // so the layout can stamp it onto its inline scripts, and back on the
@@ -65,9 +92,15 @@ export function middleware(request: NextRequest) {
 
 export const config = {
   // Every HTML document must carry the CSP header, so the matcher covers all
-  // page routes and excludes only API handlers, framework internals and
-  // static assets.
+  // page routes and excludes only framework internals and static assets.
+  // The dev-only API paths are listed explicitly so the middleware can block
+  // them in production before any route handler executes.
   matcher: [
-    "/((?!api|_next|favicon|static|locale|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|txt|xml|woff|woff2)$).*)",
+    "/((?!_next|favicon|static|locale|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|txt|xml|woff|woff2)$).*)",
+    "/api/auth/login",
+    "/api/auth/setup",
+    "/api/upload",
+    "/api/auth/logout",
+    "/api/auth",
   ],
 }
