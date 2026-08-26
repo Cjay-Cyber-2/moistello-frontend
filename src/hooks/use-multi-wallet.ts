@@ -1,16 +1,17 @@
 "use client"
 
+import { useShallow } from "zustand/react/shallow"
 import { useMultiWalletStore } from "@/stores/multi-wallet-store"
 
 /** Connection state slice — subscribe only when connection/address/error changes. */
 export function useMultiWalletConnection() {
-  return useMultiWalletStore((s) => ({
+  return useMultiWalletStore(useShallow((s) => ({
     isConnected: s.isConnected,
     isConnecting: s.isConnecting,
     address: s.address,
     error: s.error,
     activeAdapter: s.activeAdapter,
-  }))
+  })))
 }
 
 /** Active-wallet identity slice — subscribe only when the active wallet/id changes. */
@@ -23,22 +24,22 @@ export function useMultiWalletActive() {
 
 /** Wallet list slice — subscribe only when the detected/available wallet list changes. */
 export function useMultiWalletList() {
-  return useMultiWalletStore((s) => ({
+  return useMultiWalletStore(useShallow((s) => ({
     detectedWallets: s.detectedWallets,
     isSelectorOpen: s.isSelectorOpen,
-  }))
+  })))
 }
 
 /** Action slice — actions are stable references and never cause re-renders. */
 export function useMultiWalletActions() {
-  return useMultiWalletStore((s) => ({
+  return useMultiWalletStore(useShallow((s) => ({
     connect: s.connect,
     disconnect: s.disconnect,
     signMessage: s.signMessage,
     switchWallet: s.switchWallet,
     refreshBalance: s.refreshBalance,
     setSelectorOpen: s.setSelectorOpen,
-  }))
+  })))
 }
 
 /**
