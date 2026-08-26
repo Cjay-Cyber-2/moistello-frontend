@@ -19,8 +19,8 @@ test.describe('Circle Creation Flow', () => {
     await expect(page.getByRole('heading', { name: /create circle/i })).toBeVisible()
 
     // Step 1: Details
-    await page.fill('input[name="name"]', 'Test Savings Circle')
-    await page.fill('textarea[name="description"]', 'A test circle for E2E testing')
+    await page.getByLabel(/circle name/i).fill('Test Savings Circle')
+    await page.getByLabel(/description/i).fill('A test circle for E2E testing')
     
     // Set max members
     const maxMembersInput = page.getByLabel(/max members/i)
@@ -45,7 +45,7 @@ test.describe('Circle Creation Flow', () => {
     await nextButton3.click()
 
     // Step 4: Review
-    await expect(page.getByText(/review/i)).toBeVisible()
+    await expect(page.getByRole('heading', { name: /review your circle/i })).toBeVisible()
     await expect(page.getByText('Test Savings Circle')).toBeVisible()
     await expect(page.getByText('100 USDC')).toBeVisible()
 
@@ -60,7 +60,7 @@ test.describe('Circle Creation Flow', () => {
   test('should show validation error for short circle name', async ({ page }: { page: any }) => {
     await page.goto('/circles/create')
 
-    await page.fill('input[name="name"]', 'AB')
+    await page.getByLabel(/circle name/i).fill('AB')
     
     const nextButton = page.getByRole('button', { name: /next/i })
     await nextButton.click()
@@ -72,7 +72,7 @@ test.describe('Circle Creation Flow', () => {
   test('should show validation error for insufficient max members', async ({ page }: { page: any }) => {
     await page.goto('/circles/create')
 
-    await page.fill('input[name="name"]', 'Test Circle')
+    await page.getByLabel(/circle name/i).fill('Test Circle')
     
     const maxMembersInput = page.getByLabel(/max members/i)
     await maxMembersInput.fill('1')
@@ -88,7 +88,7 @@ test.describe('Circle Creation Flow', () => {
     await page.goto('/circles/create')
 
     // Complete step 1
-    await page.fill('input[name="name"]', 'Test Circle')
+    await page.getByLabel(/circle name/i).fill('Test Circle')
     await page.getByLabel(/max members/i).fill('10')
     
     const nextButton = page.getByRole('button', { name: /next/i })
@@ -109,7 +109,7 @@ test.describe('Circle Creation Flow', () => {
     await page.goto('/circles/create')
 
     // Step 1
-    await page.fill('input[name="name"]', 'Test Circle')
+    await page.getByLabel(/circle name/i).fill('Test Circle')
     await page.getByLabel(/max members/i).fill('10')
     
     const nextButton = page.getByRole('button', { name: /next/i })
@@ -132,8 +132,8 @@ test.describe('Circle Creation Flow', () => {
     const backButton2 = page.getByRole('button', { name: /previous/i })
     await backButton2.click()
 
-    await expect(page.locator('input[name="name"]')).toBeVisible()
-    await expect(page.locator('input[name="name"]')).toHaveValue('Test Circle')
+    await expect(page.getByLabel(/circle name/i)).toBeVisible()
+    await expect(page.getByLabel(/circle name/i)).toHaveValue('Test Circle')
   })
 
   test('should show error on API failure during creation', async ({ page }: { page: any }) => {
@@ -151,7 +151,7 @@ test.describe('Circle Creation Flow', () => {
     await page.goto('/circles/create')
 
     // Complete all steps
-    await page.fill('input[name="name"]', 'Test Circle')
+    await page.getByLabel(/circle name/i).fill('Test Circle')
     await page.getByLabel(/max members/i).fill('10')
     await page.getByRole('button', { name: /next/i }).click()
     

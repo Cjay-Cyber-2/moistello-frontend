@@ -43,6 +43,15 @@ vi.mock("@simplewebauthn/server", () => ({
   }),
 }))
 
+vi.mock("@/lib/crypto/key-derivation", () => ({
+  deriveStellarKeypair: vi.fn().mockResolvedValue({
+    publicKey: new Uint8Array(32).fill(7),
+    secretKey: new Uint8Array(32).fill(9),
+  }),
+  hexEncode: vi.fn((bytes: Uint8Array) => Buffer.from(bytes).toString("hex")),
+  secureZeroMemory: vi.fn(),
+}))
+
 const routeRedisStore = new Map<string, { value: string; expiresAt: number }>()
 vi.mock("@/lib/redis/client", () => ({
   getRedisClient: vi.fn().mockResolvedValue({
@@ -70,7 +79,9 @@ function writeSessionFixture(userId = "user-123") {
   fs.writeFileSync(path.join(contentDir, "users.json"), JSON.stringify([{ id: userId, username: "demo", role: "user" }], null, 2))
 }
 
-function makeRequest(body: unknown, ip = "127.0.0.1") {
+let ipSequence = 0
+
+function makeRequest(body: unknown, ip = `10.9.${++ipSequence}.1`) {
   return new NextRequest("http://localhost:1110/api/auth/passkey/test", {
     method: "POST",
     headers: {
@@ -105,6 +116,7 @@ function makeRequest(body: unknown, ip = "127.0.0.1") {
       publicKey: new Uint8Array(32).fill(42),
       counter: 0,
       transports: ["internal"],
+      userId: "user-123",
     })
     const res = await generateOptions(makeRequest({ credentialId: "cred-id-123", mode: "authenticate" }))
     expect(res.status).toBe(200)
@@ -277,6 +289,7 @@ describe("auth-verify API", () => {
     await storeCredential("cred-id-123", {
       publicKey: new Uint8Array(32).fill(1),
       counter: 0,
+      userId: "user-123",
     })
 
     const genRes = await generateOptions(makeRequest({ credentialId: "cred-id-123", mode: "authenticate" }))
@@ -301,6 +314,7 @@ describe("auth-verify API", () => {
     await storeCredential("cred-counter-test", {
       publicKey: new Uint8Array(32).fill(1),
       counter: 0,
+      userId: "user-123",
     })
 
     const genRes = await generateOptions(makeRequest({ credentialId: "cred-counter-test", mode: "authenticate" }))

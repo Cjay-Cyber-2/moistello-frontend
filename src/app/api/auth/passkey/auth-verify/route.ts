@@ -4,6 +4,7 @@ import type { AuthenticatorTransportFuture } from "@simplewebauthn/server"
 import {
   getAndVerifyTempChallenge,
   getCredential,
+  updateCredentialCounter,
   getPepper,
   getRpId,
   getExpectedOrigin,
@@ -58,7 +59,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Verify challenge
-    if (!tempKey || !getAndVerifyTempChallenge(tempKey, parsed.challenge)) {
+    if (!tempKey || !(await getAndVerifyTempChallenge(tempKey, parsed.challenge))) {
       return NextResponse.json({ error: "challenge_mismatch" }, { status: 400 })
     }
 
@@ -83,7 +84,9 @@ export async function POST(req: NextRequest) {
     }
 
     if (verification.authenticationInfo) {
-      storedCredential.counter = verification.authenticationInfo.newCounter ?? storedCredential.counter
+      const newCounter = verification.authenticationInfo.newCounter ?? storedCredential.counter
+      await updateCredentialCounter(resolvedCredentialId, newCounter)
+      storedCredential.counter = newCounter
     }
 
     // The Stellar secret key is derived here only to compute the public key.

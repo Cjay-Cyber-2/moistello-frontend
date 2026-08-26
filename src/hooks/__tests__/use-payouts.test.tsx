@@ -1,5 +1,5 @@
 import { renderHook, waitFor } from "@testing-library/react"
-import { beforeEach, describe, expect, it, vi } from "vitest"
+import { describe, expect, it, vi } from "vitest"
 import { get } from "@/lib/api-client"
 import { useCirclePayouts, usePayouts } from "@/hooks/use-payouts"
 import { createQueryWrapper } from "./test-utils"
@@ -9,7 +9,6 @@ vi.mock("@/lib/api-client", () => ({ get: vi.fn() }))
 const mockedGet = vi.mocked(get)
 
 describe("usePayouts", () => {
-  beforeEach(() => mockedGet.mockReset())
 
   it("loads payouts with the existing pagination", async () => {
     const payout = {
@@ -53,11 +52,7 @@ describe("usePayouts", () => {
 
   it("exposes request errors through TanStack Query", async () => {
     const error = new Error("payouts unavailable")
-    mockedGet.mockImplementation(() => {
-      return new Promise((_, reject) => {
-        setTimeout(() => reject(error), 0)
-      })
-    })
+    mockedGet.mockRejectedValue(error)
     const { QueryWrapper } = createQueryWrapper()
     const { result } = renderHook(() => usePayouts(), {
       wrapper: QueryWrapper,

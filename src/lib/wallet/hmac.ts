@@ -19,19 +19,25 @@ import { bytesToHex } from "@noble/hashes/utils.js"
  */
 let hmacKey: Uint8Array | null = null
 
-fetch("/api/wallet/hmac/key")
-  .then((res) => {
-    if (!res.ok) throw new Error(`Failed to get HMAC key: ${res.status}`)
-    return res.json() as Promise<{ keyHex: string }>
-  })
-  .then(({ keyHex }) => {
-    const raw = new Uint8Array(keyHex.length / 2)
-    for (let i = 0; i < keyHex.length; i += 2) {
-      raw[i / 2] = parseInt(keyHex.substring(i, i + 2), 16)
-    }
-    hmacKey = raw
-  })
-  .catch((err) => console.warn("[hmac] Failed to load key — HMAC will fail until retry:", err))
+// Only the browser can resolve a relative URL against a page origin. When
+// this module is imported server-side (SSR / route handlers), Node's fetch
+// would throw "Invalid URL" — skip the fetch there entirely; the cached-key
+// behaviour below already degrades gracefully to "" until a client loads.
+if (typeof window !== "undefined") {
+  fetch("/api/wallet/hmac/key")
+    .then((res) => {
+      if (!res.ok) throw new Error(`Failed to get HMAC key: ${res.status}`)
+      return res.json() as Promise<{ keyHex: string }>
+    })
+    .then(({ keyHex }) => {
+      const raw = new Uint8Array(keyHex.length / 2)
+      for (let i = 0; i < keyHex.length; i += 2) {
+        raw[i / 2] = parseInt(keyHex.substring(i, i + 2), 16)
+      }
+      hmacKey = raw
+    })
+    .catch((err) => console.warn("[hmac] Failed to load key — HMAC will fail until retry:", err))
+}
 
 export function computeHmacSha256(data: string): string {
   if (!hmacKey) {

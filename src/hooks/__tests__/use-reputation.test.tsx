@@ -1,5 +1,5 @@
 import { renderHook, waitFor } from "@testing-library/react"
-import { beforeEach, describe, expect, it, vi } from "vitest"
+import { describe, expect, it, vi } from "vitest"
 import { get } from "@/lib/api-client"
 import { useReputation } from "@/hooks/use-reputation"
 import { createQueryWrapper } from "./test-utils"
@@ -9,7 +9,6 @@ vi.mock("@/lib/api-client", () => ({ get: vi.fn() }))
 const mockedGet = vi.mocked(get)
 
 describe("useReputation", () => {
-  beforeEach(() => mockedGet.mockReset())
 
   it("loads reputation from the build-plan endpoint", async () => {
     const reputation = {
@@ -45,11 +44,7 @@ describe("useReputation", () => {
 
   it("exposes request errors through TanStack Query", async () => {
     const error = new Error("reputation unavailable")
-    mockedGet.mockImplementation(() => {
-      return new Promise((_, reject) => {
-        setTimeout(() => reject(error), 0)
-      })
-    })
+    mockedGet.mockRejectedValue(error)
     const { QueryWrapper } = createQueryWrapper()
     const { result } = renderHook(() => useReputation("user-1"), {
       wrapper: QueryWrapper,

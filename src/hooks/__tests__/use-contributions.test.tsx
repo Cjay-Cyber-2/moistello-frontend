@@ -1,5 +1,5 @@
 import { renderHook, waitFor } from "@testing-library/react"
-import { beforeEach, describe, expect, it, vi } from "vitest"
+import { describe, expect, it, vi } from "vitest"
 import { get } from "@/lib/api-client"
 import { useContributions } from "@/hooks/use-contributions"
 import { createQueryWrapper } from "./test-utils"
@@ -9,7 +9,6 @@ vi.mock("@/lib/api-client", () => ({ get: vi.fn() }))
 const mockedGet = vi.mocked(get)
 
 describe("useContributions", () => {
-  beforeEach(() => mockedGet.mockReset())
 
   it("loads contributions with the existing filters and pagination", async () => {
     const contribution = {
@@ -71,11 +70,7 @@ describe("useContributions", () => {
 
   it("exposes request errors through TanStack Query", async () => {
     const error = new Error("contributions unavailable")
-    mockedGet.mockImplementation(() => {
-      return new Promise((_, reject) => {
-        setTimeout(() => reject(error), 0)
-      })
-    })
+    mockedGet.mockRejectedValue(error)
     const { QueryWrapper } = createQueryWrapper()
     const { result } = renderHook(() => useContributions(), {
       wrapper: QueryWrapper,
