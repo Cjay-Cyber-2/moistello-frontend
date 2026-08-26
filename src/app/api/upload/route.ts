@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import fs from "fs";
 import path from "path";
+import { blockInProduction } from "@/lib/security/dev-only-route";
 
 const PAGES_DIR = path.join(process.cwd(), "content/pages");
 const ALLOWED_EXTENSIONS = [".md", ".html"];
@@ -32,6 +33,11 @@ function isAuthorized(request: NextRequest): boolean {
 }
 
 export async function POST(request: NextRequest) {
+  // Local-development scaffolding — writes files via fs and authenticates
+  // against a flat JSON session store.
+  const blocked = blockInProduction();
+  if (blocked) return blocked;
+
   // Auth check
   if (!isAuthorized(request)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
