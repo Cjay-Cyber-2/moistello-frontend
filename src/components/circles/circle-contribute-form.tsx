@@ -1,11 +1,14 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { DollarSign, AlertTriangle } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { formatCurrency } from "@/lib/formatters";
 import { useMultiWallet } from "@/hooks/use-multi-wallet";
+import { LiveRegion } from "@/components/shared/live-region";
+
+type ContributionPhase = "idle" | "submitting" | "signing" | "verifying" | "success" | "error";
 
 interface CircleContributeFormProps {
   circleId: string;
@@ -27,15 +30,18 @@ export function CircleContributeForm({
   const { address: publicKey, signMessage } = useMultiWallet();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [phase, setPhase] = useState<ContributionPhase>("idle");
 
   const handleSubmit = async () => {
     if (!publicKey) {
       setError("No wallet connected. Please connect a wallet first.");
+      setPhase("error");
       return;
     }
 
     setIsLoading(true);
     setError(null);
+    setPhase("submitting");
 
     try {
       const { post } = await import("@/lib/api-client");
@@ -49,15 +55,18 @@ export function CircleContributeForm({
 
       await post("/api/contributions", payload);
 
+      setPhase("signing");
       const message = `Moistello Contribution: ${contributionAmount} ${currency} to ${circleName} (circle: ${circleId})`;
       const signedXdr = await signMessage(message);
 
+      setPhase("verifying");
       await post("/api/contributions/verify", {
         circleId,
         signedXdr,
         walletAddress: publicKey,
       });
 
+      setPhase("success");
       onSuccess?.();
     } catch (err: unknown) {
       if (err instanceof Error) {
@@ -65,13 +74,32 @@ export function CircleContributeForm({
       } else {
         setError("Failed to process contribution. Please try again.");
       }
+      setPhase("error");
     } finally {
       setIsLoading(false);
     }
   };
 
+  const statusMessage = useMemo(() => {
+    switch (phase) {
+      case "submitting":
+        return "Submitting your contribution…";
+      case "signing":
+        return "Waiting for wallet signature…";
+      case "verifying":
+        return "Verifying your contribution on the network…";
+      case "success":
+        return `Contribution of ${formatCurrency(contributionAmount, currency)} to ${circleName} confirmed.`;
+      case "error":
+        return error ?? "Failed to process contribution.";
+      default:
+        return "";
+    }
+  }, [phase, error, contributionAmount, currency, circleName]);
+
   return (
     <div className="space-y-4">
+      <LiveRegion message={statusMessage} />
       <Card>
         <CardContent className="p-6 space-y-4">
           <div>

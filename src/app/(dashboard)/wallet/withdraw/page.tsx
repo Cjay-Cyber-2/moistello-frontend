@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useCallback, useRef, useEffect } from "react"
+import { useState, useCallback, useRef, useEffect, useMemo } from "react"
 import Link from "next/link"
 import {
   ArrowLeft, Loader2, AlertCircle, CheckCircle,
@@ -12,6 +12,7 @@ import { Input } from "@/components/ui/input"
 import { post, get } from "@/lib/api-client"
 import { useUIStore } from "@/stores/ui-store"
 import { cn } from "@/lib/cn"
+import { LiveRegion } from "@/components/shared/live-region"
 
 type WithdrawStep =
   | "wallet"     // 1 — Select source wallet/asset
@@ -224,8 +225,30 @@ export default function WithdrawPage() {
 
   const selectedBankName = NIGERIAN_BANKS.find((b) => b.code === selectedBank)?.name ?? ""
 
+  // ── Meaningful status announcements for assistive tech ──
+  const statusMessage = useMemo(() => {
+    if (errMsg) return errMsg
+    if (step === "wallet" && wallets.length === 0) return "Loading your wallets…"
+    if (loading) {
+      if (step === "amount") return "Fetching withdrawal quote…"
+      if (step === "confirm") return "Submitting your withdrawal request…"
+      if (step === "otp") return "Verifying OTP…"
+    }
+    switch (step) {
+      case "confirm":
+        return quote ? `Quote ready. You'll receive ₦${quote.estimatedNgn.toLocaleString()}. Review your withdrawal details.` : ""
+      case "otp":
+        return "OTP sent. Enter the 6-digit code sent to your registered email."
+      case "success":
+        return quote ? `Withdrawal complete. ₦${quote.estimatedNgn.toLocaleString()} sent to ${selectedBankName}.` : "Withdrawal complete."
+      default:
+        return ""
+    }
+  }, [step, loading, errMsg, wallets.length, quote, selectedBankName])
+
   return (
     <div className="space-y-6 max-w-xl mx-auto">
+      <LiveRegion message={statusMessage} />
       {/* ── Back + Title ── */}
       <div className="flex items-center gap-3">
         <Link href="/wallet" className="text-muted-foreground hover:text-foreground transition-colors">
