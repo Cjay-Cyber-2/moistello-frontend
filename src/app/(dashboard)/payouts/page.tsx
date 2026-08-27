@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState } from "react"
+import React, { useMemo, useState } from "react"
 import Link from "next/link"
 import { motion } from "framer-motion"
 import {
@@ -17,6 +17,7 @@ import { get } from "@/lib/api-client"
 import { usePayouts } from "@/hooks/use-payouts"
 import { PageHeader } from "@/components/shared/page-header"
 import { EmptyState } from "@/components/shared/empty-state"
+import { LiveRegion } from "@/components/shared/live-region"
 import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
 import { formatCurrency, formatDate, formatAddress } from "@/lib/formatters"
@@ -107,8 +108,18 @@ export default function PayoutsPage() {
   const getCircleName = (circleId: string): string =>
     circles.find((c) => c.id === circleId)?.name ?? "Unknown"
 
+  // ── Meaningful status announcements for assistive tech ──
+  const statusMessage = useMemo(() => {
+    if (isLoading) return "Loading payouts…"
+    if (isError) return "Failed to load payouts. Please try again later."
+    if (payouts.length === 0) return "No payouts received yet."
+    const pageInfo = meta ? ` (page ${meta.page} of ${meta.totalPages})` : ""
+    return `Loaded ${payouts.length} payout${payouts.length === 1 ? "" : "s"}${pageInfo}.`
+  }, [isLoading, isError, payouts.length, meta])
+
   return (
     <div className="space-y-6">
+      <LiveRegion message={statusMessage} />
       <PageHeader
         title="Payouts Received"
         description="Track the payouts you've received from your savings circles."

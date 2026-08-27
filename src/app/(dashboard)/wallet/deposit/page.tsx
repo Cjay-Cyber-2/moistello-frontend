@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useCallback, useEffect } from "react"
+import { useState, useCallback, useEffect, useMemo } from "react"
 import Link from "next/link"
 import {
   ArrowLeft, Copy, Check,
@@ -12,6 +12,7 @@ import { post, get } from "@/lib/api-client"
 import { useUIStore } from "@/stores/ui-store"
 import { copyToClipboard } from "@/lib/clipboard"
 import { cn } from "@/lib/cn"
+import { LiveRegion } from "@/components/shared/live-region"
 
 type DepositStep =
   | "amount"      // 1 — Enter NGN amount, see USDC estimate
@@ -140,8 +141,30 @@ export default function DepositPage() {
 
   const maxNgnAmount = 5_000_000
 
+  // ── Meaningful status announcements for assistive tech ──
+  const statusMessage = useMemo(() => {
+    if (errMsg) return errMsg
+    if (loading) {
+      if (step === "amount") return "Fetching payment details…"
+      if (step === "payin") return "Confirming your transfer…"
+    }
+    switch (step) {
+      case "payin":
+        return `Payment details ready. Transfer ₦${payment?.amountNgn.toLocaleString() ?? ""} to complete your deposit.`
+      case "confirm":
+        return "Waiting for your bank transfer to be detected."
+      case "verify":
+        return "Verifying your transaction. This may take a few minutes."
+      case "complete":
+        return `Deposit complete. $${payment?.quote.estimatedUsdc.toFixed(2) ?? ""} USDC added to your wallet.`
+      default:
+        return ""
+    }
+  }, [step, loading, errMsg, payment])
+
   return (
     <div className="space-y-6 max-w-xl mx-auto">
+      <LiveRegion message={statusMessage} />
       {/* ── Back + Title ── */}
       <div className="flex items-center gap-3">
         <Link href="/wallet" className="text-muted-foreground hover:text-foreground transition-colors">
