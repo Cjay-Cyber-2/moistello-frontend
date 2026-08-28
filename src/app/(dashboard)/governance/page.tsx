@@ -1,28 +1,17 @@
 "use client"
 
 import Link from "next/link"
-import { useEffect, useState } from "react"
+import { useState } from "react"
 import { ArrowRight, Landmark, Plus } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import {
-  listProposals,
-  type GovernanceProposal,
-  type ProposalStatus,
-} from "@/lib/governance-api"
+import { useGovernanceProposals } from "@/hooks/use-governance"
+import type { ProposalStatus } from "@/lib/governance-api"
 
 const tabs: ProposalStatus[] = ["active", "passed", "defeated"]
 
 export default function GovernancePage() {
   const [status, setStatus] = useState<ProposalStatus>("active")
-  const [proposals, setProposals] = useState<GovernanceProposal[]>([])
-  const [error, setError] = useState("")
-
-  useEffect(() => {
-    setError("")
-    void listProposals(status).then(setProposals).catch(() => {
-      setError("Governance proposals could not be loaded. Try again.")
-    })
-  }, [status])
+  const { data: proposals = [], isError } = useGovernanceProposals(status)
 
   return (
     <div className="relative overflow-hidden">
@@ -63,7 +52,11 @@ export default function GovernancePage() {
         ))}
       </nav>
 
-      {error && <p role="alert" className="mt-8 text-red-400">{error}</p>}
+      {isError && (
+        <p role="alert" className="mt-8 text-red-400">
+          Governance proposals could not be loaded. Try again.
+        </p>
+      )}
       <ol className="relative mt-8 space-y-8 border-l border-dashed border-aurora-violet/40 pl-8">
         {proposals.map((proposal, index) => (
           <li key={proposal.id} className="relative">
@@ -90,7 +83,7 @@ export default function GovernancePage() {
         ))}
       </ol>
 
-      {!error && proposals.length === 0 && (
+      {!isError && proposals.length === 0 && (
         <div className="mt-12 flex items-center gap-4 border-y border-white/10 py-8 text-muted-foreground">
           <Landmark className="h-8 w-8 text-aurora-violet" />
           No {status} proposals yet.

@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useCallback } from "react"
+import { useState } from "react"
 import { useParams } from "next/navigation"
 import Link from "next/link"
 import {
@@ -14,70 +14,25 @@ import { EmptyState } from "@/components/shared/empty-state"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { get, post } from "@/lib/api-client"
 import { useUIStore } from "@/stores/ui-store"
 import { cn } from "@/lib/cn"
 import { formatDate } from "@/lib/formatters"
 import { Routes } from "@/lib/constants"
 import { copyToClipboard } from "@/lib/clipboard"
+import {
+  useCommunity,
+  useCommunityMembership,
+  useJoinCommunity,
+  useTogglePinAnnouncement,
+  useDeleteAnnouncement,
+  useCreateAnnouncement,
+  useRemoveCommunityMember,
+  useTransferCommunityOwnership,
+  type CommunityAnnouncement,
+  type CommunityActivityEvent,
+} from "@/hooks/use-communities"
 
-interface Community {
-  id: string
-  name: string
-  slug: string
-  description: string
-  category: string
-  tags: string[]
-  avatarUrl?: string
-  bannerUrl?: string
-  ownerId: string
-  memberCount: number
-  totalSaved: number
-  isFeatured: boolean
-  createdAt: string
-}
-
-interface Member {
-  userId: string
-  role: string
-  joinedAt: string
-  displayName?: string
-  walletAddress?: string
-  moiScore?: number
-}
-
-interface CommunityCircle {
-  id: string
-  name: string
-  status: string
-  circleType: string
-  contributionAmount: number
-  currency: string
-  frequency: string
-  maxMembers: number
-  currentRound: number
-  memberCount?: number
-  requiresInvite?: boolean
-}
-
-interface Announcement {
-  id: string
-  content: string
-  authorId: string
-  isPinned: boolean
-  likeCount: number
-  createdAt: string
-}
-
-interface ActivityEvent {
-  id: string
-  eventType: string
-  actorId?: string
-  metadata: Record<string, string>
-  createdAt: string
-}
-
-function getEventLabel(event: ActivityEvent): string {
+function getEventLabel(event: CommunityActivityEvent): string {
   const labels: Record<string, string> = {
     member_join: "joined the community",
     circle_created: "created a new circle",
@@ -102,80 +57,25 @@ export default function CommunityDetailPage() {
   const { user } = useAuth()
   const addToast = useUIStore((s) => s.addToast)
 
-  const [community, setCommunity] = useState<Community | null>(null)
-  const [members, setMembers] = useState<Member[]>([])
-  const [announcements, setAnnouncements] = useState<Announcement[]>([])
-  const [activity, setActivity] = useState<ActivityEvent[]>([])
-  const [communityCircles, setCommunityCircles] = useState<CommunityCircle[]>([])
-  const [isMember, setIsMember] = useState(false)
-  const [loading, setLoading] = useState(true)
+  const { data, isLoading } = useCommunity(communityId)
+  const { data: isMember = false } = useCommunityMembership(communityId, !!user)
 
-  const load = useCallback(async () => {
-    setLoading(true)
-    try {
-      const [comRes, memRes, annRes, actRes, cirRes] = await Promise.allSettled([
-        get<unknown>(`/communities/${communityId}`),
-        get<unknown>(`/communities/${communityId}/members`),
-        get<unknown>(`/communities/${communityId}/announcements`),
-        get<unknown>(`/communities/${communityId}/activity`),
-        get<unknown>(`/circles?communityId=${communityId}`),
-      ])
+  const community = data?.community ?? null
+  const members = data?.members ?? []
+  const announcements = data?.announcements ?? []
+  const activity = data?.activity ?? []
+  const communityCircles = data?.circles ?? []
 
-      if (comRes.status === "fulfilled") {
-        const raw = comRes.value as Record<string, unknown>
-        const data = (raw.data ?? raw) as Record<string, unknown>
-        setCommunity(data.community as Community)
-      }
-
-      if (memRes.status === "fulfilled") {
-        const raw = memRes.value as Record<string, unknown>
-        const data = (raw.data ?? raw) as Record<string, unknown>
-        setMembers(data.members as Member[] ?? [])
-      }
-
-      if (annRes.status === "fulfilled") {
-        const raw = annRes.value as Record<string, unknown>
-        const data = (raw.data ?? raw) as Record<string, unknown>
-        setAnnouncements(data.announcements as Announcement[] ?? [])
-      }
-
-      if (actRes.status === "fulfilled") {
-        const raw = actRes.value as Record<string, unknown>
-        const data = (raw.data ?? raw) as Record<string, unknown>
-        setActivity(data.events as ActivityEvent[] ?? [])
-      }
-
-      if (cirRes.status === "fulfilled") {
-        const raw = cirRes.value as Record<string, unknown>
-        const data = (raw.data ?? raw) as Record<string, unknown>
-        setCommunityCircles(data.circles as CommunityCircle[] ?? [])
-      }
-
-      if (user) {
-        try {
-          const memCheck = await get<unknown>(`/communities/${communityId}/membership`)
-          const raw = memCheck as Record<string, unknown>
-          const data = (raw.data ?? raw) as Record<string, unknown>
-          setIsMember(!!data.isMember)
-        } catch (e) {
-          console.warn("[community] Failed to check membership:", e)
-        }
-      }
-    } catch (e) {
-      console.error("[community] Failed to load community:", e)
-      setCommunity(null)
-    } finally {
-      setLoading(false)
-    }
-  }, [communityId, user])
-
-  useEffect(() => { load() }, [load])
+  const joinCommunity = useJoinCommunity(communityId)
+  const togglePin = useTogglePinAnnouncement(communityId)
+  const deleteAnnouncement = useDeleteAnnouncement(communityId)
+  const createAnnouncement = useCreateAnnouncement(communityId)
+  const removeMember = useRemoveCommunityMember(communityId)
+  const transferOwnership = useTransferCommunityOwnership(communityId)
 
   const handleJoin = async () => {
     try {
-      await post(`/communities/${communityId}/join`)
-      setIsMember(true)
-      setCommunity((prev) => prev ? { ...prev, memberCount: prev.memberCount + 1 } : prev)
+      await joinCommunity.mutateAsync()
       addToast({ type: "success", title: "Joined!", description: "You are now a member of this community." })
     } catch (e) {
       console.error("[community] Failed to join:", e)
@@ -183,11 +83,9 @@ export default function CommunityDetailPage() {
     }
   }
 
-  const handleTogglePin = async (a: Announcement) => {
+  const handleTogglePin = async (a: CommunityAnnouncement) => {
     try {
-      const { patch } = await import("@/lib/api-client")
-      await patch(`/communities/${communityId}/announcements/${a.id}/pin`, { pinned: !a.isPinned })
-      setAnnouncements((prev) => prev.map((x) => x.id === a.id ? { ...x, isPinned: !x.isPinned } : x))
+      await togglePin.mutateAsync({ id: a.id, pinned: !a.isPinned })
       addToast({ type: "success", title: a.isPinned ? "Unpinned" : "Pinned!" })
     } catch (e) {
       console.error("[community] Failed to toggle pin:", e)
@@ -197,9 +95,7 @@ export default function CommunityDetailPage() {
 
   const handleDeleteAnnouncement = async (id: string) => {
     try {
-      const { del } = await import("@/lib/api-client")
-      await del(`/communities/${communityId}/announcements/${id}`)
-      setAnnouncements((prev) => prev.filter((a) => a.id !== id))
+      await deleteAnnouncement.mutateAsync(id)
       addToast({ type: "success", title: "Deleted" })
     } catch (e) {
       console.error("[community] Failed to delete announcement:", e)
@@ -209,10 +105,7 @@ export default function CommunityDetailPage() {
 
   const handleRemoveMember = async (targetId: string, name: string) => {
     try {
-      const { del } = await import("@/lib/api-client")
-      await del(`/communities/${communityId}/members/${targetId}`)
-      setMembers((prev) => prev.filter((m) => m.userId !== targetId))
-      setCommunity((prev) => prev ? { ...prev, memberCount: prev.memberCount - 1 } : prev)
+      await removeMember.mutateAsync(targetId)
       addToast({ type: "success", title: `${name} removed` })
     } catch (e) {
       console.error("[community] Failed to remove member:", e)
@@ -226,19 +119,17 @@ export default function CommunityDetailPage() {
   const handleTransferOwnership = async () => {
     if (!transferTarget) return
     try {
-      const { post } = await import("@/lib/api-client")
-      await post(`/communities/${communityId}/transfer-ownership`, { newOwnerId: transferTarget })
+      await transferOwnership.mutateAsync(transferTarget)
       addToast({ type: "success", title: "Ownership transferred!" })
       setShowTransfer(false)
       setTransferTarget("")
-      load()
     } catch (e) {
       console.error("[community] Failed to transfer ownership:", e)
       addToast({ type: "error", title: "Failed to transfer ownership" })
     }
   }
 
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="space-y-6">
         <PageHeader title="Community" />
@@ -516,7 +407,9 @@ export default function CommunityDetailPage() {
                 </div>
               )}
               {isOrganizer && (
-                <CreateAnnouncementForm communityId={community.id} onCreated={load} />
+                <CreateAnnouncementForm
+                  onCreate={(content) => createAnnouncement.mutateAsync(content)}
+                />
               )}
             </div>
 
@@ -579,7 +472,7 @@ export default function CommunityDetailPage() {
   )
 }
 
-function CreateAnnouncementForm({ communityId, onCreated }: { communityId: string; onCreated: () => void }) {
+function CreateAnnouncementForm({ onCreate }: { onCreate: (content: string) => Promise<unknown> }) {
   const [content, setContent] = useState("")
   const [posting, setPosting] = useState(false)
   const addToast = useUIStore((s) => s.addToast)
@@ -588,10 +481,9 @@ function CreateAnnouncementForm({ communityId, onCreated }: { communityId: strin
     if (!content.trim()) return
     setPosting(true)
     try {
-      await post(`/communities/${communityId}/announcements`, { content: content.trim() })
+      await onCreate(content.trim())
       setContent("")
       addToast({ type: "success", title: "Posted!" })
-      onCreated()
     } catch (e) {
       console.error("[community] Failed to post announcement:", e)
       addToast({ type: "error", title: "Failed to post" })

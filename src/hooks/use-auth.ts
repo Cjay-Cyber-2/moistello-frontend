@@ -8,7 +8,6 @@ export function useAuth() {
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const user = useAuthStore((s) => s.user);
   const isLoading = useAuthStore((s) => s.isLoading);
-  const login = useAuthStore((s) => s.login);
   const logout = useAuthStore((s) => s.logout);
   const checkAuth = useAuthStore((s) => s.checkAuth);
 
@@ -16,7 +15,6 @@ export function useAuth() {
     user,
     isAuthenticated,
     isLoading,
-    login,
     logout,
     checkAuth,
   };
