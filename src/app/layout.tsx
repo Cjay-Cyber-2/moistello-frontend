@@ -7,6 +7,7 @@ import "./globals.css"
 import { QueryProvider } from "@/providers/query-provider"
 import { WsProvider } from "@/providers/ws-provider"
 import { ThemeProvider } from "@/providers/theme-provider"
+import { MotionProvider } from "@/providers/motion-provider"
 import { AuthProvider } from "@/providers/auth-provider"
 import { ToastProvider } from "@/providers/toast-provider"
 import { MonitoringProvider } from "@/providers/monitoring-provider"
@@ -199,15 +200,17 @@ export default function RootLayout({
         <QueryProvider>
           <WsProvider>
           <ThemeProvider>
-            <AuthProvider>
-              <LocaleProvider>
-                <ToastProvider>
-                  <MonitoringProvider>
-                    {children}
-                  </MonitoringProvider>
-                </ToastProvider>
-              </LocaleProvider>
-            </AuthProvider>
+            <MotionProvider>
+              <AuthProvider>
+                <LocaleProvider>
+                  <ToastProvider>
+                    <MonitoringProvider>
+                      {children}
+                    </MonitoringProvider>
+                  </ToastProvider>
+                </LocaleProvider>
+              </AuthProvider>
+            </MotionProvider>
           </ThemeProvider>
           </WsProvider>
         </QueryProvider>
