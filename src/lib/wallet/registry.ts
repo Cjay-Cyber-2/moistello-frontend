@@ -82,9 +82,3 @@ export function getWalletRegistry(): WalletRegistry {
   }
   return _registry
 }
-
-export const walletRegistry = new Proxy({} as WalletRegistry, {
-  get(_target, prop: string | symbol) {
-    return (getWalletRegistry() as unknown as Record<string | symbol, unknown>)[prop]
-  },
-})

@@ -3,6 +3,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { get, post } from "@/lib/api-client";
 import { useUIStore } from "@/stores/ui-store";
+import { queryKeys } from "@/lib/query-keys";
 import {
   ApiResponse,
   Circle,
@@ -77,7 +78,7 @@ function normalizeCircle(c: Record<string, unknown>): Circle {
 
 export function useCircles(filters?: CircleFilters) {
   return useQuery({
-    queryKey: ["circles", filters],
+    queryKey: queryKeys.circles.list(filters),
     queryFn: async () => {
       const params = new URLSearchParams();
       if (filters?.search) params.set("search", filters.search);
@@ -110,7 +111,7 @@ export function useCircles(filters?: CircleFilters) {
 
 export function useCircle(id: string) {
   return useQuery({
-    queryKey: ["circle", id],
+    queryKey: queryKeys.circles.detail(id),
     queryFn: async () => {
       const response = await get<ApiResponse<{ circle: Circle }>>(`/circles/${id}`);
       const raw = response.data?.circle
@@ -128,8 +129,8 @@ export function useStartCircle() {
     mutationFn: (circleId: string) =>
       post<ApiResponse<{ success: boolean }>>(`/circles/${circleId}/start`),
     onSuccess: (_data, circleId) => {
-      queryClient.invalidateQueries({ queryKey: ["circle", circleId] });
-      queryClient.invalidateQueries({ queryKey: ["circles"] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.circles.detail(circleId) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.circles.all });
     },
     onError: (err) => {
       console.error("[useStartCircle] Failed to start circle:", err);
@@ -150,7 +151,7 @@ export function useCreateCircle() {
     mutationFn: (payload: CreateCirclePayload) =>
       post<ApiResponse<Circle>>("/circles", payload, { _retry: true } as Record<string, unknown>),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["circles"] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.circles.all });
     },
     onError: (err) => {
       console.error("[useCreateCircle] Failed to create circle:", err);
@@ -176,8 +177,8 @@ export function useJoinCircle() {
       payload?: JoinCirclePayload;
     }) => post<ApiResponse<CircleMember>>(`/circles/${circleId}/join`, payload ?? {}),
     onSuccess: (_data, variables) => {
-      queryClient.invalidateQueries({ queryKey: ["circle", variables.circleId] });
-      queryClient.invalidateQueries({ queryKey: ["circle-members", variables.circleId] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.circles.detail(variables.circleId) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.circles.members(variables.circleId) });
     },
     onError: (err) => {
       console.error("[useJoinCircle] Failed to join circle:", err);
@@ -202,12 +203,12 @@ export function useContribute(circleId: string) {
       ),
     onMutate: async (newContribution) => {
       // Cancel any outgoing refetches so they do not overwrite the optimistic update.
-      await queryClient.cancelQueries({ queryKey: ["circle", circleId] });
-      await queryClient.cancelQueries({ queryKey: ["circle-rounds", circleId] });
+      await queryClient.cancelQueries({ queryKey: queryKeys.circles.detail(circleId) });
+      await queryClient.cancelQueries({ queryKey: queryKeys.circles.rounds(circleId) });
 
       // Snapshot the current cache values so we can roll back on error.
-      const previousCircle = queryClient.getQueryData<Circle | null>(["circle", circleId]);
-      const previousRounds = queryClient.getQueryData<Contribution[]>(["circle-rounds", circleId]);
+      const previousCircle = queryClient.getQueryData<Circle | null>(queryKeys.circles.detail(circleId));
+      const previousRounds = queryClient.getQueryData<Contribution[]>(queryKeys.circles.rounds(circleId));
 
       // ── Stable temp id ────────────────────────────────────────────────────
       // Using crypto.randomUUID() (or a predictable prefix+timestamp fallback)
@@ -220,7 +221,7 @@ export function useContribute(circleId: string) {
 
       // ── Optimistic circle update ──────────────────────────────────────────
       if (previousCircle) {
-        queryClient.setQueryData<Circle | null>(["circle", circleId], (old) => {
+        queryClient.setQueryData<Circle | null>(queryKeys.circles.detail(circleId), (old) => {
           if (!old) return old;
           return {
             ...old,
@@ -247,7 +248,7 @@ export function useContribute(circleId: string) {
           createdAt: new Date().toISOString(),
         };
         queryClient.setQueryData<Contribution[]>(
-          ["circle-rounds", circleId],
+          queryKeys.circles.rounds(circleId),
           (old) => [...(old ?? []), optimisticRound],
         );
       }
@@ -261,12 +262,12 @@ export function useContribute(circleId: string) {
       // undefined context means onMutate never ran (e.g. synchronous throw
       // before any await), so we just invalidate to force a fresh fetch.
       if (context) {
-        queryClient.setQueryData(["circle", circleId], context.previousCircle ?? null);
-        queryClient.setQueryData(["circle-rounds", circleId], context.previousRounds ?? []);
+        queryClient.setQueryData(queryKeys.circles.detail(circleId), context.previousCircle ?? null);
+        queryClient.setQueryData(queryKeys.circles.rounds(circleId), context.previousRounds ?? []);
       } else {
         // Fallback: force a refetch so the UI is not stuck on stale data.
-        queryClient.invalidateQueries({ queryKey: ["circle", circleId] });
-        queryClient.invalidateQueries({ queryKey: ["circle-rounds", circleId] });
+        queryClient.invalidateQueries({ queryKey: queryKeys.circles.detail(circleId) });
+        queryClient.invalidateQueries({ queryKey: queryKeys.circles.rounds(circleId) });
       }
 
       console.error("[useContribute] Failed to contribute:", err);
@@ -282,8 +283,8 @@ export function useContribute(circleId: string) {
       // optimistic entry.  onSettled previously ran invalidations on BOTH
       // success and error paths, causing a double-invalidation on success
       // (onSuccess would have been added later) and masking rollbacks on error.
-      queryClient.invalidateQueries({ queryKey: ["circle", circleId] });
-      queryClient.invalidateQueries({ queryKey: ["circle-rounds", circleId] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.circles.detail(circleId) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.circles.rounds(circleId) });
     },
     // onSettled intentionally omitted: invalidation is handled exclusively in
     // onSuccess above and rollback + toast in onError, so there is no shared
@@ -293,7 +294,7 @@ export function useContribute(circleId: string) {
 
 export function useCircleMembers(circleId: string) {
   return useQuery({
-    queryKey: ["circle-members", circleId],
+    queryKey: queryKeys.circles.members(circleId),
     queryFn: async () => {
       const response = await get<ApiResponse<{ members: CircleMember[] }>>(
         `/circles/${circleId}/members`
@@ -306,7 +307,7 @@ export function useCircleMembers(circleId: string) {
 
 export function useCircleRounds(circleId: string) {
   return useQuery({
-    queryKey: ["circle-rounds", circleId],
+    queryKey: queryKeys.circles.rounds(circleId),
     queryFn: async () => {
       const response = await get<
         ApiResponse<{
