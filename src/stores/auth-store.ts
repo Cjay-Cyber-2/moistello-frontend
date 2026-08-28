@@ -148,12 +148,6 @@ function extractTokenExpiry(token: string): number | null {
   } catch { return null }
 }
 
-interface LoginResponse {
-  token: string;
-  refreshToken: string;
-  user: User;
-}
-
 interface AuthState {
   isAuthenticated: boolean;
   user: User | null;
@@ -164,7 +158,6 @@ interface AuthState {
 }
 
 interface AuthActions {
-  login: (walletAddress: string, signature: string) => Promise<void>;
   logout: () => void;
   checkAuth: () => Promise<void>;
   /**
@@ -190,40 +183,6 @@ const baseStore = (set: (partial: Partial<AuthStore> | ((state: AuthStore) => Pa
   token: null,
   isLoading: true,
   tokenExpiresAt: null,
-
-  login: async (walletAddress: string, signature: string) => {
-    set({ isLoading: true });
-    try {
-      const response = await post<ApiResponse<LoginResponse>>("/auth/login", {
-        walletAddress,
-        signature,
-      });
-
-      const data = response.data ?? (response as unknown as LoginResponse);
-
-      if (!data.token || !data.user) {
-        throw new Error(response.error || "Authentication failed");
-      }
-
-      const { token, refreshToken, user } = data;
-      const exp = extractTokenExpiry(token);
-
-      setAccessToken(token);
-      setStoredUser(user);
-      await persistSession(token, refreshToken);
-
-      set({
-        isAuthenticated: true,
-        user,
-        token,
-        tokenExpiresAt: exp ?? Date.now() + 15 * 60 * 1000,
-        isLoading: false,
-      });
-    } catch (error) {
-      set({ isLoading: false });
-      throw error;
-    }
-  },
 
   logout: () => {
     post("/auth/logout").catch(() => {})

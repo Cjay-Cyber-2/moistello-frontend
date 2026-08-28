@@ -20,7 +20,7 @@ function saveKeyToStorage(hex: string) {
     if (typeof window === "undefined") return;
     localStorage.setItem(LOCALSTORAGE_KEY, hex);
     localStorage.setItem(LOCALSTORAGE_TS, String(Date.now()));
-  } catch (e) {
+  } catch {
     // ignore storage failures
   }
 }
@@ -35,7 +35,7 @@ export function clearHmacKeyCache(): void {
     if (typeof window === "undefined") return;
     localStorage.removeItem(LOCALSTORAGE_KEY);
     localStorage.removeItem(LOCALSTORAGE_TS);
-  } catch (e) {
+  } catch {
     // ignore
   }
 }
@@ -55,7 +55,7 @@ function getCachedKey(): Uint8Array | null {
     const bytes = hexToBytes(hex);
     inMemoryKey = bytes;
     return bytes;
-  } catch (e) {
+  } catch {
     return null;
   }
 }

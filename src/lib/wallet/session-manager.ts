@@ -175,9 +175,3 @@ export function getSessionManager(): WalletSessionManager {
   }
   return _sessionManager
 }
-
-export const sessionManager = new Proxy({} as WalletSessionManager, {
-  get(_target, prop: string | symbol) {
-    return (getSessionManager() as unknown as Record<string | symbol, unknown>)[prop]
-  },
-})
