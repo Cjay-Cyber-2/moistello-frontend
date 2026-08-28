@@ -276,7 +276,7 @@ export function useContribute(circleId: string) {
         description: extractErrorMessage(err, "Could not submit contribution. Please try again."),
       });
     },
-    onSuccess: (_data, _variables, _context) => {
+    onSuccess: () => {
       // ── Single invalidation path ──────────────────────────────────────────
       // Invalidate only on success so the server response replaces the
       // optimistic entry.  onSettled previously ran invalidations on BOTH

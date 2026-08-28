@@ -128,7 +128,8 @@ export function LedgerPrompt({
       setLedgerConnectionState("waiting_for_confirm");
 
       const store = useMultiWalletStore.getState();
-      const addr = store.address;
+      const activeEntry = store.activeWalletId ? store.wallets[store.activeWalletId] : undefined;
+      const addr = activeEntry?.publicKey;
       if (addr) {
         setConnectedKey(addr);
         setCurrentStep("connected");

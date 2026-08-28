@@ -98,24 +98,32 @@ export default function SavingsPage() {
     return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
   })
 
+  const invalidateSavings = () => {
+    queryClient.invalidateQueries({ queryKey: ["savings-goals"] })
+    queryClient.invalidateQueries({ queryKey: ["savings-summary"] })
+  }
+
   const createMutation = useMutation({
     mutationFn: async (data: Record<string, unknown>) => post("/savings/goals", data),
-    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["savings-goals"] }); queryClient.invalidateQueries({ queryKey: ["savings-summary"] }); setShowCreate(false) },
+    onSuccess: () => { setShowCreate(false) },
+    onSettled: () => { invalidateSavings() },
   })
 
   const updateMutation = useMutation({
     mutationFn: async ({ id, ...data }: Record<string, unknown>) => patch(`/savings/goals/${id}`, data),
-    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["savings-goals"] }); queryClient.invalidateQueries({ queryKey: ["savings-summary"] }); setEditingGoal(null) },
+    onSuccess: () => { setEditingGoal(null) },
+    onSettled: () => { invalidateSavings() },
   })
 
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => del(`/savings/goals/${id}`),
-    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["savings-goals"] }); queryClient.invalidateQueries({ queryKey: ["savings-summary"] }); setDeleteTarget(null) },
+    onSuccess: () => { setDeleteTarget(null) },
+    onSettled: () => { invalidateSavings() },
   })
 
   const completeMutation = useMutation({
     mutationFn: async (id: string) => post(`/savings/goals/${id}/complete`, {}),
-    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["savings-goals"] }); queryClient.invalidateQueries({ queryKey: ["savings-summary"] }) },
+    onSettled: () => { invalidateSavings() },
   })
 
   return (

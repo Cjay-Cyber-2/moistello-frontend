@@ -9,7 +9,7 @@ import {
   getAccessToken,
   setAccessToken,
 } from "@/lib/auth/token-store";
-import { computeHmacSha256 } from "@/lib/wallet/hmac";
+import { computeHmacSha256Sync } from "@/lib/wallet/hmac";
 
 const isDev = process.env.NODE_ENV === "development"
 
@@ -90,7 +90,7 @@ function getStoredUser(): User | null {
     const store: UserStoreWithHmac = JSON.parse(raw);
     if (!store.hmac || !store.user) return null;
 
-    const expectedHMAC = computeHmacSha256(JSON.stringify(store.user));
+    const expectedHMAC = computeHmacSha256Sync(JSON.stringify(store.user));
     if (store.hmac !== expectedHMAC) {
       console.warn("[auth] HMAC mismatch — user data may be tampered");
       localStorage.removeItem(USER_DATA_KEY);
@@ -104,7 +104,7 @@ function getStoredUser(): User | null {
 function setStoredUser(user: User): void {
   if (typeof window === "undefined") return;
   try {
-    const hmac = computeHmacSha256(JSON.stringify(user));
+    const hmac = computeHmacSha256Sync(JSON.stringify(user));
     const store: UserStoreWithHmac = { user, hmac };
     localStorage.setItem(USER_DATA_KEY, JSON.stringify(store));
   } catch (e) { console.warn("[auth] Failed to persist user data:", e) }

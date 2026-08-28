@@ -78,12 +78,7 @@ describe("multi-wallet-store connect concurrency", () => {
     useMultiWalletStore.setState({
       activeWalletId: null,
       wallets: {},
-      isConnected: false,
-      address: null,
-      isConnecting: false,
       connectingWalletId: null,
-      error: null,
-      activeAdapter: null,
     });
   });
 
@@ -137,7 +132,6 @@ describe("multi-wallet-store connect concurrency", () => {
 
     expect(useMultiWalletStore.getState()).toMatchObject({
       activeWalletId: "freighter",
-      isConnecting: true,
       connectingWalletId: "freighter",
     });
 
@@ -148,9 +142,6 @@ describe("multi-wallet-store connect concurrency", () => {
     expect(sessionConnect).toHaveBeenCalledTimes(1);
     expect(useMultiWalletStore.getState()).toMatchObject({
       activeWalletId: "freighter",
-      address: "GRAPIDCLICKS",
-      isConnected: true,
-      isConnecting: false,
       connectingWalletId: null,
     });
     expect(Object.keys(useMultiWalletStore.getState().wallets)).toEqual([
@@ -201,12 +192,10 @@ describe("multi-wallet-store connect concurrency", () => {
     expect(useMultiWalletStore.getState().wallets.xbull.status).toBe("disconnected");
     expect(useMultiWalletStore.getState()).toMatchObject({
       activeWalletId: "freighter",
-      address: "GFAST",
-      isConnected: true,
     });
   });
 
-  it("resyncs convenience state after refreshing an active wallet balance", async () => {
+  it("refreshes balance for an active wallet", async () => {
     const adapter = createAdapter(vi.fn());
     fetchBalanceWithBackoff.mockResolvedValue({ xlm: "42", usdc: "7" });
     useMultiWalletStore.setState({
@@ -222,20 +211,12 @@ describe("multi-wallet-store connect concurrency", () => {
           status: "connected",
         },
       },
-      isConnected: false,
-      address: null,
-      activeAdapter: null,
     });
 
     await useMultiWalletStore.getState().refreshBalance("freighter");
 
     expect(fetchBalanceWithBackoff).toHaveBeenCalledWith("GBALANCE", {
       forceRefresh: false,
-    });
-    expect(useMultiWalletStore.getState()).toMatchObject({
-      isConnected: true,
-      address: "GBALANCE",
-      activeAdapter: adapter,
     });
     expect(useMultiWalletStore.getState().wallets.freighter.balance).toEqual({
       xlm: "42",

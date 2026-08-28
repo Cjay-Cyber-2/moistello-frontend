@@ -3,15 +3,19 @@
 import { useShallow } from "zustand/react/shallow"
 import { useMultiWalletStore } from "@/stores/multi-wallet-store"
 
-/** Connection state slice — subscribe only when connection/address/error changes. */
+/** Derive connection state from active wallet entry — no manual sync needed. */
 export function useMultiWalletConnection() {
-  return useMultiWalletStore(useShallow((s) => ({
-    isConnected: s.isConnected,
-    isConnecting: s.isConnecting,
-    address: s.address,
-    error: s.error,
-    activeAdapter: s.activeAdapter,
-  })))
+  const activeWalletId = useMultiWalletStore((s) => s.activeWalletId)
+  const wallets = useMultiWalletStore((s) => s.wallets)
+  const activeEntry = activeWalletId ? wallets[activeWalletId] : undefined
+
+  return {
+    isConnected: activeEntry?.status === "connected" || activeEntry?.status === "reconnecting",
+    isConnecting: activeEntry?.status === "connecting",
+    address: activeEntry?.publicKey ?? null,
+    error: activeEntry?.error?.message ?? null,
+    activeAdapter: activeEntry?.adapter ?? null,
+  }
 }
 
 /** Active-wallet identity slice — subscribe only when the active wallet/id changes. */

@@ -38,13 +38,8 @@ interface MultiWalletState {
   isScanning: boolean;
   isInitializing: boolean;
 
-  /* Convenience state for auth / UI pages */
-  isConnected: boolean;
-  address: string | null;
-  isConnecting: boolean;
+  /* UI-only state */
   connectingWalletId: WalletId | null;
-  error: string | null;
-  activeAdapter: WalletAdapter | null;
   isSelectorOpen: boolean;
 
   /* Route-specific error isolation for enterprise-grade UX */
@@ -109,25 +104,6 @@ interface MultiWalletState {
   resetLedgerState: () => void;
 }
 
-/* Helper: sync convenience fields from wallet record */
-function syncConvenienceState(
-  state: Pick<MultiWalletState, "activeWalletId" | "wallets">
-): Partial<MultiWalletState> {
-  const { activeWalletId, wallets } = state;
-  const activeEntry = activeWalletId ? wallets[activeWalletId] : undefined;
-
-  return {
-    isConnected: activeEntry?.status === "connected" || activeEntry?.status === "reconnecting",
-    address: activeEntry?.publicKey ?? null,
-    isConnecting: activeEntry?.status === "connecting",
-    error:
-      activeEntry?.error != null
-        ? activeEntry.error.message
-        : null,
-    activeAdapter: activeEntry?.adapter ?? null,
-  };
-}
-
 async function runConnectionProbes(
   sessions: Array<{ walletId: WalletId }>,
   probe: (walletId: WalletId) => Promise<void>,
@@ -152,13 +128,8 @@ export const useMultiWalletStore = create<MultiWalletState>()((set, get) => ({
   isScanning: false,
   isInitializing: false,
 
-  /* Convenience defaults */
-  isConnected: false,
-  address: null,
-  isConnecting: false,
+  /* UI-only defaults */
   connectingWalletId: null,
-  error: null,
-  activeAdapter: null,
   isSelectorOpen: false,
 
   /* Route-specific error isolation defaults */
@@ -213,7 +184,6 @@ export const useMultiWalletStore = create<MultiWalletState>()((set, get) => ({
         set({
           wallets,
           activeWalletId: nextActiveId,
-          ...syncConvenienceState({ activeWalletId: nextActiveId, wallets }),
         });
 
         await runConnectionProbes(sessions, async (walletId) => {
@@ -274,7 +244,7 @@ export const useMultiWalletStore = create<MultiWalletState>()((set, get) => ({
       };
       set((state) => {
         const existing = state.wallets[walletId];
-        const next = {
+        return {
           wallets: {
             ...state.wallets,
             [walletId]: existing
@@ -291,10 +261,6 @@ export const useMultiWalletStore = create<MultiWalletState>()((set, get) => ({
           },
           activeWalletId: state.activeWalletId,
         };
-        return {
-          ...next,
-          ...syncConvenienceState(next),
-        };
       });
       throw offlineError;
     }
@@ -304,7 +270,7 @@ export const useMultiWalletStore = create<MultiWalletState>()((set, get) => ({
 
     set((state) => {
       const existing = state.wallets[walletId];
-      const next = {
+      return {
         wallets: {
           ...state.wallets,
           [walletId]: existing
@@ -320,11 +286,7 @@ export const useMultiWalletStore = create<MultiWalletState>()((set, get) => ({
               },
         },
         activeWalletId: walletId as WalletId,
-      };
-      return {
-        ...next,
         connectingWalletId: walletId,
-        ...syncConvenienceState(next),
       };
     });
 
@@ -333,7 +295,7 @@ export const useMultiWalletStore = create<MultiWalletState>()((set, get) => ({
       const network = await adapter.getNetwork();
 
       set((state) => {
-        const next = {
+        return {
           wallets: {
             ...state.wallets,
             [walletId]: {
@@ -347,10 +309,6 @@ export const useMultiWalletStore = create<MultiWalletState>()((set, get) => ({
             },
           },
           activeWalletId: walletId,
-        };
-        return {
-          ...next,
-          ...syncConvenienceState(next),
         };
       });
 
@@ -369,7 +327,7 @@ export const useMultiWalletStore = create<MultiWalletState>()((set, get) => ({
 
       set((state) => {
         const existing = state.wallets[walletId];
-        const next = {
+        return {
           wallets: {
             ...state.wallets,
             [walletId]: existing
@@ -385,10 +343,6 @@ export const useMultiWalletStore = create<MultiWalletState>()((set, get) => ({
                 },
           },
           activeWalletId: state.activeWalletId,
-        };
-        return {
-          ...next,
-          ...syncConvenienceState(next),
         };
       });
       throw error;
@@ -411,26 +365,16 @@ export const useMultiWalletStore = create<MultiWalletState>()((set, get) => ({
         state.activeWalletId === walletId
           ? remainingIds[0] ?? null
           : state.activeWalletId;
-      const next = {
+      return {
         wallets: remaining,
         activeWalletId: nextActive,
-      };
-      return {
-        ...next,
-        ...syncConvenienceState(next),
       };
     });
   },
 
   switchWallet: (walletId: WalletId) => {
     getSessionManager().switchTo(walletId);
-    set((state) => {
-      const next = { activeWalletId: walletId };
-      return {
-        ...next,
-        ...syncConvenienceState({ ...state, ...next }),
-      };
-    });
+    set({ activeWalletId: walletId });
   },
 
   refreshBalance: async (walletId: WalletId, forceRefresh = false) => {
@@ -441,16 +385,11 @@ export const useMultiWalletStore = create<MultiWalletState>()((set, get) => ({
       set((state) => {
         const existing = state.wallets[walletId];
         if (existing) {
-          const next = {
+          return {
             wallets: {
               ...state.wallets,
               [walletId]: { ...existing, balance },
             },
-            activeWalletId: state.activeWalletId,
-          };
-          return {
-            ...next,
-            ...syncConvenienceState(next),
           };
         }
         return state;
@@ -464,7 +403,7 @@ export const useMultiWalletStore = create<MultiWalletState>()((set, get) => ({
     set((state) => {
       const existing = state.wallets[walletId];
       if (existing) {
-        const next = {
+        return {
           wallets: {
             ...state.wallets,
             [walletId]: {
@@ -475,10 +414,6 @@ export const useMultiWalletStore = create<MultiWalletState>()((set, get) => ({
           },
           activeWalletId: state.activeWalletId,
         };
-        return {
-          ...next,
-          ...syncConvenienceState(next),
-        };
       }
       return state;
     });
@@ -488,16 +423,12 @@ export const useMultiWalletStore = create<MultiWalletState>()((set, get) => ({
     set((state) => {
       const existing = state.wallets[walletId];
       if (existing) {
-        const next = {
+        return {
           wallets: {
             ...state.wallets,
             [walletId]: { ...existing, status },
           },
           activeWalletId: state.activeWalletId,
-        };
-        return {
-          ...next,
-          ...syncConvenienceState(next),
         };
       }
       return state;

@@ -1,5 +1,5 @@
 import type { NetworkType } from "./types"
-import { computeHmacSha256 } from "./hmac"
+import { computeHmacSha256Sync } from "./hmac"
 
 const STORAGE_KEY = "moistello_wc2_session"
 const SESSION_TTL = 7 * 24 * 60 * 60 * 1000
@@ -19,7 +19,7 @@ interface StoredPayload {
 
 function computeHMAC(data: WC2SessionData): string {
   const input = `${data.pairingTopic}|${data.publicKey}|${data.network}|${data.createdAt}|${data.expiresAt}`
-  return computeHmacSha256(input)
+  return computeHmacSha256Sync(input)
 }
 
 function isBrowser(): boolean {

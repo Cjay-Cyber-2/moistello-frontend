@@ -59,26 +59,18 @@ describe("useMultiWallet store via hooks", () => {
       activeWalletId: null,
       wallets: {},
       detectedWallets: [],
-      isConnected: false,
-      address: null,
-      isConnecting: false,
-      error: null,
-      activeAdapter: null,
       isSelectorOpen: false,
     });
   });
 
   describe("connection state", () => {
-    it("starts disconnected", () => {
+    it("starts with no active wallet", () => {
       const state = useMultiWalletStore.getState();
-      expect(state.isConnected).toBe(false);
-      expect(state.isConnecting).toBe(false);
-      expect(state.address).toBeNull();
-      expect(state.error).toBeNull();
-      expect(state.activeAdapter).toBeNull();
+      expect(state.activeWalletId).toBeNull();
+      expect(state.wallets).toEqual({});
     });
 
-    it("reflects connected state", () => {
+    it("reflects connected state via wallet entry", () => {
       const adapter = createMockAdapter();
       useMultiWalletStore.setState({
         activeWalletId: "freighter",
@@ -93,15 +85,12 @@ describe("useMultiWallet store via hooks", () => {
             status: "connected",
           },
         },
-        isConnected: true,
-        address: "GTEST123",
-        activeAdapter: adapter,
       });
 
       const state = useMultiWalletStore.getState();
-      expect(state.isConnected).toBe(true);
-      expect(state.address).toBe("GTEST123");
-      expect(state.activeAdapter).toBe(adapter);
+      expect(state.activeWalletId).toBe("freighter");
+      expect(state.wallets.freighter.publicKey).toBe("GTEST123");
+      expect(state.wallets.freighter.adapter).toBe(adapter);
     });
   });
 
@@ -179,7 +168,6 @@ describe("useMultiWallet store via hooks", () => {
       const state = useMultiWalletStore.getState();
       expect(state.wallets.freighter).toBeUndefined();
       expect(state.activeWalletId).toBeNull();
-      expect(state.isConnected).toBe(false);
     });
 
     it("switchWallet changes active wallet", () => {

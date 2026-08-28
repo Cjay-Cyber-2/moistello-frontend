@@ -107,12 +107,14 @@ function NotificationItem({
   onClick,
   selected,
   onToggleSelect,
+  largeList,
 }: {
   notification: Notification;
   onMarkRead: (id: string) => void;
   onClick: (n: Notification) => void;
   selected: boolean;
   onToggleSelect: (id: string) => void;
+  largeList: boolean;
 }) {
   const handleClick = () => {
     if (!notification.isRead) onMarkRead(notification.id);

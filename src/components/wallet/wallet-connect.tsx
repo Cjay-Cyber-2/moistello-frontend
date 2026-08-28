@@ -6,6 +6,7 @@ import { cn } from "@/lib/cn";
 import { formatAddress } from "@/lib/formatters";
 import { Button } from "@/components/ui/button";
 import { useMultiWalletStore } from "@/stores/multi-wallet-store";
+import { useMultiWalletConnection } from "@/hooks/use-multi-wallet";
 import { useOnlineStatus } from "@/hooks/use-online-status";
 
 interface WalletConnectProps {
@@ -20,10 +21,7 @@ export function WalletConnect({
   size = "sm",
 }: WalletConnectProps) {
   const isOnline = useOnlineStatus();
-  const isConnected = useMultiWalletStore((s) => s.isConnected);
-  const address = useMultiWalletStore((s) => s.address);
-  const isConnecting = useMultiWalletStore((s) => s.isConnecting);
-  const error = useMultiWalletStore((s) => s.error);
+  const { isConnected, address, isConnecting, error } = useMultiWalletConnection();
   const connect = useMultiWalletStore((s) => s.connect);
   const [localError, setLocalError] = useState<string | null>(null);
 

@@ -4,6 +4,7 @@ import { useState } from "react"
 import { Wallet, X, Loader2, AlertCircle, QrCode, Shield, Usb, WifiOff } from "lucide-react"
 import { cn } from "@/lib/cn"
 import { useMultiWalletStore } from "@/stores/multi-wallet-store"
+import { useMultiWalletConnection } from "@/hooks/use-multi-wallet"
 import { formatAddress } from "@/lib/formatters"
 import dynamic from "next/dynamic"
 import type { WalletId } from "@/lib/wallet/types"
@@ -183,11 +184,7 @@ export function WalletSelector({ className, variant = "inline" }: WalletSelector
   const [showLedgerPrompt, setShowLedgerPrompt] = useState(false)
   const detectedWallets = useMultiWalletStore((s) => s.detectedWallets)
   const isScanning = useMultiWalletStore((s) => s.isScanning)
-  const isConnected = useMultiWalletStore((s) => s.isConnected)
-  const isConnecting = useMultiWalletStore((s) => s.isConnecting)
-  const error = useMultiWalletStore((s) => s.error)
-  const address = useMultiWalletStore((s) => s.address)
-  const activeAdapter = useMultiWalletStore((s) => s.activeAdapter)
+  const { isConnected, isConnecting, error, address, activeAdapter } = useMultiWalletConnection()
   const activeWalletId = useMultiWalletStore((s) => s.activeWalletId)
   const isSelectorOpen = useMultiWalletStore((s) => s.isSelectorOpen)
   const setSelectorOpen = useMultiWalletStore((s) => s.setSelectorOpen)

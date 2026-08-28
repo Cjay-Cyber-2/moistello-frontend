@@ -1,17 +1,15 @@
 "use client";
 
 import { useMultiWalletStore } from "@/stores/multi-wallet-store";
+import { useMultiWalletConnection } from "@/hooks/use-multi-wallet";
 
 export function useWallet() {
   const wallets = useMultiWalletStore((s) => s.wallets);
   const activeWalletId = useMultiWalletStore((s) => s.activeWalletId);
-  const address = useMultiWalletStore((s) => s.address);
-  const isConnected = useMultiWalletStore((s) => s.isConnected);
-  const isConnecting = useMultiWalletStore((s) => s.isConnecting);
-  const error = useMultiWalletStore((s) => s.error);
   const connect = useMultiWalletStore((s) => s.connect);
   const disconnect = useMultiWalletStore((s) => s.disconnect);
   const refreshBalance = useMultiWalletStore((s) => s.refreshBalance);
+  const { address, isConnected, isConnecting, error } = useMultiWalletConnection();
 
   const activeEntry = activeWalletId ? wallets[activeWalletId] : null;
   const balance = activeEntry?.balance ?? null;

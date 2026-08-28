@@ -251,14 +251,6 @@ export default function CircleDetailPage() {
       { onSuccess: () => setShowContributeModal(false) },
     );
   };
-      {
-        onSuccess: () => setShowContributeModal(false),
-        // onError is intentionally omitted here — the error toast is already
-        // shown by useContribute's onError handler, and we deliberately keep
-        // the modal open so the user can retry without losing their context.
-      },
-    )
-  }
 
   if (isLoading) {
     return (

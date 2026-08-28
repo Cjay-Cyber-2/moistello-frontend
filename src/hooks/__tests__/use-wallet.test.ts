@@ -8,11 +8,6 @@ describe("useWallet", () => {
     useMultiWalletStore.setState({
       activeWalletId: null,
       wallets: {},
-      isConnected: false,
-      address: null,
-      isConnecting: false,
-      error: null,
-      activeAdapter: null,
     });
   });
 
@@ -40,8 +35,6 @@ describe("useWallet", () => {
           status: "connected",
         },
       },
-      isConnected: true,
-      address: "GABC123",
     });
 
     const { result } = renderHook(() => useWallet());
@@ -62,7 +55,6 @@ describe("useWallet", () => {
   it("reflects connecting state", () => {
     useMultiWalletStore.setState({
       activeWalletId: "freighter",
-      isConnecting: true,
       wallets: {
         freighter: {
           adapter: {} as never,
@@ -96,7 +88,6 @@ describe("useWallet", () => {
           status: "error",
         },
       },
-      error: "Connection timed out",
     });
 
     const { result } = renderHook(() => useWallet());

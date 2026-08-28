@@ -1,5 +1,5 @@
 import type { WalletAdapter, WalletSession, EncryptedSessionStore, WalletId } from "./types"
-import { computeHmacSha256 } from "./hmac"
+import { computeHmacSha256Sync } from "./hmac"
 
 const STORAGE_KEY = "moistello_wallet_sessions"
 const SESSION_TTL = 7 * 24 * 60 * 60 * 1000
@@ -83,7 +83,7 @@ export class WalletSessionManager {
   private persist(): void {
     if (typeof window === "undefined") return
     try {
-      const hmac = computeHmacSha256(JSON.stringify(this.sessions))
+      const hmac = computeHmacSha256Sync(JSON.stringify(this.sessions))
       const store: EncryptedSessionStore = {
         sessions: this.sessions,
         hmac,
@@ -108,7 +108,7 @@ export class WalletSessionManager {
       const store: EncryptedSessionStore = JSON.parse(raw)
       if (!store.hmac || !store.sessions) return
 
-      const expectedHMAC = computeHmacSha256(JSON.stringify(store.sessions))
+      const expectedHMAC = computeHmacSha256Sync(JSON.stringify(store.sessions))
       if (store.hmac !== expectedHMAC) {
         console.warn("[SessionManager] HMAC mismatch — session store may be tampered")
         localStorage.removeItem(STORAGE_KEY)
