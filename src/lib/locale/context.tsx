@@ -1,7 +1,7 @@
 "use client"
 
 import { createContext, useContext, useState, useCallback, useEffect, useRef, ReactNode } from "react"
-import en from "./en.json"
+import { EN_SEED } from "./en-seed"
 import { useAuthStore } from "@/stores/auth-store"
 
 type TranslationDict = Record<string, string>
@@ -27,7 +27,7 @@ const LocaleContext = createContext<LocaleContextType>({
   dismissFallbackNotice: () => {},
 })
 
-const cache: Record<string, TranslationDict> = { en }
+const cache: Record<string, TranslationDict> = {}
 
 const MAX_FETCH_ATTEMPTS = 3
 const RETRY_BASE_DELAY_MS = 500
@@ -69,7 +69,7 @@ export function LocaleProvider({ children }: { children: ReactNode }) {
   const authUser = useAuthStore((s) => s.user)
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated)
   const [locale, setLocaleState] = useState("en")
-  const [dict, setDict] = useState<TranslationDict>(en)
+  const [dict, setDict] = useState<TranslationDict>(EN_SEED)
   const [fallbackLocale, setFallbackLocale] = useState<string | null>(null)
   const requestRef = useRef(0)
 
@@ -92,7 +92,7 @@ export function LocaleProvider({ children }: { children: ReactNode }) {
       // Never cache the failure — keep serving English but tell the user about it.
       if (requestId !== requestRef.current) return
       console.warn(`[locale] Falling back to English; could not load "${code}" after retries`)
-      setDict(en)
+      setDict(EN_SEED)
       setFallbackLocale(code)
     }
   }, [])
@@ -144,8 +144,7 @@ export function LocaleProvider({ children }: { children: ReactNode }) {
   const t = useCallback(
     (key: string): string => {
       if (dict && key in dict) return dict[key]
-      if (key in en) return en[key as keyof typeof en]
-      return key
+      return EN_SEED[key] ?? key
     },
     [dict],
   )
