@@ -23,7 +23,7 @@ function mdToHtml(md: string): string {
   html = html.replace(/\*\*\*(.+?)\*\*\*/g, '<strong><em>$1</em></strong>');
   html = html.replace(/\*\*(.+?)\*\*/g, '<strong class="font-semibold">$1</strong>');
   html = html.replace(/\*(.+?)\*/g, '<em>$1</em>');
-  html = html.replace(/!\[([^\]]*)\]\(([^)]+)\)/g, '<img src="$2" alt="$1" class="rounded-xl my-4 max-w-full" />');
+  html = html.replace(/!\[([^\]]*)\]\(([^)]+)\)/g, '<img src="$2" alt="$1" class="rounded-xl my-4 max-w-full" loading="lazy" decoding="async" />');
   html = html.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" class="text-aurora-cyan hover:underline transition-colors">$1</a>');
   html = html.replace(/^#### (.+)$/gm, '<h4 class="font-heading text-base font-semibold mt-8 mb-3 gradient-text">$1</h4>');
   html = html.replace(/^### (.+)$/gm, '<h3 class="font-heading text-lg font-semibold mt-10 mb-4 gradient-text">$1</h3>');

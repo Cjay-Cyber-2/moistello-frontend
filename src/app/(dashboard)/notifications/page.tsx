@@ -8,7 +8,6 @@ import {
   defaultItemVariants,
   STAGGER_CHILDREN_LIMIT,
 } from "@/lib/motion/list";
-import { useReducedMotion } from "framer-motion";
 import {
   Bell,
   BellOff,
@@ -339,7 +338,6 @@ export default function NotificationsPage() {
 
   const totalFiltered = filteredNotifications.length;
   const { shouldReduce, variants } = useListMotion(totalFiltered);
-  const reducedMotion = useReducedMotion();
 
   useEffect(() => {
     if (totalFiltered <= 200) return;

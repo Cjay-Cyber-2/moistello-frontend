@@ -1,27 +1,18 @@
 "use client"
 
 import { useParams } from "next/navigation"
-import { useEffect, useMemo, useState } from "react"
+import { useMemo, useState } from "react"
 import { ArrowLeft, ThumbsDown, ThumbsUp } from "lucide-react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
-import { getProposal, voteOnProposal, type GovernanceProposal } from "@/lib/governance-api"
+import { useGovernanceProposal, useVoteOnProposal } from "@/hooks/use-governance"
 
 export default function ProposalDetailPage() {
   const { id } = useParams<{ id: string }>()
-  const [proposal, setProposal] = useState<GovernanceProposal | null>(null)
   const [message, setMessage] = useState("")
 
-  const load = () =>
-    void getProposal(id)
-      .then(setProposal)
-      .catch(() => setMessage("Proposal could not be loaded."))
-
-  useEffect(() => {
-    void getProposal(id)
-      .then(setProposal)
-      .catch(() => setMessage("Proposal could not be loaded."))
-  }, [id])
+  const { data: proposal, isError } = useGovernanceProposal(id)
+  const vote = useVoteOnProposal(id)
 
   const total = (proposal?.votesFor ?? 0) + (proposal?.votesAgainst ?? 0)
   const forPercent = total ? Math.round(((proposal?.votesFor ?? 0) / total) * 100) : 0
@@ -31,18 +22,23 @@ export default function ProposalDetailPage() {
     return `${hours}h remaining`
   }, [proposal?.timelockEndsAt])
 
-  async function vote(support: boolean) {
+  async function handleVote(support: boolean) {
     setMessage("")
     try {
-      await voteOnProposal(id, support)
+      await vote.mutateAsync(support)
       setMessage("Vote submitted to the governance contract.")
-      load()
     } catch {
       setMessage("The vote could not be submitted. Check your wallet and retry.")
     }
   }
 
-  if (!proposal) return <p className="py-16 text-muted-foreground">{message || "Loading proposal…"}</p>
+  if (!proposal) {
+    return (
+      <p className="py-16 text-muted-foreground">
+        {message || (isError ? "Proposal could not be loaded." : "Loading proposal…")}
+      </p>
+    )
+  }
 
   return (
     <div>
@@ -63,8 +59,8 @@ export default function ProposalDetailPage() {
             <div className="h-full bg-emerald-400" style={{ width: `${forPercent}%` }} />
           </div>
           <div className="mt-6 flex gap-3">
-            <Button onClick={() => void vote(true)} leftIcon={<ThumbsUp className="h-4 w-4" />}>Vote for</Button>
-            <Button variant="destructive" onClick={() => void vote(false)} leftIcon={<ThumbsDown className="h-4 w-4" />}>Vote against</Button>
+            <Button onClick={() => void handleVote(true)} leftIcon={<ThumbsUp className="h-4 w-4" />}>Vote for</Button>
+            <Button variant="destructive" onClick={() => void handleVote(false)} leftIcon={<ThumbsDown className="h-4 w-4" />}>Vote against</Button>
           </div>
           {message && <p role="status" className="mt-4 text-sm text-amber-400">{message}</p>}
         </section>

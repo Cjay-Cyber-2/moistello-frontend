@@ -74,7 +74,7 @@ function mdToHtml(md: string): string {
   html = html.replace(/\*\*(.+?)\*\*/g, '<strong class="font-semibold">$1</strong>');
   html = html.replace(/\*(.+?)\*/g, '<em>$1</em>');
   // Images
-  html = html.replace(/!\[([^\]]*)\]\(([^)]+)\)/g, '<img src="$2" alt="$1" class="rounded-xl my-4 max-w-full" />');
+  html = html.replace(/!\[([^\]]*)\]\(([^)]+)\)/g, '<img src="$2" alt="$1" class="rounded-xl my-4 max-w-full" loading="lazy" decoding="async" />');
   // Links
   html = html.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" class="text-aurora-cyan hover:underline transition-colors">$1</a>');
   // Headings

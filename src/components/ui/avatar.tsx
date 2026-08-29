@@ -12,6 +12,15 @@ const sizeClasses = {
   xl: "w-16 h-16 text-lg",
 } as const;
 
+/** Pixel dimensions for next/image `sizes` prop — matches sizeClasses above */
+const sizePx: Record<keyof typeof sizeClasses, number> = {
+  xs: 24,
+  sm: 32,
+  md: 40,
+  lg: 48,
+  xl: 64,
+};
+
 const dotSizes = {
   xs: "w-1.5 h-1.5 -bottom-0.5 -right-0.5",
   sm: "w-2 h-2 -bottom-0.5 -right-0.5",
@@ -64,9 +73,9 @@ export function Avatar({
             src={src}
             alt={alt}
             fill
+            sizes={`${sizePx[size]}px`}
             className="object-cover"
             onError={() => setHasError(true)}
-            unoptimized
           />
         )}
         {showFallback && (
