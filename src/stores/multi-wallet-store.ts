@@ -104,6 +104,31 @@ interface MultiWalletState {
   resetLedgerState: () => void;
 }
 
+/**
+ * Deterministic next-active selection policy.
+ *
+ * When the active wallet is disconnected, the next active wallet is the
+ * remaining wallet with the most recent `lastConnected` timestamp (i.e. the
+ * most-recently-connected wallet, matching what the user most recently used).
+ * Ties are broken by wallet id (ascending) so the selection never depends on
+ * object key ordering and is stable across identical states.
+ */
+function pickNextActiveWallet(
+  remaining: Record<WalletId, WalletEntry>
+): WalletId | null {
+  const ids = Object.keys(remaining) as WalletId[];
+  if (ids.length === 0) return null;
+  return ids.reduce<WalletId>((best, id) => {
+    const bestEntry = remaining[best];
+    const entry = remaining[id];
+    if (entry.lastConnected > bestEntry.lastConnected) return id;
+    if (entry.lastConnected === bestEntry.lastConnected) {
+      return id < best ? id : best;
+    }
+    return best;
+  }, ids[0]);
+}
+
 async function runConnectionProbes(
   sessions: Array<{ walletId: WalletId }>,
   probe: (walletId: WalletId) => Promise<void>,
@@ -360,10 +385,9 @@ export const useMultiWalletStore = create<MultiWalletState>()((set, get) => ({
     set((state) => {
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const { [walletId]: _, ...remaining } = state.wallets;
-      const remainingIds = Object.keys(remaining) as WalletId[];
       const nextActive =
         state.activeWalletId === walletId
-          ? remainingIds[0] ?? null
+          ? pickNextActiveWallet(remaining)
           : state.activeWalletId;
       return {
         wallets: remaining,

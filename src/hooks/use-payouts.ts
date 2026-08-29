@@ -2,6 +2,7 @@
 
 import { useQuery } from "@tanstack/react-query"
 import { get } from "@/lib/api-client"
+import { queryKeys } from "@/lib/query-keys"
 import type { ApiResponse, Payout } from "@/types"
 
 interface PayoutFilters {
@@ -38,17 +39,7 @@ function buildPayoutQueryResult(
 
 export function usePayouts(filters?: PayoutFilters) {
   return useQuery({
-    queryKey: [
-      "payouts",
-      filters?.page,
-      filters?.limit,
-      filters?.sortBy,
-      filters?.sortDir,
-      filters?.circleId,
-      filters?.payoutType,
-      filters?.dateFrom,
-      filters?.dateTo,
-    ],
+    queryKey: queryKeys.payouts.list(filters),
     queryFn: async () => {
       const page = filters?.page ?? 1
       const limit = filters?.limit ?? 20
@@ -75,7 +66,7 @@ export function usePayouts(filters?: PayoutFilters) {
 
 export function useCirclePayouts(circleId: string, filters?: PayoutFilters) {
   return useQuery({
-    queryKey: ["circle-payouts", circleId, filters?.page, filters?.limit],
+    queryKey: queryKeys.payouts.forCircle(circleId, filters),
     queryFn: async () => {
       const page = filters?.page ?? 1
       const limit = filters?.limit ?? 5

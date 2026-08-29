@@ -19,7 +19,7 @@ import { Routes } from "@/lib/constants";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { useMultiWallet } from "@/hooks/use-multi-wallet";
-import { useNotificationStore } from "@/stores/notification-store";
+import { useUnreadCount } from "@/hooks/use-notifications";
 import { useTranslate } from "@/lib/locale/context";
 
 interface HeaderProps {
@@ -30,7 +30,7 @@ interface HeaderProps {
 export function Header({ onToggleMobileMenu, isMobileMenuOpen }: HeaderProps) {
   const pathname = usePathname();
   const { isConnected, address } = useMultiWallet();
-  const unreadCount = useNotificationStore((s) => s.unreadCount);
+  const unreadCount = useUnreadCount();
   const { t } = useTranslate();
   const [showConnectModal, setShowConnectModal] = useState(false);
 

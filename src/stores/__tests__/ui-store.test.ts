@@ -8,7 +8,6 @@ describe("useUIStore", () => {
       density: "comfortable",
       fontSize: "medium",
       sidebarOpen: false,
-      activeModal: null,
       toasts: [],
     });
   });
@@ -61,29 +60,6 @@ describe("useUIStore", () => {
 
       useUIStore.getState().setTheme("system");
       expect(useUIStore.getState().theme).toBe("system");
-    });
-  });
-
-  describe("modal", () => {
-    it("starts with no active modal", () => {
-      expect(useUIStore.getState().activeModal).toBeNull();
-    });
-
-    it("opens a modal by id", () => {
-      useUIStore.getState().openModal("settings");
-      expect(useUIStore.getState().activeModal).toBe("settings");
-    });
-
-    it("closes the active modal", () => {
-      useUIStore.getState().openModal("settings");
-      useUIStore.getState().closeModal();
-      expect(useUIStore.getState().activeModal).toBeNull();
-    });
-
-    it("replaces modal when opening another", () => {
-      useUIStore.getState().openModal("settings");
-      useUIStore.getState().openModal("profile");
-      expect(useUIStore.getState().activeModal).toBe("profile");
     });
   });
 
@@ -192,6 +168,61 @@ describe("useUIStore", () => {
 
       vi.advanceTimersByTime(1000);
       expect(useUIStore.getState().toasts).toEqual([]);
+      vi.useRealTimers();
+      vi.restoreAllMocks();
+    });
+
+    it("generates unique ids for toasts added in the same millisecond", () => {
+      vi.useFakeTimers();
+      vi.spyOn(Date, "now").mockReturnValue(1000);
+
+      useUIStore.getState().addToast({ type: "info", title: "One" });
+      useUIStore.getState().addToast({ type: "info", title: "Two" });
+
+      const ids = useUIStore.getState().toasts.map((t) => t.id);
+      expect(ids[0]).not.toBe(ids[1]);
+      expect(ids[0]).toMatch(/^toast-1000-\d+$/);
+      expect(ids[1]).toMatch(/^toast-1000-\d+$/);
+
+      vi.useRealTimers();
+      vi.restoreAllMocks();
+    });
+
+    it("cancels the auto-dismiss timer when a toast is removed manually", () => {
+      vi.useFakeTimers();
+      vi.spyOn(Date, "now").mockReturnValue(1000);
+
+      useUIStore.getState().addToast({
+        type: "warning",
+        title: "Manual",
+        duration: 5000,
+      });
+
+      const toastId = useUIStore.getState().toasts[0].id;
+      useUIStore.getState().removeToast(toastId);
+
+      // Manual dismissal clears the pending timer entirely.
+      expect(vi.getTimerCount()).toBe(0);
+
+      // Advancing time must not resurrect or error on the removed toast.
+      vi.advanceTimersByTime(10000);
+      expect(useUIStore.getState().toasts).toEqual([]);
+
+      vi.useRealTimers();
+      vi.restoreAllMocks();
+    });
+
+    it("leaves a pending timer behind for toasts that are still visible", () => {
+      vi.useFakeTimers();
+      vi.spyOn(Date, "now").mockReturnValue(1000);
+
+      useUIStore.getState().addToast({
+        type: "info",
+        title: "Visible",
+        duration: 5000,
+      });
+
+      expect(vi.getTimerCount()).toBe(1);
       vi.useRealTimers();
       vi.restoreAllMocks();
     });
