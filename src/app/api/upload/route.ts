@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import fs from "fs";
 import path from "path";
 import { blockInProduction } from "@/lib/security/dev-only-route";
+import { sanitizeHtml } from "@/lib/security/html-sanitizer";
 
 const PAGES_DIR = path.join(process.cwd(), "content/pages");
 const ALLOWED_EXTENSIONS = [".md", ".html"];
@@ -27,7 +28,7 @@ function isAuthorized(request: NextRequest): boolean {
     if (!session) return false;
     return Date.now() - session.createdAt < 7 * 24 * 60 * 60 * 1000;
   } catch (e) {
-    console.error("[api:upload] Session check failed:", e)
+    console.error("[api:upload] Session check failed:", e);
     return false;
   }
 }
@@ -61,7 +62,7 @@ export async function POST(request: NextRequest) {
   if (!ALLOWED_EXTENSIONS.includes(ext)) {
     return NextResponse.json(
       { error: "Only .md and .html files are allowed" },
-      { status: 400 }
+      { status: 400 },
     );
   }
 
@@ -69,7 +70,7 @@ export async function POST(request: NextRequest) {
   if (file.size > MAX_SIZE) {
     return NextResponse.json(
       { error: `File too large (max ${MAX_SIZE / 1024 / 1024}MB)` },
-      { status: 400 }
+      { status: 400 },
     );
   }
 
@@ -78,8 +79,11 @@ export async function POST(request: NextRequest) {
   // Only allow slugs with letters, numbers, hyphens, underscores
   if (!/^[a-zA-Z0-9\-_]+$/.test(slug)) {
     return NextResponse.json(
-      { error: "Filename must contain only letters, numbers, hyphens, or underscores" },
-      { status: 400 }
+      {
+        error:
+          "Filename must contain only letters, numbers, hyphens, or underscores",
+      },
+      { status: 400 },
     );
   }
 
@@ -95,7 +99,7 @@ export async function POST(request: NextRequest) {
           error: `A page with slug "${slug}" already exists. Add ?overwrite=true to confirm overwrite.`,
           slug,
         },
-        { status: 409 }
+        { status: 409 },
       );
     }
   }
@@ -108,7 +112,7 @@ export async function POST(request: NextRequest) {
   if (ext === ".html") {
     const titleMatch = content.match(/<title>(.*?)<\/title>/i);
     const descMatch = content.match(
-      /<meta\s+name=["']description["']\s+content=["'](.*?)["']/i
+      /<meta\s+name=["']description["']\s+content=["'](.*?)["']/i,
     );
     const bodyMatch = content.match(/<body[^>]*>([\s\S]*?)<\/body>/i);
 
@@ -117,13 +121,8 @@ export async function POST(request: NextRequest) {
 
     // Strip html/head/body wrappers, keep only body inner content
     let strippedContent = bodyMatch ? bodyMatch[1].trim() : content;
-    // Remove any remaining script/style tags
-    strippedContent = strippedContent.replace(
-      /<(script|style|iframe|object|embed)[^>]*>[\s\S]*?<\/\1>/gi,
-      ""
-    );
-    // Remove onclick, onload, etc
-    strippedContent = strippedContent.replace(/\son\w+\s*=\s*"[^"]*"/gi, "");
+    // Sanitize the HTML to remove all dangerous content
+    strippedContent = sanitizeHtml(strippedContent);
 
     // Convert to .md with frontmatter
     content = [
@@ -143,7 +142,7 @@ export async function POST(request: NextRequest) {
   } catch (_err) {
     return NextResponse.json(
       { error: "Failed to write file" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 

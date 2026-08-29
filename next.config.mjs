@@ -1,6 +1,8 @@
 /** @type {import('@sentry/nextjs').withSentryConfig} */
 const { withSentryConfig } = await import("@sentry/nextjs")
 
+import { API_CSP } from "./src/lib/security/api-csp.mjs"
+
 // Derive the backend hostname from the API URL env var so the image allowlist
 // stays in sync with the deployment without hardcoding domain names here.
 // Falls back to localhost for local development.
@@ -14,17 +16,11 @@ function apiHostname() {
 }
 
 
-const apiCsp = [
-  "default-src 'none'",
-  "script-src 'none'",
-  "connect-src 'self'",
-  "frame-src 'none'",
-  "img-src 'self' data:",
-  "style-src 'self'",
-  "base-uri 'self'",
-  "form-action 'none'",
-  "frame-ancestors 'none'",
-].join("; ")
+// Static CSP served on every /api/:path* response. Canonical policy lives in
+// src/lib/security/api-csp.mjs so the middleware can serve the same header and
+// the validation script can assert it. API routes only ever return JSON, so the
+// policy is deliberately minimal — no scripts, no frames, no subresources.
+const apiCsp = API_CSP
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {

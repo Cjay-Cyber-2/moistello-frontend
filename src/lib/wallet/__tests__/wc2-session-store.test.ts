@@ -19,6 +19,9 @@ describe("WC2SessionStore", () => {
   beforeEach(() => {
     vi.restoreAllMocks()
     mockLocalStorage()
+    // A key must be loaded before any HMAC-signed write can happen — this
+    // mirrors the production flow where HmacProvider fetches the key on mount.
+    _setHmacKeyForTest("aabbccdd" + "00".repeat(29))
     store = new WC2SessionStore()
   })
 

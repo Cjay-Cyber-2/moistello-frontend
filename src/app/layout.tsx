@@ -12,6 +12,7 @@ import { AuthProvider } from "@/providers/auth-provider"
 import { ToastProvider } from "@/providers/toast-provider"
 import { MonitoringProvider } from "@/providers/monitoring-provider"
 import { LocaleProvider } from "@/lib/locale/context"
+import { HmacProvider } from "@/providers/HmacProvider"
 import { PwaRegister } from "@/components/pwa-register"
 
 const spaceGrotesk = Space_Grotesk({
@@ -205,7 +206,9 @@ export default function RootLayout({
                 <LocaleProvider>
                   <ToastProvider>
                     <MonitoringProvider>
-                      {children}
+                      <HmacProvider>
+                        {children}
+                      </HmacProvider>
                     </MonitoringProvider>
                   </ToastProvider>
                 </LocaleProvider>
