@@ -1,5 +1,5 @@
 import type { NetworkType } from "./types"
-import { computeHmacSha256Sync } from "./hmac"
+import { computeHmacSha256Sync, isHmacKeyReady, withHmacKey } from "./hmac"
 
 const STORAGE_KEY = "moistello_wc2_session"
 const SESSION_TTL = 7 * 24 * 60 * 60 * 1000
@@ -36,6 +36,10 @@ export class WC2SessionStore {
     const storage = this._getStorage()
     if (!storage) return null
 
+    // If the HMAC key is not loaded yet we cannot verify the payload. Defer
+    // (return null) instead of treating it as tampered and clearing it.
+    if (!isHmacKeyReady()) return null
+
     try {
       const raw = storage.getItem(STORAGE_KEY)
       if (!raw) return null
@@ -66,20 +70,24 @@ export class WC2SessionStore {
     const storage = this._getStorage()
     if (!storage) return
 
-    try {
-      const payload: StoredPayload = {
-        data: {
-          ...data,
-          createdAt: data.createdAt || Date.now(),
-          expiresAt: data.expiresAt || Date.now() + SESSION_TTL,
-        },
-        hmac: "",
+    // Defer the write until the HMAC key is ready — saving with an empty key
+    // would silently break tamper detection for this session.
+    withHmacKey(() => {
+      try {
+        const payload: StoredPayload = {
+          data: {
+            ...data,
+            createdAt: data.createdAt || Date.now(),
+            expiresAt: data.expiresAt || Date.now() + SESSION_TTL,
+          },
+          hmac: "",
+        }
+        payload.hmac = computeHMAC(payload.data)
+        storage.setItem(STORAGE_KEY, JSON.stringify(payload))
+      } catch {
+        console.warn("[WC2SessionStore] Failed to save session")
       }
-      payload.hmac = computeHMAC(payload.data)
-      storage.setItem(STORAGE_KEY, JSON.stringify(payload))
-    } catch {
-      console.warn("[WC2SessionStore] Failed to save session")
-    }
+    })
   }
 
   clear(): void {

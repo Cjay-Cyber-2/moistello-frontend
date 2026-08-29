@@ -1,6 +1,9 @@
 /**
  * Balance Cache Manager
  *
+ * Provides client-side caching with TTL and exponential backoff retry
+ * for Stellar wallet account balance queries.
+ *
  * Improvements over v1:
  * - Single-flight dedup: concurrent requests for the same address share one Promise
  * - Exponential backoff with ±20% jitter to prevent thundering herd
@@ -8,6 +11,10 @@
  * - Circuit breaker: 3 consecutive failures → 60 s cooldown per address
  * - Removed direct Horizon fallback (it bypassed circuit breaker and leaked testnet URLs)
  * - Stale cache returned when circuit is open, avoiding UI breakage
+ *
+ * Privacy guarantee: wallet addresses are ONLY ever sent to the first-party
+ * proxy (/api/wallet/balance). No direct third-party (Horizon) fallback is
+ * performed from the client — see issue #202.
  */
 
 export interface WalletBalance {

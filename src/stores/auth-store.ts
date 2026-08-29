@@ -9,7 +9,7 @@ import {
   getAccessToken,
   setAccessToken,
 } from "@/lib/auth/token-store";
-import { computeHmacSha256Sync } from "@/lib/wallet/hmac";
+import { computeHmacSha256Sync, isHmacKeyReady, withHmacKey } from "@/lib/wallet/hmac";
 import {
   encryptToStorage,
   decryptFromStorage,
@@ -90,6 +90,9 @@ async function clearSession(): Promise<void> {
 
 function getStoredUser(): User | null {
   if (typeof window === "undefined") return null;
+  // If the HMAC key is not loaded yet we cannot verify the payload. Return
+  // null (defer) instead of treating it as tampered and wiping the cache.
+  if (!isHmacKeyReady()) return null;
   try {
     const raw = localStorage.getItem(USER_DATA_KEY);
     if (!raw) return null;
@@ -112,19 +115,23 @@ function getStoredUser(): User | null {
 
 async function setStoredUser(user: User): Promise<void> {
   if (typeof window === "undefined") return;
-  try {
-    const hmac = computeHmacSha256Sync(JSON.stringify(user));
-    const store: UserStoreWithHmac = { user, hmac };
+  // Defer the write until the HMAC key is ready — persisting with an empty
+  // key would silently break tamper detection on the first write.
+  withHmacKey(async () => {
+    try {
+      const hmac = computeHmacSha256Sync(JSON.stringify(user));
+      const store: UserStoreWithHmac = { user, hmac };
 
-    // Encrypt user profile with device-specific passphrase
-    const passphrase = getUserEncryptionPassphrase();
-    await encryptToStorage(USER_DATA_KEY, store, passphrase).catch(() => {
-      // Fallback to unencrypted if encryption fails
-      localStorage.setItem(USER_DATA_KEY, JSON.stringify(store));
-    });
-  } catch (e) {
-    console.warn("[auth] Failed to persist user data:", e);
-  }
+      // Encrypt user profile with device-specific passphrase
+      const passphrase = getUserEncryptionPassphrase();
+      await encryptToStorage(USER_DATA_KEY, store, passphrase).catch(() => {
+        // Fallback to unencrypted if encryption fails
+        localStorage.setItem(USER_DATA_KEY, JSON.stringify(store));
+      });
+    } catch (e) {
+      console.warn("[auth] Failed to persist user data:", e);
+    }
+  });
 }
 
 function removeStoredUser(): void {
