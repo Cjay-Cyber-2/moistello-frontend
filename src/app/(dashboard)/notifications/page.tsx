@@ -143,11 +143,18 @@ function NotificationItem({
       {/* Bulk select checkbox */}
       <button
         type="button"
+        role="checkbox"
+        aria-checked={selected}
+        aria-label={
+          selected
+            ? `Deselect notification: ${notification.title}`
+            : `Select notification: ${notification.title}`
+        }
         onClick={(e) => {
           e.stopPropagation();
           onToggleSelect(notification.id);
         }}
-        className="mt-2 shrink-0 text-muted-foreground hover:text-foreground"
+        className="mt-2 shrink-0 rounded text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-aurora-violet/50"
       >
         {selected ? (
           <CheckSquare className="h-4 w-4 text-aurora-violet" />
@@ -439,8 +446,22 @@ export default function NotificationsPage() {
         <div className="flex items-center gap-3 px-4 py-3 glass rounded-xl">
           <button
             type="button"
+            role="checkbox"
+            aria-checked={
+              filteredNotifications.length > 0 &&
+              selectedIds.size === filteredNotifications.length
+                ? true
+                : selectedIds.size > 0
+                  ? "mixed"
+                  : false
+            }
+            aria-label={
+              selectedIds.size === filteredNotifications.length
+                ? "Deselect all notifications"
+                : "Select all notifications"
+            }
             onClick={toggleSelectAll}
-            className="text-xs text-muted-foreground hover:text-foreground"
+            className="text-xs text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-aurora-violet/50 rounded"
           >
             {selectedIds.size === filteredNotifications.length
               ? "Deselect all"
