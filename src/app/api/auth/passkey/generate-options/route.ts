@@ -5,6 +5,13 @@ import { requireAuthenticatedUser, checkRateLimit } from "@/lib/passkey/auth-gua
 
 const RP_NAME = "Moistello"
 
+// #199: Secure random ID generation using crypto.getRandomValues as fallback
+function generateSecureRandomId(): string {
+  const array = new Uint8Array(16)
+  crypto.getRandomValues(array)
+  return Array.from(array, byte => byte.toString(16).padStart(2, '0')).join('')
+}
+
 export async function POST(req: NextRequest) {
   try {
     const auth = requireAuthenticatedUser(req)
@@ -22,7 +29,8 @@ export async function POST(req: NextRequest) {
 
     if (mode === "register") {
       const rpID = getRpId()
-      const userID = crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).substring(2, 15)
+      // #199: Use crypto.getRandomValues for secure fallback instead of Math.random
+      const userID = crypto.randomUUID ? crypto.randomUUID() : generateSecureRandomId()
       const options = await generateRegistrationOptions({
         rpName: RP_NAME,
         rpID,

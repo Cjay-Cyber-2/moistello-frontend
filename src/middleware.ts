@@ -75,6 +75,28 @@ export function middleware(request: NextRequest) {
   const requestHeaders = new Headers(request.headers)
   requestHeaders.set(NONCE_HEADER, nonce)
   requestHeaders.set(CSRF_HEADER, csrfToken)
+  
+  // #211: Add locale header for dynamic lang attribute
+  const locale = request.cookies.get("moistello_locale")?.value || "en"
+  requestHeaders.set("x-locale", locale)
+
+  // #207: CSRF protection for mutating API routes
+  if (isApiRoute && ["POST", "PUT", "DELETE", "PATCH"].includes(request.method)) {
+    const origin = request.headers.get("origin")
+    const allowedOrigins = [
+      process.env.NEXT_PUBLIC_APP_URL || "https://moistello.com",
+      "http://localhost:3000",
+    ]
+    
+    if (!origin || !allowedOrigins.some(allowed => origin === allowed || origin.startsWith(allowed))) {
+      return NextResponse.json({ error: "Invalid origin" }, { status: 403 })
+    }
+    
+    const clientCsrf = request.headers.get("x-csrf-token")
+    if (clientCsrf !== csrfToken) {
+      return NextResponse.json({ error: "Invalid CSRF token" }, { status: 403 })
+    }
+  }
 
   // Redirect unauthenticated users to login for protected routes
   if (!token) {

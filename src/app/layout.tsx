@@ -106,9 +106,13 @@ export default function RootLayout({
   const requestHeaders = headers()
   const nonce = requestHeaders.get("x-nonce") ?? undefined
   const csrfToken = requestHeaders.get("x-csrf-token") ?? undefined
+  
+  // #211: Get locale from headers/cookies for lang attribute
+  const locale = requestHeaders.get("x-locale") ?? "en"
+  const dir = locale === "ar" || locale === "he" ? "rtl" : "ltr"
 
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang={locale} dir={dir} suppressHydrationWarning>
 <head>
         {csrfToken ? <meta name="csrf-token" content={csrfToken} /> : null}
          <script
