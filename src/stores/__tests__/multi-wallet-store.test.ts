@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import type { WalletAdapter, WalletSession } from "@/lib/wallet/types";
+import type { WalletAdapter, WalletId, WalletSession } from "@/lib/wallet/types";
 
 const { detect, getAdapter, sessionConnect, getAll, getActive, fetchBalanceWithBackoff } = vi.hoisted(() => ({
   detect: vi.fn(() => []),
@@ -222,5 +222,95 @@ describe("multi-wallet-store connect concurrency", () => {
       xlm: "42",
       usdc: "7",
     });
+  });
+});
+
+describe("multi-wallet-store deterministic disconnect", () => {
+  function walletEntry(
+    overrides: Partial<ReturnType<typeof useMultiWalletStore.getState>["wallets"][WalletId]> = {}
+  ) {
+    return {
+      adapter: createAdapter(vi.fn()),
+      publicKey: "GPUBLICKEY",
+      network: "testnet" as const,
+      balance: null,
+      lastConnected: 0,
+      error: null,
+      status: "connected" as const,
+      ...overrides,
+    };
+  }
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    detect.mockReturnValue([]);
+    getAll.mockReturnValue([]);
+    getActive.mockReturnValue(null);
+    useMultiWalletStore.setState({
+      activeWalletId: null,
+      wallets: {},
+      connectingWalletId: null,
+    });
+  });
+
+  it("selects the most recently connected remaining wallet after disconnecting the active one", () => {
+    useMultiWalletStore.setState({
+      activeWalletId: "freighter",
+      wallets: {
+        freighter: walletEntry({ lastConnected: 3 }),
+        xbull: walletEntry({ lastConnected: 1 }),
+        rabet: walletEntry({ lastConnected: 2 }),
+      },
+    });
+
+    useMultiWalletStore.getState().disconnect("freighter");
+
+    expect(useMultiWalletStore.getState().wallets.freighter).toBeUndefined();
+    expect(useMultiWalletStore.getState().activeWalletId).toBe("rabet");
+  });
+
+  it("breaks lastConnected ties deterministically by wallet id", () => {
+    useMultiWalletStore.setState({
+      activeWalletId: "freighter",
+      wallets: {
+        freighter: walletEntry({ lastConnected: 3 }),
+        xbull: walletEntry({ lastConnected: 3 }),
+        rabet: walletEntry({ lastConnected: 3 }),
+      },
+    });
+
+    useMultiWalletStore.getState().disconnect("freighter");
+
+    // All remaining wallets tie; lexicographically smallest id wins.
+    expect(useMultiWalletStore.getState().activeWalletId).toBe("rabet");
+  });
+
+  it("sets activeWalletId to null when the last wallet is disconnected", () => {
+    useMultiWalletStore.setState({
+      activeWalletId: "freighter",
+      wallets: {
+        freighter: walletEntry({ lastConnected: 3 }),
+      },
+    });
+
+    useMultiWalletStore.getState().disconnect("freighter");
+
+    expect(useMultiWalletStore.getState().wallets).toEqual({});
+    expect(useMultiWalletStore.getState().activeWalletId).toBeNull();
+  });
+
+  it("keeps the current active wallet when a non-active wallet is disconnected", () => {
+    useMultiWalletStore.setState({
+      activeWalletId: "freighter",
+      wallets: {
+        freighter: walletEntry({ lastConnected: 3 }),
+        xbull: walletEntry({ lastConnected: 5 }),
+      },
+    });
+
+    useMultiWalletStore.getState().disconnect("xbull");
+
+    expect(useMultiWalletStore.getState().wallets.xbull).toBeUndefined();
+    expect(useMultiWalletStore.getState().activeWalletId).toBe("freighter");
   });
 });
