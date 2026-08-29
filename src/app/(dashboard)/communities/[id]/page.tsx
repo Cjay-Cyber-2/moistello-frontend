@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useCallback } from "react"
+import { useState } from "react"
 import { useParams } from "next/navigation"
 import Link from "next/link"
 import {
@@ -14,13 +14,14 @@ import { EmptyState } from "@/components/shared/empty-state"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { get, post } from "@/lib/api-client"
+import { useCommunity, useCommunityActivity, useCommunityAnnouncements, useCommunityCircles, useCommunityMembers, useCommunityMembership, useCommunityMutation } from "@/hooks/use-community"
 import { useUIStore } from "@/stores/ui-store"
 import { cn } from "@/lib/cn"
 import { formatDate } from "@/lib/formatters"
 import { Routes } from "@/lib/constants"
 import { copyToClipboard } from "@/lib/clipboard"
 
+/* Query data contracts are shared by the community hooks. */
 interface Community {
   id: string
   name: string
@@ -102,80 +103,25 @@ export default function CommunityDetailPage() {
   const { user } = useAuth()
   const addToast = useUIStore((s) => s.addToast)
 
-  const [community, setCommunity] = useState<Community | null>(null)
-  const [members, setMembers] = useState<Member[]>([])
-  const [announcements, setAnnouncements] = useState<Announcement[]>([])
-  const [activity, setActivity] = useState<ActivityEvent[]>([])
-  const [communityCircles, setCommunityCircles] = useState<CommunityCircle[]>([])
-  const [isMember, setIsMember] = useState(false)
-  const [loading, setLoading] = useState(true)
-
-  const load = useCallback(async () => {
-    setLoading(true)
-    try {
-      const [comRes, memRes, annRes, actRes, cirRes] = await Promise.allSettled([
-        get<unknown>(`/communities/${communityId}`),
-        get<unknown>(`/communities/${communityId}/members`),
-        get<unknown>(`/communities/${communityId}/announcements`),
-        get<unknown>(`/communities/${communityId}/activity`),
-        get<unknown>(`/circles?communityId=${communityId}`),
-      ])
-
-      if (comRes.status === "fulfilled") {
-        const raw = comRes.value as Record<string, unknown>
-        const data = (raw.data ?? raw) as Record<string, unknown>
-        setCommunity(data.community as Community)
-      }
-
-      if (memRes.status === "fulfilled") {
-        const raw = memRes.value as Record<string, unknown>
-        const data = (raw.data ?? raw) as Record<string, unknown>
-        setMembers(data.members as Member[] ?? [])
-      }
-
-      if (annRes.status === "fulfilled") {
-        const raw = annRes.value as Record<string, unknown>
-        const data = (raw.data ?? raw) as Record<string, unknown>
-        setAnnouncements(data.announcements as Announcement[] ?? [])
-      }
-
-      if (actRes.status === "fulfilled") {
-        const raw = actRes.value as Record<string, unknown>
-        const data = (raw.data ?? raw) as Record<string, unknown>
-        setActivity(data.events as ActivityEvent[] ?? [])
-      }
-
-      if (cirRes.status === "fulfilled") {
-        const raw = cirRes.value as Record<string, unknown>
-        const data = (raw.data ?? raw) as Record<string, unknown>
-        setCommunityCircles(data.circles as CommunityCircle[] ?? [])
-      }
-
-      if (user) {
-        try {
-          const memCheck = await get<unknown>(`/communities/${communityId}/membership`)
-          const raw = memCheck as Record<string, unknown>
-          const data = (raw.data ?? raw) as Record<string, unknown>
-          setIsMember(!!data.isMember)
-        } catch (e) {
-          console.warn("[community] Failed to check membership:", e)
-        }
-      }
-    } catch (e) {
-      console.error("[community] Failed to load community:", e)
-      setCommunity(null)
-    } finally {
-      setLoading(false)
-    }
-  }, [communityId, user])
-
-  useEffect(() => { load() }, [load])
+  const communityQuery = useCommunity(communityId)
+  const membersQuery = useCommunityMembers(communityId)
+  const announcementsQuery = useCommunityAnnouncements(communityId)
+  const activityQuery = useCommunityActivity(communityId)
+  const circlesQuery = useCommunityCircles(communityId)
+  const membershipQuery = useCommunityMembership(communityId, !!user)
+  const { join, togglePin, deleteAnnouncement, removeMember, transferOwnership, createAnnouncement } = useCommunityMutation(communityId)
+  const community = communityQuery.data ?? null
+  const members = membersQuery.data ?? []
+  const announcements = announcementsQuery.data ?? []
+  const activity = activityQuery.data ?? []
+  const communityCircles = circlesQuery.data ?? []
+  const isMember = membershipQuery.data ?? false
+  const loading = communityQuery.isLoading
+  const hasError = communityQuery.isError
 
   const handleJoin = async () => {
     try {
-      await post(`/communities/${communityId}/join`)
-      setIsMember(true)
-      setCommunity((prev) => prev ? { ...prev, memberCount: prev.memberCount + 1 } : prev)
+      await join.mutateAsync()
       addToast({ type: "success", title: "Joined!", description: "You are now a member of this community." })
     } catch (e) {
       console.error("[community] Failed to join:", e)
@@ -183,11 +129,18 @@ export default function CommunityDetailPage() {
     }
   }
 
+  const load = () => {
+    void communityQuery.refetch()
+    void membersQuery.refetch()
+    void announcementsQuery.refetch()
+    void activityQuery.refetch()
+    void circlesQuery.refetch()
+    void membershipQuery.refetch()
+  }
+
   const handleTogglePin = async (a: Announcement) => {
     try {
-      const { patch } = await import("@/lib/api-client")
-      await patch(`/communities/${communityId}/announcements/${a.id}/pin`, { pinned: !a.isPinned })
-      setAnnouncements((prev) => prev.map((x) => x.id === a.id ? { ...x, isPinned: !x.isPinned } : x))
+      await togglePin.mutateAsync({ announcementId: a.id, pinned: !a.isPinned })
       addToast({ type: "success", title: a.isPinned ? "Unpinned" : "Pinned!" })
     } catch (e) {
       console.error("[community] Failed to toggle pin:", e)
@@ -197,9 +150,7 @@ export default function CommunityDetailPage() {
 
   const handleDeleteAnnouncement = async (id: string) => {
     try {
-      const { del } = await import("@/lib/api-client")
-      await del(`/communities/${communityId}/announcements/${id}`)
-      setAnnouncements((prev) => prev.filter((a) => a.id !== id))
+      await deleteAnnouncement.mutateAsync(id)
       addToast({ type: "success", title: "Deleted" })
     } catch (e) {
       console.error("[community] Failed to delete announcement:", e)
@@ -209,10 +160,7 @@ export default function CommunityDetailPage() {
 
   const handleRemoveMember = async (targetId: string, name: string) => {
     try {
-      const { del } = await import("@/lib/api-client")
-      await del(`/communities/${communityId}/members/${targetId}`)
-      setMembers((prev) => prev.filter((m) => m.userId !== targetId))
-      setCommunity((prev) => prev ? { ...prev, memberCount: prev.memberCount - 1 } : prev)
+      await removeMember.mutateAsync(targetId)
       addToast({ type: "success", title: `${name} removed` })
     } catch (e) {
       console.error("[community] Failed to remove member:", e)
@@ -226,8 +174,7 @@ export default function CommunityDetailPage() {
   const handleTransferOwnership = async () => {
     if (!transferTarget) return
     try {
-      const { post } = await import("@/lib/api-client")
-      await post(`/communities/${communityId}/transfer-ownership`, { newOwnerId: transferTarget })
+      await transferOwnership.mutateAsync(transferTarget)
       addToast({ type: "success", title: "Ownership transferred!" })
       setShowTransfer(false)
       setTransferTarget("")
@@ -247,6 +194,15 @@ export default function CommunityDetailPage() {
           <Skeleton variant="card" className="h-32 rounded-2xl" />
           <Skeleton variant="card" className="h-48 rounded-2xl" />
         </div>
+      </div>
+    )
+  }
+
+  if (hasError) {
+    return (
+      <div className="space-y-6">
+        <PageHeader title="Community" />
+        <EmptyState icon={<Users className="h-6 w-6" />} title="Unable to load community" description="Something went wrong while loading this community." action={{ label: "Retry", onClick: load }} />
       </div>
     )
   }
@@ -581,22 +537,19 @@ export default function CommunityDetailPage() {
 
 function CreateAnnouncementForm({ communityId, onCreated }: { communityId: string; onCreated: () => void }) {
   const [content, setContent] = useState("")
-  const [posting, setPosting] = useState(false)
   const addToast = useUIStore((s) => s.addToast)
+  const { createAnnouncement } = useCommunityMutation(communityId)
 
   const handlePost = async () => {
     if (!content.trim()) return
-    setPosting(true)
     try {
-      await post(`/communities/${communityId}/announcements`, { content: content.trim() })
+      await createAnnouncement.mutateAsync(content.trim())
       setContent("")
       addToast({ type: "success", title: "Posted!" })
       onCreated()
     } catch (e) {
       console.error("[community] Failed to post announcement:", e)
       addToast({ type: "error", title: "Failed to post" })
-    } finally {
-      setPosting(false)
     }
   }
 
@@ -610,7 +563,7 @@ function CreateAnnouncementForm({ communityId, onCreated }: { communityId: strin
         className="w-full bg-transparent text-sm text-foreground placeholder:text-muted-foreground/50 border-b border-white/10 focus:outline-none focus:border-aurora-violet/50 resize-none py-2"
       />
       <div className="flex justify-end">
-        <Button variant="primary" size="sm" onClick={handlePost} isLoading={posting} disabled={!content.trim()}>
+        <Button variant="primary" size="sm" onClick={handlePost} isLoading={createAnnouncement.isPending} disabled={!content.trim()}>
           Post
         </Button>
       </div>

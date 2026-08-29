@@ -37,8 +37,8 @@ function delay(ms: number) {
 }
 
 async function fetchLocaleDict(code: string): Promise<TranslationDict> {
-  const res = await fetch(`/locale/${code}.json`)
-  if (!res.ok) throw new Error(`HTTP ${res.status} while fetching /locale/${code}.json`)
+  const res = await fetch(`/locales/${code}.json`)
+  if (!res.ok) throw new Error(`HTTP ${res.status} while fetching /locales/${code}.json`)
   return (await res.json()) as TranslationDict
 }
 
