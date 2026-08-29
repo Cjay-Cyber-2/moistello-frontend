@@ -1,158 +1,311 @@
-import { act, renderHook } from "@testing-library/react"
-import { beforeEach, describe, expect, it, vi } from "vitest"
-import { useNotifications, useUnreadCount } from "@/hooks/use-notifications"
-import { useNotificationStore } from "@/stores/notification-store"
-import type { Notification } from "@/types"
+import { renderHook, waitFor, act } from "@testing-library/react";
+import { describe, expect, it, vi, beforeEach } from "vitest";
+import { get, patch } from "@/lib/api-client";
+import {
+  useNotificationsQuery,
+  useUnreadCount,
+  useMarkAsReadMutation,
+  useMarkAllAsReadMutation,
+} from "@/hooks/use-notifications";
+import {
+  filterNotifications,
+  groupNotificationsByType,
+} from "@/lib/notifications";
+import { createQueryWrapper } from "./test-utils";
+import type { Notification } from "@/types";
 
-const { mockGet, mockPatch } = vi.hoisted(() => ({
-  mockGet: vi.fn(),
-  mockPatch: vi.fn(),
-}))
+vi.mock("@/lib/api-client", () => ({ get: vi.fn(), patch: vi.fn() }));
 
-vi.mock("@/lib/api-client", () => ({
-  get: mockGet,
-  patch: mockPatch,
-}))
+const mockedGet = vi.mocked(get);
+const mockedPatch = vi.mocked(patch);
 
-const notification = (overrides: Partial<Notification> = {}): Notification => ({
-  id: "n-1",
-  userId: "user-1",
-  type: "circle",
-  title: "New contribution",
-  body: null,
-  data: null,
-  isRead: false,
-  channel: "in_app",
-  createdAt: "2026-08-01T00:00:00.000Z",
-  ...overrides,
-})
-
-function resetStore() {
-  useNotificationStore.setState({
-    notifications: [],
-    unreadCount: 0,
-    isLoading: false,
-  })
-  mockGet.mockReset()
-  mockPatch.mockReset()
+function makeNotification(
+  overrides: Partial<Notification> = {}
+): Notification {
+  return {
+    id: "n1",
+    userId: "u-test",
+    type: "payout",
+    title: "Payout received",
+    body: "Your payout is on its way.",
+    isRead: false,
+    channel: "in_app",
+    createdAt: "2026-08-20T10:00:00Z",
+    ...overrides,
+  };
 }
 
-describe("useNotifications", () => {
+describe("useNotificationsQuery", () => {
   beforeEach(() => {
-    resetStore()
-  })
+    vi.clearAllMocks();
+  });
 
-  it("exposes notifications, unreadCount and isLoading from the store", () => {
-    useNotificationStore.setState({
-      notifications: [notification(), notification({ id: "n-2", isRead: true })],
-      unreadCount: 1,
-      isLoading: true,
-    })
+  it("fetches notifications from the API on mount", async () => {
+    const notifications = [
+      makeNotification({ id: "n1", isRead: false }),
+      makeNotification({ id: "n2", isRead: true }),
+    ];
+    mockedGet.mockResolvedValue({
+      data: { notifications },
+    } as never);
 
-    const { result } = renderHook(() => useNotifications())
+    const { QueryWrapper } = createQueryWrapper();
+    const { result } = renderHook(() => useNotificationsQuery(), {
+      wrapper: QueryWrapper,
+    });
 
-    expect(result.current.notifications).toHaveLength(2)
-    expect(result.current.unreadCount).toBe(1)
-    expect(result.current.isLoading).toBe(true)
-    expect(typeof result.current.markAsRead).toBe("function")
-    expect(typeof result.current.markAllAsRead).toBe("function")
-    expect(typeof result.current.fetchNotifications).toBe("function")
-  })
+    expect(result.current.isLoading).toBe(true);
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+    expect(mockedGet).toHaveBeenCalledWith("/notifications");
+    expect(result.current.data).toEqual(notifications);
+  });
 
-  it("fetches notifications from the API into the store", async () => {
-    mockGet.mockResolvedValue({
-      data: {
-        notifications: [
-          notification(),
-          notification({ id: "n-2" }),
-          notification({ id: "n-3", isRead: true }),
-        ],
-      },
-    })
+  it("normalizes a missing notifications array to an empty list", async () => {
+    mockedGet.mockResolvedValue({ data: {} } as never);
 
-    const { result } = renderHook(() => useNotifications())
-    await act(async () => {
-      await result.current.fetchNotifications()
-    })
+    const { QueryWrapper } = createQueryWrapper();
+    const { result } = renderHook(() => useNotificationsQuery(), {
+      wrapper: QueryWrapper,
+    });
 
-    const { notifications, unreadCount, isLoading } = useNotificationStore.getState()
-    expect(mockGet).toHaveBeenCalledWith("/notifications")
-    expect(notifications).toHaveLength(3)
-    expect(unreadCount).toBe(2)
-    expect(isLoading).toBe(false)
-  })
-
-  it("marks a notification read optimistically", async () => {
-    useNotificationStore.setState({
-      notifications: [notification(), notification({ id: "n-2" })],
-      unreadCount: 2,
-    })
-    mockPatch.mockResolvedValue({})
-
-    const { result } = renderHook(() => useNotifications())
-    await act(async () => {
-      await result.current.markAsRead("n-1")
-    })
-
-    const { notifications, unreadCount } = useNotificationStore.getState()
-    expect(mockPatch).toHaveBeenCalledWith("/notifications/n-1/read")
-    expect(notifications.find((n) => n.id === "n-1")?.isRead).toBe(true)
-    expect(notifications.find((n) => n.id === "n-2")?.isRead).toBe(false)
-    expect(unreadCount).toBe(1)
-  })
-
-  it("marks all notifications as read", async () => {
-    useNotificationStore.setState({
-      notifications: [
-        notification(),
-        notification({ id: "n-2", isRead: true }),
-        notification({ id: "n-3" }),
-      ],
-      unreadCount: 2,
-    })
-    mockPatch.mockResolvedValue({})
-
-    const { result } = renderHook(() => useNotifications())
-    await act(async () => {
-      await result.current.markAllAsRead()
-    })
-
-    const { notifications, unreadCount } = useNotificationStore.getState()
-    expect(mockPatch).toHaveBeenCalledWith("/notifications/read-all")
-    expect(notifications.every((n) => n.isRead)).toBe(true)
-    expect(unreadCount).toBe(0)
-  })
-
-  it("rolls back the unread flag when marking read fails", async () => {
-    useNotificationStore.setState({
-      notifications: [notification()],
-      unreadCount: 1,
-    })
-    mockPatch.mockRejectedValue(new Error("network down"))
-
-    const { result } = renderHook(() => useNotifications())
-    await act(async () => {
-      await result.current.markAsRead("n-1")
-    })
-
-    const { notifications, unreadCount } = useNotificationStore.getState()
-    expect(notifications[0].isRead).toBe(false)
-    expect(unreadCount).toBe(1)
-  })
-})
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+    expect(result.current.data).toEqual([]);
+  });
+});
 
 describe("useUnreadCount", () => {
   beforeEach(() => {
-    resetStore()
-  })
+    vi.clearAllMocks();
+  });
 
-  it("subscribes to the store's unreadCount", () => {
-    useNotificationStore.setState({
-      notifications: [notification(), notification({ id: "n-2" })],
-      unreadCount: 2,
-    })
+  it("derives the unread count from the query data", async () => {
+    mockedGet.mockResolvedValue({
+      data: {
+        notifications: [
+          makeNotification({ id: "n1", isRead: false }),
+          makeNotification({ id: "n2", isRead: true }),
+          makeNotification({ id: "n3", isRead: false }),
+        ],
+      },
+    } as never);
 
-    const { result } = renderHook(() => useUnreadCount())
-    expect(result.current).toBe(2)
-  })
-})
+    const { QueryWrapper } = createQueryWrapper();
+    const { result } = renderHook(() => useUnreadCount(), {
+      wrapper: QueryWrapper,
+    });
+
+    await waitFor(() => expect(result.current).toBe(2));
+  });
+
+  it("returns 0 while data is still loading", async () => {
+    mockedGet.mockReturnValue(new Promise(() => {}) as never);
+
+    const { QueryWrapper } = createQueryWrapper();
+    const { result } = renderHook(() => useUnreadCount(), {
+      wrapper: QueryWrapper,
+    });
+
+    expect(result.current).toBe(0);
+  });
+});
+
+describe("useMarkAsReadMutation", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("optimistically marks the notification as read and calls the API", async () => {
+    // Initial fetch returns unread data; the refetch after the mutation
+    // reflects the server-side read state.
+    mockedGet
+      .mockResolvedValueOnce({
+        data: {
+          notifications: [
+            makeNotification({ id: "n1", isRead: false }),
+            makeNotification({ id: "n2", isRead: false }),
+          ],
+        },
+      } as never)
+      .mockResolvedValue({
+        data: {
+          notifications: [
+            makeNotification({ id: "n1", isRead: true }),
+            makeNotification({ id: "n2", isRead: false }),
+          ],
+        },
+      } as never);
+    mockedPatch.mockResolvedValue({} as never);
+
+    const { QueryWrapper, queryClient } = createQueryWrapper();
+    const { result } = renderHook(
+      () => ({
+        query: useNotificationsQuery(),
+        mutation: useMarkAsReadMutation(),
+      }),
+      { wrapper: QueryWrapper }
+    );
+
+    await waitFor(() =>
+      expect(queryClient.getQueryData(["notifications"])).toBeDefined()
+    );
+
+    act(() => {
+      result.current.mutation.mutate("n1");
+    });
+
+    await waitFor(() =>
+      expect(mockedPatch).toHaveBeenCalledWith("/notifications/n1/read")
+    );
+
+    const data = queryClient.getQueryData<Notification[]>(["notifications"]);
+    expect(data?.find((n) => n.id === "n1")?.isRead).toBe(true);
+    expect(data?.find((n) => n.id === "n2")?.isRead).toBe(false);
+  });
+
+  it("rolls back the optimistic update when the API rejects", async () => {
+    mockedGet.mockResolvedValue({
+      data: {
+        notifications: [makeNotification({ id: "n1", isRead: false })],
+      },
+    } as never);
+    mockedPatch.mockRejectedValue(new Error("Unauthorized"));
+    const consoleWarn = vi.spyOn(console, "warn").mockImplementation(() => {});
+
+    const { QueryWrapper, queryClient } = createQueryWrapper();
+    const { result } = renderHook(
+      () => ({
+        query: useNotificationsQuery(),
+        mutation: useMarkAsReadMutation(),
+      }),
+      { wrapper: QueryWrapper }
+    );
+
+    await waitFor(() =>
+      expect(queryClient.getQueryData(["notifications"])).toBeDefined()
+    );
+
+    act(() => {
+      result.current.mutation.mutate("n1");
+    });
+
+    await waitFor(() => {
+      const data = queryClient.getQueryData<Notification[]>(["notifications"]);
+      expect(data?.find((n) => n.id === "n1")?.isRead).toBe(false);
+    });
+    consoleWarn.mockRestore();
+  });
+
+  it("dispatches auth:required when the API rejects with 401", async () => {
+    mockedGet.mockResolvedValue({
+      data: { notifications: [makeNotification({ id: "n1", isRead: false })] },
+    } as never);
+    mockedPatch.mockRejectedValue({ response: { status: 401 } });
+    const authRequired = vi.fn();
+    window.addEventListener("auth:required", authRequired);
+    const consoleWarn = vi.spyOn(console, "warn").mockImplementation(() => {});
+
+    const { QueryWrapper, queryClient } = createQueryWrapper();
+    const { result } = renderHook(
+      () => ({
+        query: useNotificationsQuery(),
+        mutation: useMarkAsReadMutation(),
+      }),
+      { wrapper: QueryWrapper }
+    );
+
+    await waitFor(() =>
+      expect(queryClient.getQueryData(["notifications"])).toBeDefined()
+    );
+
+    act(() => {
+      result.current.mutation.mutate("n1");
+    });
+
+    await waitFor(() => expect(authRequired).toHaveBeenCalledTimes(1));
+    window.removeEventListener("auth:required", authRequired);
+    consoleWarn.mockRestore();
+  });
+});
+
+describe("useMarkAllAsReadMutation", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("marks every notification as read", async () => {
+    mockedGet
+      .mockResolvedValueOnce({
+        data: {
+          notifications: [
+            makeNotification({ id: "n1", isRead: false }),
+            makeNotification({ id: "n2", isRead: false }),
+          ],
+        },
+      } as never)
+      .mockResolvedValue({
+        data: {
+          notifications: [
+            makeNotification({ id: "n1", isRead: true }),
+            makeNotification({ id: "n2", isRead: true }),
+          ],
+        },
+      } as never);
+    mockedPatch.mockResolvedValue({} as never);
+
+    const { QueryWrapper, queryClient } = createQueryWrapper();
+    const { result } = renderHook(
+      () => ({
+        query: useNotificationsQuery(),
+        mutation: useMarkAllAsReadMutation(),
+      }),
+      { wrapper: QueryWrapper }
+    );
+
+    await waitFor(() =>
+      expect(queryClient.getQueryData(["notifications"])).toBeDefined()
+    );
+
+    act(() => {
+      result.current.mutation.mutate();
+    });
+
+    await waitFor(() =>
+      expect(mockedPatch).toHaveBeenCalledWith("/notifications/read-all")
+    );
+
+    const data = queryClient.getQueryData<Notification[]>(["notifications"]);
+    expect(data?.every((n) => n.isRead)).toBe(true);
+  });
+});
+
+describe("shared notification filtering and grouping", () => {
+  const notifications = [
+    makeNotification({ id: "n1", type: "payout", isRead: false }),
+    makeNotification({ id: "n2", type: "contribution", isRead: true }),
+    makeNotification({ id: "n3", type: "circle_joined", isRead: false }),
+    makeNotification({ id: "n4", type: "warning", isRead: false }),
+  ];
+
+  it("filters by unread state", () => {
+    const result = filterNotifications(notifications, "unread", "all");
+    expect(result.map((n) => n.id)).toEqual(["n1", "n3", "n4"]);
+  });
+
+  it("filters by type group", () => {
+    const result = filterNotifications(notifications, "all", "payout");
+    expect(result.map((n) => n.id)).toEqual(["n1"]);
+  });
+
+  it("matches alert types via their raw type prefix", () => {
+    const result = filterNotifications(notifications, "all", "warning");
+    expect(result.map((n) => n.id)).toEqual(["n4"]);
+  });
+
+  it("groups by type category", () => {
+    const groups = groupNotificationsByType(notifications);
+    expect(groups.Payouts.map((n) => n.id)).toEqual(["n1"]);
+    expect(groups.Contributions.map((n) => n.id)).toEqual(["n2"]);
+    expect(groups.Circles.map((n) => n.id)).toEqual(["n3"]);
+    expect(groups.Alerts.map((n) => n.id)).toEqual(["n4"]);
+  });
+});

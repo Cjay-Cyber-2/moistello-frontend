@@ -22,7 +22,7 @@ import { cn } from "@/lib/cn";
 import { Routes } from "@/lib/constants";
 import { useUIStore } from "@/stores/ui-store";
 import { useAuthStore } from "@/stores/auth-store";
-import { useNotificationStore } from "@/stores/notification-store";
+import { useUnreadCount } from "@/hooks/use-notifications";
 import { useTranslate } from "@/lib/locale/context";
 import { useFocusTrap } from "@/hooks/use-focus-trap";
 
@@ -38,7 +38,7 @@ export function MobileMenu({ isOpen, onClose }: MobileMenuProps) {
   const toggleTheme = useUIStore((s) => s.toggleTheme);
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const logout = useAuthStore((s) => s.logout);
-  const unreadCount = useNotificationStore((s) => s.unreadCount);
+  const unreadCount = useUnreadCount();
   const isDark = theme === "dark";
   const { t } = useTranslate();
   const menuRef = useFocusTrap<HTMLDivElement>(isOpen, onClose);

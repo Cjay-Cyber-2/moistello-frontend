@@ -20,6 +20,10 @@ function okResponse(body: object) {
   })
 }
 
+function _errResponse(status: number) {
+  return new Response("error", { status })
+}
+
 beforeEach(() => {
   clearBalanceCache()
   vi.restoreAllMocks()

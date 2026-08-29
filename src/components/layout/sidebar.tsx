@@ -24,7 +24,7 @@ import { cn } from "@/lib/cn";
 import { Routes } from "@/lib/constants";
 import { useUIStore } from "@/stores/ui-store";
 import { useAuthStore } from "@/stores/auth-store";
-import { useNotificationStore } from "@/stores/notification-store";
+import { useUnreadCount } from "@/hooks/use-notifications";
 import { useTranslate } from "@/lib/locale/context";
 
 interface NavItem {
@@ -45,7 +45,7 @@ export function Sidebar() {
   const toggleTheme = useUIStore((s) => s.toggleTheme);
   const user = useAuthStore((s) => s.user);
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
-  const unreadCount = useNotificationStore((s) => s.unreadCount);
+  const unreadCount = useUnreadCount();
   const { t } = useTranslate();
 
   const isDark = theme === "dark";
