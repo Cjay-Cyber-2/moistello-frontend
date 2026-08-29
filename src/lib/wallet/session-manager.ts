@@ -1,5 +1,5 @@
 import type { WalletAdapter, WalletSession, EncryptedSessionStore, WalletId } from "./types"
-import { computeHmacSha256Sync } from "./hmac"
+import { computeHmacSha256Sync, isHmacKeyReady, withHmacKey } from "./hmac"
 
 const STORAGE_KEY = "moistello_wallet_sessions"
 const SESSION_TTL = 7 * 24 * 60 * 60 * 1000
@@ -20,7 +20,13 @@ export class WalletSessionManager {
     } else {
       this.setupStorageFallback()
     }
-    this.restore()
+    if (isHmacKeyReady()) {
+      this.restore()
+    } else {
+      // The HMAC key may still be loading on first paint — defer the restore
+      // until the key arrives so verification never runs against an empty key.
+      withHmacKey(() => this.restore())
+    }
   }
 
   async connect(adapter: WalletAdapter, publicKey: string): Promise<void> {
@@ -82,25 +88,35 @@ export class WalletSessionManager {
 
   private persist(): void {
     if (typeof window === "undefined") return
-    try {
-      const hmac = computeHmacSha256Sync(JSON.stringify(this.sessions))
-      const store: EncryptedSessionStore = {
-        sessions: this.sessions,
-        hmac,
-        activeWalletId: this.activeWalletId,
+    // Defer the write until the HMAC key is ready so the store is never
+    // signed with an empty key (which would silently break tamper detection
+    // on the very first write).
+    withHmacKey(() => {
+      try {
+        const hmac = computeHmacSha256Sync(JSON.stringify(this.sessions))
+        const store: EncryptedSessionStore = {
+          sessions: this.sessions,
+          hmac,
+          activeWalletId: this.activeWalletId,
+        }
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(store))
+      } catch (e) {
+        if (e instanceof DOMException && e.name === "QuotaExceededError") {
+          console.warn("[SessionManager] localStorage full — sessions not persisted")
+          return
+        }
+        console.warn("[SessionManager] Failed to persist sessions:", e)
       }
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(store))
-    } catch (e) {
-      if (e instanceof DOMException && e.name === "QuotaExceededError") {
-        console.warn("[SessionManager] localStorage full — sessions not persisted")
-        return
-      }
-      console.warn("[SessionManager] Failed to persist sessions:", e)
-    }
+    })
   }
 
   private restore(): void {
     if (typeof window === "undefined") return
+    if (!isHmacKeyReady()) {
+      // Key not loaded yet — defer instead of treating unverifiable data as
+      // tampered and wiping it.
+      return
+    }
     try {
       const raw = localStorage.getItem(STORAGE_KEY)
       if (!raw) return

@@ -2,6 +2,10 @@
  * Balance Cache Manager
  * Provides client-side caching with TTL and exponential backoff retry
  * for Stellar wallet account balance queries.
+ *
+ * Privacy guarantee: wallet addresses are ONLY ever sent to the first-party
+ * proxy (/api/wallet/balance). No direct third-party (Horizon) fallback is
+ * performed from the client — see issue #202.
  */
 
 export interface WalletBalance {
@@ -95,36 +99,21 @@ export async function fetchBalanceWithBackoff(
     }
   }
 
-  // 3. Fallback: if backend proxy endpoint is unavailable, try direct Horizon query as safety net
-  try {
-    const directResponse = await fetch(`https://horizon-testnet.stellar.org/accounts/${address}`);
-    if (directResponse.ok) {
-      const data = await directResponse.json();
-      let xlm = "0";
-      let usdc = "0";
-
-      for (const b of data.balances || []) {
-        if (b.asset_type === "native") xlm = b.balance;
-        else if (b.asset_code === "USDC") usdc = b.balance;
-      }
-
-      const fallbackResult = { xlm, usdc };
-      balanceCache.set(address, {
-        data: fallbackResult,
-        timestamp: Date.now(),
-      });
-      return fallbackResult;
-    }
-  } catch {
-    // Ignore fallback error and throw original
-  }
-
-  // Return stale cached data if available rather than breaking UI
+  // 3. No direct third-party fallback. The proxy was already retried with
+  // exponential backoff above; the address must never leave the app except
+  // via the first-party proxy. Return stale cached data if available rather
+  // than breaking the UI, otherwise surface the last proxy error.
   const stale = balanceCache.get(address);
   if (stale) {
+    console.warn(
+      `[balance-cache] Proxy unavailable — returning stale balance for ${address}`, 
+    );
     return stale.data;
   }
 
+  console.warn(
+    `[balance-cache] Proxy unavailable and no stale cache — balance unavailable for ${address}`,
+  );
   throw lastError || new Error("Failed to fetch balance after retries");
 }
 

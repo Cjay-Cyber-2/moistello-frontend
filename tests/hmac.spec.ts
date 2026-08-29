@@ -5,7 +5,7 @@ describe("hmac module", () => {
     // ensure clean storage and globals between tests
     try {
       localStorage.clear();
-    } catch (e) {
+    } catch {
       // ignore when not available
     }
     vi.restoreAllMocks();
@@ -51,6 +51,79 @@ describe("hmac module", () => {
     const res = mod.computeHmacSha256Sync("hello");
     expect(typeof res).toBe("string");
     expect(res.length).toBeGreaterThan(0);
+  });
+
+  it("computeHmacSha256Sync throws instead of silently signing with an empty key", async () => {
+    const mod = await import("../src/lib/wallet/hmac");
+    await mod.clearHmacKeyCache();
+
+    // No key loaded (fresh module, no storage, no fetch mocked yet) — the
+    // sync compute must refuse instead of returning "".
+    expect(() => mod.computeHmacSha256Sync("hello")).toThrow(
+      /HMAC key is not loaded/i,
+    );
+  });
+
+  it("isHmacKeyReady is false before the key is fetched and true after", async () => {
+    const mod = await import("../src/lib/wallet/hmac");
+    await mod.clearHmacKeyCache();
+
+    expect(mod.isHmacKeyReady()).toBe(false);
+
+    const keyHex = "cccccccccccccccccccccccccccccccc";
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValue({ ok: true, json: async () => ({ keyHex }) });
+    vi.stubGlobal("fetch", fetchMock);
+
+    await mod.ensureHmacKey();
+    expect(mod.isHmacKeyReady()).toBe(true);
+  });
+
+  it("withHmacKey defers the write until the key arrives (no empty-key write)", async () => {
+    const mod = await import("../src/lib/wallet/hmac");
+    await mod.clearHmacKeyCache();
+
+    let deferredResult: string | null = null;
+    let deferredRan = false;
+
+    // Provide the key through the server endpoint; the deferred write flushes
+    // once the key arrives. The fetch must be stubbed BEFORE withHmacKey
+    // because withHmacKey kicks off the fetch synchronously.
+    const keyHex = "dddddddddddddddddddddddddddddddd";
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValue({ ok: true, json: async () => ({ keyHex }) });
+    vi.stubGlobal("fetch", fetchMock);
+
+    // Key not loaded: the callback must NOT run synchronously.
+    mod.withHmacKey(() => {
+      deferredRan = true;
+      deferredResult = mod.computeHmacSha256Sync("payload");
+    });
+    expect(deferredRan).toBe(false);
+
+    await vi.waitFor(() => expect(deferredRan).toBe(true));
+    expect(deferredResult).toBeTruthy();
+    expect(deferredResult!.length).toBeGreaterThan(0);
+  });
+
+  it("drops deferred writes when the key can never be fetched", async () => {
+    const mod = await import("../src/lib/wallet/hmac");
+    await mod.clearHmacKeyCache();
+
+    const fetchMock = vi.fn().mockRejectedValue(new Error("offline"));
+    vi.stubGlobal("fetch", fetchMock);
+
+    let deferredRan = false;
+    mod.withHmacKey(() => {
+      deferredRan = true;
+    });
+
+    await vi.waitFor(() => expect(fetchMock).toHaveBeenCalled());
+    // Give the failure path a moment to clear the queue.
+    await new Promise((r) => setTimeout(r, 10));
+    expect(deferredRan).toBe(false);
   });
 
   it("clearHmacKeyCache forces refetch on next ensure", async () => {
