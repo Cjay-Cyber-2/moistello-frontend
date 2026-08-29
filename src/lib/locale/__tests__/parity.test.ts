@@ -2,8 +2,8 @@ import { describe, expect, it } from "vitest"
 
 import en from "@/lib/locale/en.json"
 import fr from "@/lib/locale/fr.json"
-import enPublic from "../../../../public/locale/en.json"
-import frPublic from "../../../../public/locale/fr.json"
+import enPublic from "../../../../public/locales/en/common.json"
+import frPublic from "../../../../public/locales/fr/common.json"
 
 const keysOf = (dict: Record<string, unknown>) => Object.keys(dict).sort()
 const PLACEHOLDER = /\{[^}]+\}/g
@@ -34,7 +34,7 @@ describe("locale parity", () => {
     }
   })
 
-  it("public locale files served at /locale stay in sync with the bundled dictionaries", () => {
+  it("public locale files served at /locales stay in sync with the bundled dictionaries", () => {
     expect(enPublic).toEqual(en)
     expect(frPublic).toEqual(fr)
   })

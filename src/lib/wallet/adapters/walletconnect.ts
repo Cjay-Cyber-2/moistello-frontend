@@ -19,11 +19,14 @@ const CONNECT_INIT_TIMEOUT = 60_000
 
 let _onPairingUri: ((uri: string) => void) | null = null
 let _onRelayStatusChange: ((status: RelayStatus) => void) | null = null
-let _sessionProposalHandler: ((...args: unknown[]) => void) | null = null
-let _sessionDeleteHandler: ((...args: unknown[]) => void) | null = null
-let _wcConnectCancelled = false
-let _pendingSetSettled: (() => void) | null = null
-let _pendingReject: ((reason: unknown) => void) | null = null
+
+interface WcConnectionController {
+  settle: () => void
+  reject: (reason: unknown) => void
+  cancel: () => void
+}
+
+let _activeConnection: WcConnectionController | null = null
 
 export function setOnPairingUri(handler: ((uri: string) => void) | null): void {
   _onPairingUri = handler
@@ -226,15 +229,8 @@ export function createWalletConnectAdapter(): WalletAdapter {
     setSettled: () => void,
     startTime: number,
   ) {
-    if (_sessionProposalHandler) {
-      try { signClient.off?.("session_proposal", _sessionProposalHandler) } catch (e) { console.warn("[wc] Failed to remove session_proposal handler:", e) }
-    }
-    if (_sessionDeleteHandler) {
-      try { signClient.off?.("session_delete", _sessionDeleteHandler) } catch (e) { console.warn("[wc] Failed to remove session_delete handler:", e) }
-    }
-
-    _sessionProposalHandler = async (proposal: unknown) => {
-      if (getSettled() || _wcConnectCancelled) return
+    const proposalHandler = async (proposal: unknown) => {
+      if (getSettled() || cancelled) return
 
       try {
         const prop = proposal as {
@@ -310,24 +306,30 @@ export function createWalletConnectAdapter(): WalletAdapter {
       }
     }
 
-    signClient.on("session_proposal", _sessionProposalHandler)
+    signClient.on("session_proposal", proposalHandler)
 
-    _sessionDeleteHandler = () => {
+    const deleteHandler = () => {
       connectedPublicKey = null
       sessionTopic = null
       wcSignClient = null
       getWC2SessionStore().clear()
     }
-    signClient.on("session_delete", _sessionDeleteHandler)
+    signClient.on("session_delete", deleteHandler)
+
+    return () => {
+      try { signClient.off?.("session_proposal", proposalHandler) } catch (e) { console.warn("[wc] Failed to remove session_proposal handler:", e) }
+      try { signClient.off?.("session_delete", deleteHandler) } catch (e) { console.warn("[wc] Failed to remove session_delete handler:", e) }
+    }
   }
 
   return {
     meta,
 
     async connect(): Promise<{ publicKey: string }> {
-      _wcConnectCancelled = false
-      _pendingSetSettled = null
-      _pendingReject = null
+      if (_activeConnection) {
+        _activeConnection.cancel()
+        _activeConnection = null
+      }
 
       const relay = getRelayMonitor()
       if (_onRelayStatusChange) _onRelayStatusChange(relay.status)
@@ -336,14 +338,30 @@ export function createWalletConnectAdapter(): WalletAdapter {
       const signClient = await getOrInitSignClient()
 
       let settled = false
+      let cancelled = false
       const getSettled = () => settled
-      const setSettled = () => { settled = true }
+      const cleanupRef: { fn: () => void } = { fn: () => {} }
+      const setSettled = () => {
+        if (settled) return
+        settled = true
+        cleanupRef.fn()
+      }
 
       return new Promise<{ publicKey: string }>((resolve, reject) => {
-        _pendingSetSettled = setSettled
-        _pendingReject = reject
+        const controller: WcConnectionController = {
+          settle: () => setSettled(),
+          reject: (r: unknown) => { if (!settled) { setSettled(); reject(r) } },
+          cancel: () => {
+            cancelled = true
+            if (!settled) {
+              setSettled()
+              reject(createInternalError("walletconnect", "Connection cancelled by user"))
+            }
+          },
+        }
+        _activeConnection = controller
 
-        createSessionHandler(
+        cleanupRef.fn = createSessionHandler(
           signClient as {
             on: (event: string, handler: (...args: unknown[]) => void) => void
             off?: (event: string, handler: (...args: unknown[]) => void) => void
@@ -374,7 +392,7 @@ export function createWalletConnectAdapter(): WalletAdapter {
               ),
             ])
 
-            if (_wcConnectCancelled) return
+            if (cancelled) return
 
             const { uri } = result as { uri?: string }
 
@@ -389,13 +407,13 @@ export function createWalletConnectAdapter(): WalletAdapter {
 
             relay.recordOutcome(true, performance.now() - startTime)
 
-            if (_wcConnectCancelled) return
+            if (cancelled) return
 
             if (_onPairingUri) {
               _onPairingUri(uri)
             }
           } catch (err) {
-            if (!getSettled() && !_wcConnectCancelled) {
+            if (!getSettled() && !cancelled) {
               setSettled()
               relay.recordOutcome(false, performance.now() - startTime)
               reject(err)
@@ -406,7 +424,7 @@ export function createWalletConnectAdapter(): WalletAdapter {
         initConnect()
 
         setTimeout(() => {
-          if (!getSettled() && !_wcConnectCancelled) {
+          if (!getSettled() && !cancelled) {
             setSettled()
             relay.recordOutcome(false, performance.now() - startTime)
             reject(createTimeoutError("walletconnect", CONNECT_TIMEOUT))
@@ -546,25 +564,17 @@ export function cleanupWcOverlays(): void {
 }
 
 export function resetWcState(): void {
-  _wcConnectCancelled = true
-  if (_pendingSetSettled) {
-    try { _pendingSetSettled() } catch (e) { console.warn("[wc] Failed to settle pending promise:", e) }
+  if (_activeConnection) {
+    _activeConnection.cancel()
+    _activeConnection = null
   }
-  if (_pendingReject) {
-    try { _pendingReject(createInternalError("walletconnect", "Connection cancelled by user")) } catch (e) { console.warn("[wc] Failed to reject pending promise:", e) }
-  }
-  _pendingSetSettled = null
-  _pendingReject = null
   connectedPublicKey = null
   connectedNetwork = "testnet"
   sessionTopic = null
   wcSignClient = null
-  _sessionProposalHandler = null
-  _sessionDeleteHandler = null
   getRelayMonitor().reset()
   cleanupWcOverlays()
   getWC2SessionStore().clear()
-  clearWcIndexedDB()
 }
 
 export async function clearWcIndexedDB(): Promise<void> {

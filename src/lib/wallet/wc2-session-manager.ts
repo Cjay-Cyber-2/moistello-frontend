@@ -3,6 +3,7 @@ import { getRelayMonitor } from "./wc2-relay"
 import { getWC2SessionStore } from "./wc2-session-store"
 import { getSignClientClass } from "./wc2-sign-client"
 import { WC2_QR_EXPIRATION_MS } from "@/lib/constants"
+import { computeSessionExpiry } from "./session-lifecycle"
 
 const PROJECT_ID = process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID || ""
 const RELAY_URL = "wss://relay.walletconnect.com"
@@ -213,7 +214,7 @@ const prop = proposal as {
                 publicKey: pubKey,
                 network: this.networkFromChainId(parts[1]),
                 createdAt: Date.now(),
-                expiresAt: Date.now() + 7 * 24 * 60 * 60 * 1000,
+                expiresAt: computeSessionExpiry(),
               })
               resolve({ publicKey: pubKey, address: pubKey })
               this.emit("connection_approved", pubKey)

@@ -25,6 +25,7 @@ import { formatCurrency, formatDate, formatAddress } from "@/lib/formatters"
 import { cn } from "@/lib/cn"
 import type { ApiResponse, Circle } from "@/types"
 import { getCurrentPagePayoutTotal } from "./payout-summary"
+import { DataTable, type DataTableColumn } from "@/components/shared/data-table"
 
 function TransactionLink({ hash }: { hash: string }) {
   return (
@@ -120,9 +121,17 @@ export default function PayoutsPage() {
   const hasPrev = page > 1
 
   const currentPageTotal = getCurrentPagePayoutTotal(payouts)
-
   const getCircleName = (circleId: string): string =>
     circles.find((c) => c.id === circleId)?.name ?? "Unknown"
+
+  const payoutColumns: DataTableColumn<(typeof payouts)[number]>[] = [
+    { id: "circle", header: "Circle", cell: (payout) => <Link href={`/circles/${payout.circleId}`} className="font-medium text-foreground hover:underline">{getCircleName(payout.circleId)}</Link> },
+    { id: "round", header: "Round", accessor: (payout) => payout.roundNumber, sortable: true, cell: (payout) => <span className="font-mono">#{payout.roundNumber}</span> },
+    { id: "amount", header: "Amount", accessor: (payout) => payout.amount, sortable: true, cell: (payout) => <span className="font-bold text-emerald-400">+{formatCurrency(payout.amount, "USDC")}</span> },
+    { id: "fee", header: "Fee", cell: (payout) => payout.feeAmount != null && payout.feeAmount > 0 ? formatCurrency(payout.feeAmount, "USDC") : "—" },
+    { id: "date", header: "Date", accessor: (payout) => payout.createdAt, sortable: true, cell: (payout) => formatDate(payout.createdAt) },
+    { id: "transaction", header: "Transaction", cell: (payout) => payout.txnHash ? <TransactionLink hash={payout.txnHash} /> : "—" },
+  ]
 
   // ── Meaningful status announcements for assistive tech ──
   const statusMessage = useMemo(() => {
@@ -269,6 +278,8 @@ export default function PayoutsPage() {
         />
       ) : (
         <div className="glass-premium rounded-2xl overflow-hidden holo-border">
+          <DataTable data={payouts} columns={payoutColumns} getRowId={(payout) => payout.id} caption="Payout history" />
+          <div className="hidden">
           <div className="hidden md:flex items-center gap-4 border-b border-border glass-strong px-5 py-3">
             <div className="flex-1 text-2xs font-heading tracking-wider uppercase text-muted-foreground">
               Circle
@@ -349,6 +360,7 @@ export default function PayoutsPage() {
               </motion.div>
             ))}
           </motion.div>
+          </div>
         </div>
       )}
 
