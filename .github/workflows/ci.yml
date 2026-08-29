@@ -52,6 +52,14 @@ jobs:
         run: |
           # generate source maps for analysis (Next may need productionBrowserSourceMaps)
           npx source-map-explorer "./.next/static/**/*.js" --json > bundle-report.json || echo "bundle analysis skipped"
+      - name: Validate CSP headers (headless)
+        # Serve the production build and assert the served Content-Security-Policy
+        # headers — pages must be nonce-based without unsafe-eval/unsafe-inline,
+        # API routes must stay locked down. The script doubles as the readiness
+        # probe, so no extra wait tool is needed.
+        run: |
+          nohup npm run start -- -p 8080 > /tmp/next-start.log 2>&1 &
+          CSP_VALIDATE_URL=http://localhost:8080 node scripts/validate-csp.mjs
 
   perf:
     name: Performance (Lighthouse + Bundle Budget)
