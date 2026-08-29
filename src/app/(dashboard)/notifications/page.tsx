@@ -26,6 +26,11 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useNotifications } from "@/hooks/use-notifications";
+import {
+  TYPE_FILTERS,
+  filterNotifications,
+  groupNotificationsByType,
+} from "@/lib/notifications";
 import { PageHeader } from "@/components/shared/page-header";
 import { EmptyState } from "@/components/shared/empty-state";
 import { Button } from "@/components/ui/button";
@@ -75,28 +80,6 @@ const iconColorMap: Record<string, string> = {
   warning: "text-red-400",
   penalty: "text-red-400",
 };
-
-const TYPE_GROUPS: Record<string, string> = {
-  contribution: "Contributions",
-  contribution_received: "Contributions",
-  payout: "Payouts",
-  payout_received: "Payouts",
-  circle: "Circles",
-  circle_joined: "Circles",
-  circle_completed: "Circles",
-  system: "System",
-  warning: "Alerts",
-  penalty: "Alerts",
-};
-
-const TYPE_FILTERS = [
-  { value: "all", label: "All" },
-  { value: "contribution", label: "Contributions" },
-  { value: "payout", label: "Payouts" },
-  { value: "circle", label: "Circles" },
-  { value: "system", label: "System" },
-  { value: "warning", label: "Alerts" },
-];
 
 const itemVariants = defaultItemVariants;
 
@@ -239,10 +222,6 @@ export default function NotificationsPage() {
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [archiving, setArchiving] = useState(false);
 
-  useEffect(() => {
-    fetchNotifications();
-  }, [fetchNotifications]);
-
   const handleNotificationClick = useCallback(
     (notification: Notification) => {
       const link =
@@ -265,21 +244,15 @@ export default function NotificationsPage() {
     }
   };
 
-  // Compute filtered notifications first
+  // Compute filtered notifications first — shared implementation lives in
+  // @/lib/notifications so the page and any future consumer stay in sync.
   const filteredNotifications = useMemo(() => {
     const start = typeof performance !== "undefined" ? performance.now() : 0;
-    let result = notifications;
-    if (filter === "unread") {
-      result = result.filter((n) => !n.isRead);
-    }
-    if (typeFilter !== "all") {
-      result = result.filter((n) => {
-        const group = TYPE_GROUPS[n.type] ?? "Other";
-        return (
-          group.toLowerCase() === typeFilter || n.type.startsWith(typeFilter)
-        );
-      });
-    }
+    const result = filterNotifications(
+      notifications,
+      filter as "all" | "unread",
+      typeFilter
+    );
     const end = typeof performance !== "undefined" ? performance.now() : 0;
     if (notifications.length > 200) {
       // lightweight measurement to help diagnose filter perf on large lists
@@ -292,15 +265,10 @@ export default function NotificationsPage() {
   }, [notifications, filter, typeFilter]);
 
   // Group notifications by type category
-  const groupedNotifications = useMemo(() => {
-    const groups: Record<string, Notification[]> = {};
-    for (const n of filteredNotifications) {
-      const groupKey = TYPE_GROUPS[n.type] ?? "Other";
-      if (!groups[groupKey]) groups[groupKey] = [];
-      groups[groupKey].push(n);
-    }
-    return groups;
-  }, [filteredNotifications]);
+  const groupedNotifications = useMemo(
+    () => groupNotificationsByType(filteredNotifications),
+    [filteredNotifications]
+  );
 
   const toggleSelect = (id: string) => {
     setSelectedIds((prev) => {
