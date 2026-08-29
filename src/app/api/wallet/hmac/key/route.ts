@@ -1,6 +1,17 @@
 import { NextResponse } from "next/server"
-import { randomBytes } from "@noble/hashes/utils.js"
+import { sha256 } from "@noble/hashes/sha2.js"
 import { bytesToHex } from "@noble/hashes/utils.js"
+
+/**
+ * Deterministic development key (never used in production).
+ *
+ * The key is derived from a fixed constant so every dev instance and every
+ * request serves the same key: sessions survive page reloads, HMACs stay
+ * stable across tests, and nothing depends on a per-request random value.
+ */
+const DEV_HMAC_KEY_HEX = bytesToHex(
+  sha256(new TextEncoder().encode("moistello-dev-hmac-key")),
+)
 
 /**
  * Serves the session HMAC key to the client.
@@ -8,9 +19,8 @@ import { bytesToHex } from "@noble/hashes/utils.js"
  * The key MUST be set via WALLET_HMAC_KEY in production. Without it, HMACs
  * would differ on every server instance, invalidating all stored sessions.
  *
- * In development the endpoint falls back to a per-request random key so the
- * client still gets a key while being obviously non-deterministic (local
- * development only — sessions are short-lived).
+ * In development the endpoint falls back to the deterministic key above so
+ * the client always gets a key while local sessions remain stable.
  */
 export async function GET() {
   const fromEnv = process.env.WALLET_HMAC_KEY
@@ -26,7 +36,6 @@ export async function GET() {
     )
   }
 
-  // Development fallback — random key per request. Sessions will not survive
-  // a page reload, but that is acceptable for local work.
-  return NextResponse.json({ keyHex: bytesToHex(randomBytes(32)) })
+  // Development fallback — deterministic so local sessions survive reloads.
+  return NextResponse.json({ keyHex: DEV_HMAC_KEY_HEX })
 }

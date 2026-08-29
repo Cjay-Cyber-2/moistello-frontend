@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 import type { NextRequest } from "next/server"
 import { buildCsp, generateNonce } from "@/lib/security/csp"
+import { API_CSP } from "@/lib/security/api-csp.mjs"
 import {
   ACCESS_TOKEN_COOKIE,
   CSRF_TOKEN_COOKIE,
@@ -59,11 +60,15 @@ export function middleware(request: NextRequest) {
 
   const token = request.cookies.get(ACCESS_TOKEN_COOKIE)?.value
 
-  // A nonce is minted per request and travels two ways: forward on the request
-  // so the layout can stamp it onto its inline scripts, and back on the
-  // response inside the CSP header the browser enforces.
+  // API routes return JSON, never HTML, so they must not receive the page CSP
+  // with its per-request script nonce and third-party script sources. They get
+  // the static, minimal API policy instead (same one next.config.mjs serves via
+  // headers()). The nonce is still minted — it travels on the request for
+  // pages that render inline scripts — but the API response advertises no
+  // script allowances at all.
   const nonce = generateNonce()
-  const csp = buildCsp(nonce)
+  const isApiRoute = pathname.startsWith("/api/")
+  const csp = isApiRoute ? API_CSP : buildCsp(nonce)
   const csrfToken = request.cookies.get(CSRF_TOKEN_COOKIE)?.value || generateCsrfToken()
   const shouldSetCsrfCookie = !request.cookies.has(CSRF_TOKEN_COOKIE)
 

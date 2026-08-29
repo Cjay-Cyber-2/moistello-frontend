@@ -26,6 +26,11 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useNotifications } from "@/hooks/use-notifications";
+import {
+  TYPE_FILTERS,
+  filterNotifications,
+  groupNotificationsByType,
+} from "@/lib/notifications";
 import { PageHeader } from "@/components/shared/page-header";
 import { EmptyState } from "@/components/shared/empty-state";
 import { Button } from "@/components/ui/button";
@@ -76,28 +81,6 @@ const iconColorMap: Record<string, string> = {
   penalty: "text-red-400",
 };
 
-const TYPE_GROUPS: Record<string, string> = {
-  contribution: "Contributions",
-  contribution_received: "Contributions",
-  payout: "Payouts",
-  payout_received: "Payouts",
-  circle: "Circles",
-  circle_joined: "Circles",
-  circle_completed: "Circles",
-  system: "System",
-  warning: "Alerts",
-  penalty: "Alerts",
-};
-
-const TYPE_FILTERS = [
-  { value: "all", label: "All" },
-  { value: "contribution", label: "Contributions" },
-  { value: "payout", label: "Payouts" },
-  { value: "circle", label: "Circles" },
-  { value: "system", label: "System" },
-  { value: "warning", label: "Alerts" },
-];
-
 const itemVariants = defaultItemVariants;
 
 function NotificationItem({
@@ -143,11 +126,18 @@ function NotificationItem({
       {/* Bulk select checkbox */}
       <button
         type="button"
+        role="checkbox"
+        aria-checked={selected}
+        aria-label={
+          selected
+            ? `Deselect notification: ${notification.title}`
+            : `Select notification: ${notification.title}`
+        }
         onClick={(e) => {
           e.stopPropagation();
           onToggleSelect(notification.id);
         }}
-        className="mt-2 shrink-0 text-muted-foreground hover:text-foreground"
+        className="mt-2 shrink-0 rounded text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-aurora-violet/50"
       >
         {selected ? (
           <CheckSquare className="h-4 w-4 text-aurora-violet" />
@@ -232,10 +222,6 @@ export default function NotificationsPage() {
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [archiving, setArchiving] = useState(false);
 
-  useEffect(() => {
-    fetchNotifications();
-  }, [fetchNotifications]);
-
   const handleNotificationClick = useCallback(
     (notification: Notification) => {
       const link =
@@ -258,21 +244,15 @@ export default function NotificationsPage() {
     }
   };
 
-  // Compute filtered notifications first
+  // Compute filtered notifications first — shared implementation lives in
+  // @/lib/notifications so the page and any future consumer stay in sync.
   const filteredNotifications = useMemo(() => {
     const start = typeof performance !== "undefined" ? performance.now() : 0;
-    let result = notifications;
-    if (filter === "unread") {
-      result = result.filter((n) => !n.isRead);
-    }
-    if (typeFilter !== "all") {
-      result = result.filter((n) => {
-        const group = TYPE_GROUPS[n.type] ?? "Other";
-        return (
-          group.toLowerCase() === typeFilter || n.type.startsWith(typeFilter)
-        );
-      });
-    }
+    const result = filterNotifications(
+      notifications,
+      filter as "all" | "unread",
+      typeFilter
+    );
     const end = typeof performance !== "undefined" ? performance.now() : 0;
     if (notifications.length > 200) {
       // lightweight measurement to help diagnose filter perf on large lists
@@ -285,15 +265,10 @@ export default function NotificationsPage() {
   }, [notifications, filter, typeFilter]);
 
   // Group notifications by type category
-  const groupedNotifications = useMemo(() => {
-    const groups: Record<string, Notification[]> = {};
-    for (const n of filteredNotifications) {
-      const groupKey = TYPE_GROUPS[n.type] ?? "Other";
-      if (!groups[groupKey]) groups[groupKey] = [];
-      groups[groupKey].push(n);
-    }
-    return groups;
-  }, [filteredNotifications]);
+  const groupedNotifications = useMemo(
+    () => groupNotificationsByType(filteredNotifications),
+    [filteredNotifications]
+  );
 
   const toggleSelect = (id: string) => {
     setSelectedIds((prev) => {
@@ -439,8 +414,22 @@ export default function NotificationsPage() {
         <div className="flex items-center gap-3 px-4 py-3 glass rounded-xl">
           <button
             type="button"
+            role="checkbox"
+            aria-checked={
+              filteredNotifications.length > 0 &&
+              selectedIds.size === filteredNotifications.length
+                ? true
+                : selectedIds.size > 0
+                  ? "mixed"
+                  : false
+            }
+            aria-label={
+              selectedIds.size === filteredNotifications.length
+                ? "Deselect all notifications"
+                : "Select all notifications"
+            }
             onClick={toggleSelectAll}
-            className="text-xs text-muted-foreground hover:text-foreground"
+            className="text-xs text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-aurora-violet/50 rounded"
           >
             {selectedIds.size === filteredNotifications.length
               ? "Deselect all"

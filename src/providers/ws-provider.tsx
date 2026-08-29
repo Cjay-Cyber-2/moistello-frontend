@@ -2,8 +2,8 @@
 
 import { type ReactNode, useEffect, useRef, useCallback } from "react";
 import { useWebSocket, type WebSocketMessage } from "@/hooks/use-websocket";
-import { useNotificationStore } from "@/stores/notification-store";
 import { useQueryClient } from "@tanstack/react-query";
+import { queryKeys } from "@/lib/query-keys";
 import type { Notification } from "@/types";
 
 interface WsProviderProps {
@@ -12,8 +12,6 @@ interface WsProviderProps {
 
 export function WsProvider({ children }: WsProviderProps) {
   const queryClient = useQueryClient();
-  const addNotification = useNotificationStore((s) => s.addNotification);
-  const fetchNotifications = useNotificationStore((s) => s.fetchNotifications);
   const mountedRef = useRef(true);
 
   const handleEventRef = useRef<(msg: WebSocketMessage) => void>(() => {});
@@ -69,10 +67,20 @@ export function WsProvider({ children }: WsProviderProps) {
       // ── Notification events ──
       case "notification.new":
       case "notification":
-      case "new_notification":
-        addNotification(msg.payload as unknown as Notification);
-        fetchNotifications();
+      case "new_notification": {
+        const notification = msg.payload as unknown as Notification;
+        // Prepend into the react-query cache; the page/header read from the
+        // same query, so no separate store round-trip is needed.
+        queryClient.setQueryData<Notification[]>(
+          queryKeys.notifications.all,
+          (old) => {
+            if (!old) return [notification];
+            if (old.some((n) => n.id === notification.id)) return old;
+            return [notification, ...old];
+          }
+        );
         break;
+      }
 
       // ── User events ──
       case "user.updated":

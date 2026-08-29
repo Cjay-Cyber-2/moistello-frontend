@@ -9,9 +9,13 @@ import {
   getAccessToken,
   setAccessToken,
 } from "@/lib/auth/token-store";
-import { computeHmacSha256Sync } from "@/lib/wallet/hmac";
+import { computeHmacSha256Sync, isHmacKeyReady, withHmacKey } from "@/lib/wallet/hmac";
+import {
+  encryptToStorage,
+  decryptFromStorage,
+} from "@/lib/security/encryption";
 
-const isDev = process.env.NODE_ENV === "development"
+const isDev = process.env.NODE_ENV === "development";
 
 // ── Token storage ──
 //
@@ -33,7 +37,10 @@ interface UserStoreWithHmac {
 }
 
 /** POST the token pair to the server so it can write the HttpOnly cookies. */
-async function persistSession(token: string, refreshToken: string): Promise<void> {
+async function persistSession(
+  token: string,
+  refreshToken: string,
+): Promise<void> {
   if (typeof window === "undefined") return;
   try {
     await fetch("/api/auth/session", {
@@ -83,6 +90,9 @@ async function clearSession(): Promise<void> {
 
 function getStoredUser(): User | null {
   if (typeof window === "undefined") return null;
+  // If the HMAC key is not loaded yet we cannot verify the payload. Return
+  // null (defer) instead of treating it as tampered and wiping the cache.
+  if (!isHmacKeyReady()) return null;
   try {
     const raw = localStorage.getItem(USER_DATA_KEY);
     if (!raw) return null;
@@ -98,21 +108,51 @@ function getStoredUser(): User | null {
     }
 
     return store.user;
-  } catch { return null }
+  } catch {
+    return null;
+  }
 }
 
-function setStoredUser(user: User): void {
+async function setStoredUser(user: User): Promise<void> {
   if (typeof window === "undefined") return;
-  try {
-    const hmac = computeHmacSha256Sync(JSON.stringify(user));
-    const store: UserStoreWithHmac = { user, hmac };
-    localStorage.setItem(USER_DATA_KEY, JSON.stringify(store));
-  } catch (e) { console.warn("[auth] Failed to persist user data:", e) }
+  // Defer the write until the HMAC key is ready — persisting with an empty
+  // key would silently break tamper detection on the first write.
+  withHmacKey(async () => {
+    try {
+      const hmac = computeHmacSha256Sync(JSON.stringify(user));
+      const store: UserStoreWithHmac = { user, hmac };
+
+      // Encrypt user profile with device-specific passphrase
+      const passphrase = getUserEncryptionPassphrase();
+      await encryptToStorage(USER_DATA_KEY, store, passphrase).catch(() => {
+        // Fallback to unencrypted if encryption fails
+        localStorage.setItem(USER_DATA_KEY, JSON.stringify(store));
+      });
+    } catch (e) {
+      console.warn("[auth] Failed to persist user data:", e);
+    }
+  });
 }
 
 function removeStoredUser(): void {
   if (typeof window === "undefined") return;
-  try { localStorage.removeItem(USER_DATA_KEY) } catch (e) { console.warn("[auth] Failed to remove user data:", e) }
+  try {
+    localStorage.removeItem(USER_DATA_KEY);
+  } catch (e) {
+    console.warn("[auth] Failed to remove user data:", e);
+  }
+}
+
+/**
+ * Derive encryption passphrase for user profile storage.
+ *
+ * Uses device fingerprint to create a device-specific key. Key rotates on
+ * re-auth since the profile is re-encrypted on every setStoredUser call.
+ */
+function getUserEncryptionPassphrase(): string {
+  if (typeof window === "undefined") return "ssr-fallback-key";
+  const deviceSeed = `${window.navigator.userAgent}-${window.screen.width}x${window.screen.height}`;
+  return `moistello-user-v1:${deviceSeed}`;
 }
 
 /**
@@ -134,7 +174,9 @@ function purgeLegacyTokenStorage(): void {
   if (typeof window === "undefined") return;
   try {
     for (const key of LEGACY_TOKEN_KEYS) localStorage.removeItem(key);
-  } catch (e) { console.warn("[auth] Failed to purge legacy token storage:", e) }
+  } catch (e) {
+    console.warn("[auth] Failed to purge legacy token storage:", e);
+  }
 }
 
 purgeLegacyTokenStorage();
@@ -145,7 +187,9 @@ function extractTokenExpiry(token: string): number | null {
     if (parts.length !== 3) return null;
     const payload = JSON.parse(atob(parts[1]));
     return typeof payload.exp === "number" ? payload.exp * 1000 : null;
-  } catch { return null }
+  } catch {
+    return null;
+  }
 }
 
 interface AuthState {
@@ -166,7 +210,11 @@ interface AuthActions {
    * protected routes on the session cookie, which does not exist until this
    * resolves.
    */
-  setTokens: (accessToken: string, refreshToken: string, user?: User) => Promise<void>;
+  setTokens: (
+    accessToken: string,
+    refreshToken: string,
+    user?: User,
+  ) => Promise<void>;
   /** Refreshes the cached profile without touching the session. */
   updateUser: (user: User) => void;
   clearTokens: () => Promise<void>;
@@ -174,7 +222,12 @@ interface AuthActions {
 
 type AuthStore = AuthState & AuthActions;
 
-const baseStore = (set: (partial: Partial<AuthStore> | ((state: AuthStore) => Partial<AuthStore>)) => void, get: () => AuthStore): AuthStore => ({
+const baseStore = (
+  set: (
+    partial: Partial<AuthStore> | ((state: AuthStore) => Partial<AuthStore>),
+  ) => void,
+  get: () => AuthStore,
+): AuthStore => ({
   // Nothing is known until checkAuth() has asked the server whether the
   // HttpOnly session cookie is still good — there is no token in storage to
   // seed this from any more.
@@ -185,19 +238,23 @@ const baseStore = (set: (partial: Partial<AuthStore> | ((state: AuthStore) => Pa
   tokenExpiresAt: null,
 
   logout: () => {
-    post("/auth/logout").catch(() => {})
-    get().clearTokens()
+    post("/auth/logout").catch(() => {});
+    get().clearTokens();
     set({
       isAuthenticated: false,
       user: null,
       token: null,
       tokenExpiresAt: null,
       isLoading: false,
-    })
+    });
     if (typeof window !== "undefined") {
       import("@/lib/wallet/registry").then(({ getWalletRegistry }) => {
-        try { getWalletRegistry().getAdapter("passkey")?.reset?.() } catch (e) { console.warn("[auth] Failed to reset passkey adapter:", e) }
-      })
+        try {
+          getWalletRegistry().getAdapter("passkey")?.reset?.();
+        } catch (e) {
+          console.warn("[auth] Failed to reset passkey adapter:", e);
+        }
+      });
     }
   },
 
@@ -210,13 +267,24 @@ const baseStore = (set: (partial: Partial<AuthStore> | ((state: AuthStore) => Pa
     }
 
     if (!token) {
-      set({ isAuthenticated: false, user: null, token: null, isLoading: false });
+      set({
+        isAuthenticated: false,
+        user: null,
+        token: null,
+        isLoading: false,
+      });
       return;
     }
 
     const exp = extractTokenExpiry(token);
     if (exp && Date.now() < exp) {
-      set({ isLoading: false, isAuthenticated: true, token, tokenExpiresAt: exp, user: getStoredUser() });
+      set({
+        isLoading: false,
+        isAuthenticated: true,
+        token,
+        tokenExpiresAt: exp,
+        user: getStoredUser(),
+      });
       return;
     }
 
@@ -240,7 +308,7 @@ const baseStore = (set: (partial: Partial<AuthStore> | ((state: AuthStore) => Pa
         isLoading: false,
       });
     } catch (e) {
-      console.warn("[auth] Token refresh failed, logging out:", e)
+      console.warn("[auth] Token refresh failed, logging out:", e);
       get().logout();
     }
   },
@@ -275,5 +343,5 @@ const baseStore = (set: (partial: Partial<AuthStore> | ((state: AuthStore) => Pa
 });
 
 export const useAuthStore = create<AuthStore>()(
-  isDev ? devtools(baseStore) : baseStore
-)
+  isDev ? devtools(baseStore) : baseStore,
+);

@@ -59,4 +59,7 @@ export const queryKeys = {
       ["governance-proposals", filters] as const,
     detail: (id: string) => ["governance-proposal", id] as const,
   },
+  notifications: {
+    all: ["notifications"] as const,
+  },
 } as const

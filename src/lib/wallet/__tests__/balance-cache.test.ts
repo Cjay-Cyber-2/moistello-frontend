@@ -91,6 +91,58 @@ describe("fetchBalanceWithBackoff (Issue #12)", () => {
     expect(result).toEqual({ xlm: "0", usdc: "0" });
   });
 
+  it("never calls a third-party Horizon endpoint when the proxy fails (issue #202)", async () => {
+    // Every proxy attempt fails; the direct Horizon fallback must NOT exist.
+    vi.spyOn(globalThis, "fetch").mockRejectedValue(
+      new Error("proxy down")
+    );
+
+    await expect(
+      fetchBalanceWithBackoff(mockAddress, { maxRetries: 1, initialDelayMs: 1 })
+    ).rejects.toThrow(/proxy down/);
+
+    const fetchMock = globalThis.fetch as unknown as ReturnType<typeof vi.fn>;
+    const calls = fetchMock.mock.calls.map((c) => String(c[0]));
+    expect(calls.length).toBeGreaterThan(0);
+    // Every request went to the first-party proxy, never to Horizon directly.
+    for (const url of calls) {
+      expect(url.startsWith("/api/wallet/balance")).toBe(true);
+      expect(url).not.toContain("horizon");
+      expect(url).not.toContain("stellar.org");
+    }
+  });
+
+  it("degrades gracefully to stale cache when the proxy is unavailable (issue #202)", async () => {
+    // Seed the cache with a successful call first.
+    const fetchSpy = vi
+      .spyOn(globalThis, "fetch")
+      .mockResolvedValueOnce(
+        new Response(JSON.stringify({ xlm: "50", usdc: "25" }), {
+          status: 200,
+          headers: { "Content-Type": "application/json" },
+        })
+      );
+    await fetchBalanceWithBackoff(mockAddress);
+
+    // Now the proxy dies entirely.
+    fetchSpy.mockRejectedValue(new Error("proxy down"));
+
+    const result = await fetchBalanceWithBackoff(mockAddress, {
+      forceRefresh: true,
+      maxRetries: 1,
+      initialDelayMs: 1,
+    });
+    // Stale cache returned instead of a third-party request or a crash.
+    expect(result).toEqual({ xlm: "50", usdc: "25" });
+
+    const calls = fetchSpy.mock.calls.map((c) => String(c[0]));
+    for (const url of calls) {
+      expect(url.startsWith("/api/wallet/balance")).toBe(true);
+      expect(url).not.toContain("horizon");
+      expect(url).not.toContain("stellar.org");
+    }
+  });
+
   it("exposes BALANCE_CACHE_TTL_MS of 30 seconds", () => {
     expect(BALANCE_CACHE_TTL_MS).toBe(30_000);
   });
