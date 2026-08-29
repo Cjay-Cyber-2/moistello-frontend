@@ -2,7 +2,11 @@
 
 import { useState, useEffect } from "react"
 import Link from "next/link"
-import { ArrowUpRight, ArrowDownRight, ArrowDownLeft, Wallet as WalletIcon, Settings, Clock, ArrowRight, ListOrdered, BookCopy, ExternalLink, QrCode, Copy, Check } from "lucide-react"
+import {
+  ArrowUpRight, ArrowDownRight, ArrowDownLeft, Wallet as WalletIcon,
+  Settings, Clock, ArrowRight, ListOrdered, BookCopy, ExternalLink,
+  QrCode, Copy, Check, RefreshCw, Send,
+} from "lucide-react"
 import { PageHeader } from "@/components/shared/page-header"
 import { CopyButton } from "@/components/shared/copy-button"
 import { Button } from "@/components/ui/button"
@@ -12,13 +16,9 @@ import { useTranslate } from "@/lib/locale/context"
 import { formatAddress } from "@/lib/formatters"
 import { cn } from "@/lib/cn"
 import { useMultiWallet } from "@/hooks/use-multi-wallet"
+import { useWalletBalance } from "@/hooks/use-wallet-balance"
 import { useUIStore } from "@/stores/ui-store"
 import { copyToClipboard } from "@/lib/clipboard"
-
-interface BalanceInfo {
-  xlm: string
-  usdc: string
-}
 
 interface TransactionItem {
   id: string
@@ -34,29 +34,29 @@ const STELLAR_EXPLORER_TX = "https://stellar.expert/explorer/testnet/tx"
 export default function WalletPage() {
   const { t } = useTranslate()
   const { address, activeWalletId, wallets } = useMultiWallet()
-  const [balance, setBalance] = useState<BalanceInfo | null>(null)
+
+  // ── Real balance with polling via proxy ──────────────────────────────────
+  const { balance, isLoading: balanceLoading, error: balanceError, refresh: refreshBalance, lastUpdatedAt } =
+    useWalletBalance(address)
+
   const [transactions, setTransactions] = useState<TransactionItem[]>([])
-  const [loading, setLoading] = useState(true)
+  const [txLoading, setTxLoading] = useState(true)
   const [showReceive, setShowReceive] = useState(false)
   const [copied, setCopied] = useState(false)
   const [wallet, setWallet] = useState<{ publicKey: string } | null>(null)
   const addToast = useUIStore((s) => s.addToast)
 
+  // Derive display states
+  const loading = balanceLoading && !balance
+
   useEffect(() => {
-    async function load() {
-      setLoading(true)
+    async function loadActivity() {
+      setTxLoading(true)
       try {
-        const [balanceRes, contribRes, payoutRes] = await Promise.allSettled([
-          get("/wallets/balance"),
+        const [contribRes, payoutRes] = await Promise.allSettled([
           get("/contributions?limit=5"),
           get("/payouts?limit=5"),
         ])
-
-        if (balanceRes.status === "fulfilled") {
-          const bd = (balanceRes.value as Record<string, unknown>)?.data as Record<string, unknown> ?? balanceRes.value as Record<string, unknown>
-          const b = (bd?.balance ?? {}) as BalanceInfo
-          setBalance(b)
-        }
 
         const all: TransactionItem[] = []
 
@@ -79,13 +79,13 @@ export default function WalletPage() {
         all.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
         setTransactions(all.slice(0, 10))
       } catch (e) {
-        console.error("[wallet] Failed to load wallet data:", e)
+        console.error("[wallet] Failed to load activity:", e)
       } finally {
-        setLoading(false)
+        setTxLoading(false)
       }
     }
-    load()
-    // Also fetch wallet info for receive modal
+
+    loadActivity()
     get("/wallets").then((res) => {
       const d = (res as Record<string, unknown>)?.data as Record<string, unknown> ?? res as Record<string, unknown>
       const list = (d?.wallets ?? []) as { publicKey: string }[]
@@ -114,11 +114,22 @@ export default function WalletPage() {
 
       {/* Receive modal */}
       {showReceive && wallet && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4" onClick={() => setShowReceive(false)}>
-          <div className="w-full max-w-sm rounded-2xl bg-[rgb(var(--background))] border border-white/15 p-6 space-y-5" onClick={(e) => e.stopPropagation()}>
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4"
+          onClick={() => setShowReceive(false)}
+        >
+          <div
+            className="w-full max-w-sm rounded-2xl bg-[rgb(var(--background))] border border-white/15 p-6 space-y-5"
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="flex items-center justify-between">
               <h3 className="font-heading text-base font-semibold text-foreground">Receive</h3>
-              <button onClick={() => setShowReceive(false)} className="h-7 w-7 flex items-center justify-center rounded-lg bg-white/10 text-muted-foreground hover:text-foreground text-sm">✕</button>
+              <button
+                onClick={() => setShowReceive(false)}
+                className="h-7 w-7 flex items-center justify-center rounded-lg bg-white/10 text-muted-foreground hover:text-foreground text-sm"
+              >
+                ✕
+              </button>
             </div>
             <div className="inline-flex items-center justify-center w-40 h-40 bg-white rounded-xl mx-auto">
               <QrCode className="h-16 w-16 text-black/80" />
@@ -126,7 +137,13 @@ export default function WalletPage() {
             <div className="bg-white/5 rounded-xl px-4 py-3">
               <code className="text-sm font-mono text-foreground break-all">{wallet.publicKey}</code>
             </div>
-            <Button variant="primary" size="md" onClick={copyKey} leftIcon={copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />} className="w-full">
+            <Button
+              variant="primary"
+              size="md"
+              onClick={copyKey}
+              leftIcon={copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+              className="w-full"
+            >
               {copied ? "Copied!" : "Copy Address"}
             </Button>
             <p className="text-xs text-muted-foreground text-center">
@@ -167,30 +184,76 @@ export default function WalletPage() {
       </div>
 
       {/* Balance area — two tiles side by side */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <div className="relative overflow-hidden rounded-xl bg-gradient-to-br from-aurora-violet/10 to-aurora-indigo/5 border border-aurora-violet/15 p-6">
-          <div className="absolute -top-6 -right-6 w-24 h-24 rounded-full bg-aurora-violet/5 blur-2xl pointer-events-none" />
-          <p className="text-xs font-heading font-medium text-muted-foreground uppercase tracking-wider mb-1">XLM</p>
-          <p className="text-3xl font-bold font-heading text-foreground">
-            {loading ? <span className="inline-block w-24 h-8 bg-white/10 rounded animate-pulse align-middle" /> : formatBalance(balance?.xlm)}
+      <div>
+        <div className="flex items-center justify-between mb-3">
+          <p className="text-xs font-heading font-semibold text-muted-foreground uppercase tracking-wider">
+            Balances
           </p>
-          <p className="text-xs text-muted-foreground mt-0.5">Stellar Lumens</p>
+          <div className="flex items-center gap-2">
+            {lastUpdatedAt && (
+              <span className="text-xs text-muted-foreground">
+                Updated {new Date(lastUpdatedAt).toLocaleTimeString()}
+              </span>
+            )}
+            <button
+              type="button"
+              onClick={refreshBalance}
+              disabled={balanceLoading}
+              className="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-muted-foreground hover:text-foreground transition-colors disabled:opacity-50"
+              title="Refresh balances"
+            >
+              <RefreshCw className={cn("h-3.5 w-3.5", balanceLoading && "animate-spin")} />
+            </button>
+          </div>
         </div>
-        <div className="relative overflow-hidden rounded-xl bg-gradient-to-br from-emerald-500/10 to-aurora-cyan/5 border border-emerald-500/15 p-6">
-          <div className="absolute -top-6 -right-6 w-24 h-24 rounded-full bg-emerald-500/5 blur-2xl pointer-events-none" />
-          <p className="text-xs font-heading font-medium text-muted-foreground uppercase tracking-wider mb-1">USDC</p>
-          <p className="text-3xl font-bold font-heading text-foreground">
-            {loading ? <span className="inline-block w-24 h-8 bg-white/10 rounded animate-pulse align-middle" /> : formatBalance(balance?.usdc)}
-          </p>
-          <p className="text-xs text-muted-foreground mt-0.5">USD Coin</p>
+
+        {balanceError && (
+          <div className="mb-3 px-4 py-2.5 rounded-xl bg-red-500/10 border border-red-500/20 text-xs text-red-400">
+            {balanceError} — showing cached values
+          </div>
+        )}
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="relative overflow-hidden rounded-xl bg-gradient-to-br from-aurora-violet/10 to-aurora-indigo/5 border border-aurora-violet/15 p-6">
+            <div className="absolute -top-6 -right-6 w-24 h-24 rounded-full bg-aurora-violet/5 blur-2xl pointer-events-none" />
+            <p className="text-xs font-heading font-medium text-muted-foreground uppercase tracking-wider mb-1">XLM</p>
+            <p className="text-3xl font-bold font-heading text-foreground">
+              {balanceLoading && !balance
+                ? <span className="inline-block w-24 h-8 bg-white/10 rounded animate-pulse align-middle" />
+                : formatBalance(balance?.xlm)}
+            </p>
+            <p className="text-xs text-muted-foreground mt-0.5">Stellar Lumens</p>
+          </div>
+          <div className="relative overflow-hidden rounded-xl bg-gradient-to-br from-emerald-500/10 to-aurora-cyan/5 border border-emerald-500/15 p-6">
+            <div className="absolute -top-6 -right-6 w-24 h-24 rounded-full bg-emerald-500/5 blur-2xl pointer-events-none" />
+            <p className="text-xs font-heading font-medium text-muted-foreground uppercase tracking-wider mb-1">USDC</p>
+            <p className="text-3xl font-bold font-heading text-foreground">
+              {balanceLoading && !balance
+                ? <span className="inline-block w-24 h-8 bg-white/10 rounded animate-pulse align-middle" />
+                : formatBalance(balance?.usdc)}
+            </p>
+            <p className="text-xs text-muted-foreground mt-0.5">USD Coin</p>
+          </div>
         </div>
       </div>
 
       {/* Action buttons — inline pill style */}
       <div className="flex flex-wrap gap-3">
-        <Button variant="primary" size="md" onClick={() => setShowReceive(true)} leftIcon={<ArrowDownRight className="h-4 w-4" />}>
+        {/* Receive — opens QR modal */}
+        <Button
+          variant="primary"
+          size="md"
+          onClick={() => setShowReceive(true)}
+          leftIcon={<ArrowDownRight className="h-4 w-4" />}
+        >
           Receive
         </Button>
+        {/* Send — links to withdraw page (transfer out) */}
+        <Link href="/wallet/withdraw">
+          <Button variant="primary" size="md" leftIcon={<Send className="h-4 w-4" />}>
+            Send
+          </Button>
+        </Link>
         <Link href="/wallet/deposit">
           <Button variant="outline" size="md" leftIcon={<ArrowDownLeft className="h-4 w-4" />}>
             Deposit
@@ -221,7 +284,7 @@ export default function WalletPage() {
           </div>
         </div>
 
-        {loading ? (
+        {txLoading ? (
           <div className="space-y-3">
             {[1, 2, 3, 4].map((n) => (
               <div key={n} className="flex items-center gap-4">
@@ -292,7 +355,7 @@ export default function WalletPage() {
         <Link href="/wallet/withdraw" className="flex items-center justify-between px-1 py-3 text-sm text-muted-foreground hover:text-foreground transition-colors group border-t border-white/[0.04]">
           <span className="flex items-center gap-3">
             <ArrowUpRight className="h-4 w-4 text-amber-400" />
-            Withdraw to Bank
+            Withdraw / Send to Address
           </span>
           <ArrowRight className="h-4 w-4 group-hover:translate-x-0.5 transition-transform" />
         </Link>
