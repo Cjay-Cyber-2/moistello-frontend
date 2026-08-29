@@ -149,3 +149,6 @@ export const Routes = {
   BAD_REQUEST: "/bad-request",
   INTERNAL_ERROR: "/internal-error",
 } as const
+
+/** Fallback NGN/USDC exchange rate. Override with NEXT_PUBLIC_NGN_RATE env var. */
+export const NGN_FALLBACK_RATE = Number(process.env.NEXT_PUBLIC_NGN_RATE ?? 1550)

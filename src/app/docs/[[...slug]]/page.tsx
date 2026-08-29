@@ -131,7 +131,7 @@ function mdToHtml(md: string): string {
   // Images
   html = html.replace(
     /!\[([^\]]*)\]\(([^)]+)\)/g,
-    '<img src="$2" alt="$1" class="rounded-xl my-4 max-w-full" />',
+    '<img src="$2" alt="$1" class="rounded-xl my-4 max-w-full" loading="lazy" decoding="async" />',
   );
   // Links
   html = html.replace(

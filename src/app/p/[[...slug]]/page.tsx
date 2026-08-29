@@ -57,7 +57,7 @@ function mdToHtml(md: string): string {
   html = html.replace(/\*(.+?)\*/g, "<em>$1</em>");
   html = html.replace(
     /!\[([^\]]*)\]\(([^)]+)\)/g,
-    '<img src="$2" alt="$1" class="rounded-xl my-4 max-w-full" />',
+    '<img src="$2" alt="$1" class="rounded-xl my-4 max-w-full" loading="lazy" decoding="async" />',
   );
   html = html.replace(
     /\[([^\]]+)\]\(([^)]+)\)/g,
