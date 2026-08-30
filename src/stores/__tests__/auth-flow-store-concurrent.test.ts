@@ -209,4 +209,23 @@ describe("AuthFlowStore - concurrent signAndSubmit guard", () => {
     expect(mockPost).toHaveBeenCalledTimes(2)
     expect(mockSignMessage).toHaveBeenCalledTimes(1)
   })
+
+  it("does not submit when the connected address changes during signing", async () => {
+    mockPost.mockResolvedValueOnce({ data: { nonce: { nonce: "n-stale" } } })
+    mockSignMessage.mockImplementationOnce(async () => {
+      useAuthFlowStore.setState((state) => ({
+        connection: { ...state.connection, address: "GDIFFERENT..." },
+      }))
+      return { signature: "sig-stale" }
+    })
+
+    await useAuthFlowStore.getState().signAndSubmit()
+
+    expect(mockPost).toHaveBeenCalledTimes(1)
+    expect(mockSetTokens).not.toHaveBeenCalled()
+    expect(useAuthFlowStore.getState().status).toMatchObject({
+      status: "error",
+      message: "Authentication context changed while signing. Please try again.",
+    })
+  })
 })

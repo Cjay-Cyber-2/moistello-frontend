@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react"
 import { ArrowLeft, CheckCircle, Clock, FileSignature, Loader2 } from "lucide-react"
 import { ConnectedBadge } from "./connected-badge"
 import { ErrorDisplay } from "./error-display"
-import type { AuthErrorCode, AuthFlowStatus } from "@/stores/auth-flow-store"
+import { useAuthFlowStore, type AuthErrorCode, type AuthFlowStatus } from "@/stores/auth-flow-store"
 import { useTranslate } from "@/lib/locale/context"
 
 interface ConnectionInfo {
@@ -50,6 +50,7 @@ export function SignStep({
   onBack,
 }: SignStepProps) {
   const { t } = useTranslate()
+  const isSigningInFlight = useAuthFlowStore((state) => state.isSigningInFlight)
   const [isSigning, setIsSigning] = useState(false)
   const [cooldownLeft, setCooldownLeft] = useState(0)
   const cooldownTimerRef = useRef<ReturnType<typeof setInterval> | null>(null)
@@ -211,10 +212,10 @@ export function SignStep({
           <button
             type="button"
             onClick={handleSign}
-            disabled={isSigning || isOnCooldown}
+            disabled={isSigning || isSigningInFlight || isOnCooldown}
             className="w-full h-11 rounded-xl gradient-bg text-white text-sm font-heading font-bold transition-all hover:opacity-90 disabled:opacity-50 disabled:pointer-events-none flex items-center justify-center gap-2"
           >
-            {isSigning ? (
+            {isSigning || isSigningInFlight ? (
               <>
                 <Loader2 className="h-4 w-4 animate-spin" />
                 {status.status === "signing" ? t("auth.sign.signing") : t("auth.sign.preparing")}

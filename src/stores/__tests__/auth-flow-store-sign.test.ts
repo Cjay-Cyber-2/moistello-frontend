@@ -132,10 +132,9 @@ describe("AuthFlowStore - signAndSubmit", () => {
     expect(state.status).toEqual({ status: "authenticated" })
   })
 
-  it("uses current state after asynchronous signing steps", async () => {
+  it("rejects a stale auth mode instead of submitting a signature under new state", async () => {
     mockPost
       .mockImplementationOnce(async () => {
-        useAuthFlowStore.setState({ passkeyVersion: 2 })
         return { data: { nonce: { nonce: "nonce-123" } } }
       })
       .mockResolvedValueOnce({
@@ -160,19 +159,13 @@ describe("AuthFlowStore - signAndSubmit", () => {
 
     await useAuthFlowStore.getState().signAndSubmit()
 
-    expect(mockPost).toHaveBeenCalledWith(
-      "/auth/register",
-      {
-        walletAddress: "GABC123...",
-        signature: "sig-abc",
-        nonce: "nonce-123",
-        passkeyVersion: 3,
-        displayName: "Current User",
-        countryCode: "NG",
-        preferredLanguage: "en",
-      },
-      { _retry: true },
-    )
+    expect(mockPost).toHaveBeenCalledTimes(1)
+    expect(useAuthFlowStore.getState().status).toEqual({
+      status: "error",
+      code: "auth_server_error",
+      message: "Authentication context changed while signing. Please try again.",
+      canRetry: true,
+    })
   })
 
   it("sets error when nonce fetch fails", async () => {

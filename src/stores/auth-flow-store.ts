@@ -435,6 +435,15 @@ export const useAuthFlowStore = create<AuthFlowStore>()(
             const nonce = nonceResponse.data.nonce.nonce;
 
             const signingState = get();
+            if (
+              signingState.mode !== mode ||
+              signingState.connection.address !== address ||
+              signingState.connection.walletId !== walletId
+            ) {
+              throw new Error(
+                "Authentication context changed while signing. Please try again.",
+              );
+            }
             const signingMode = signingState.mode;
             const signingWalletId = signingState.connection.walletId;
             if (!signingWalletId) {
@@ -468,6 +477,19 @@ export const useAuthFlowStore = create<AuthFlowStore>()(
             });
 
             const submitState = get();
+            // Read and validate the submission context in one snapshot. A nonce
+            // and signature are bound to the wallet/mode that started this
+            // attempt and must never be submitted using subsequently changed
+            // state.
+            if (
+              submitState.mode !== mode ||
+              submitState.connection.address !== address ||
+              submitState.connection.walletId !== walletId
+            ) {
+              throw new Error(
+                "Authentication context changed while signing. Please try again.",
+              );
+            }
             const submitMode = submitState.mode;
             const submitAddress = submitState.connection.address;
             const submitPasskeyVersion = submitState.passkeyVersion;
