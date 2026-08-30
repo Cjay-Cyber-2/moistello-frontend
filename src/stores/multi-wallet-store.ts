@@ -3,7 +3,7 @@
 import { create } from "zustand";
 import { getWalletRegistry } from "@/lib/wallet/registry";
 import { getSessionManager } from "@/lib/wallet/session-manager";
-import { WC2_QR_EXPIRATION_MS, STELLAR_NETWORK } from "@/lib/constants";
+import { STELLAR_NETWORK } from "@/lib/constants";
 import { fetchBalanceWithBackoff } from "@/lib/wallet/balance-cache";
 import type {
   WalletAdapter,
@@ -46,26 +46,6 @@ interface MultiWalletState {
   loginError: string | null;
   registerError: string | null;
 
-  /* WC2-specific state */
-  wc2PairingUri: string | null;
-  wc2PairingState: "idle" | "connecting" | "pairing" | "awaiting_approval" | "approved" | "rejected" | "timeout" | "error";
-  wc2RelayStatus: "healthy" | "degraded" | "down";
-  wc2PairingError: string | null;
-  wc2QrExpiresAt: number | null;
-
-  /* Passkey-specific state */
-  passkeyState: "idle" | "registering" | "awaiting_biometric" | "authenticating" | "deriving" | "connected" | "error";
-  passkeyError: string | null;
-  passkeyPublicKey: string | null;
-
-  /* Ledger-specific state */
-  ledgerTransportType: "usb" | "ble" | null;
-  ledgerConnectionState: "idle" | "detecting" | "connecting" | "waiting_for_app" | "waiting_for_confirm" | "connected" | "disconnected" | "error" | "waiting_for_reconnect";
-  ledgerFirmwareVersion: string | null;
-  ledgerStellarAppVersion: string | null;
-  ledgerFirmwareWarnings: string[];
-  ledgerConnectionError: string | null;
-
   /* Actions */
   scanWallets: () => void;
   connect: (walletId: WalletId) => Promise<void>;
@@ -82,26 +62,6 @@ interface MultiWalletState {
   setRegisterError: (error: string | null) => void;
   clearLoginError: () => void;
   clearRegisterError: () => void;
-  /* WC2 actions */
-  setWc2PairingUri: (uri: string | null) => void;
-  setWc2PairingState: (state: MultiWalletState["wc2PairingState"]) => void;
-  setWc2PairingError: (error: string | null) => void;
-  setWc2RelayStatus: (status: MultiWalletState["wc2RelayStatus"]) => void;
-  resetWc2Pairing: () => void;
-  /* Passkey actions */
-  setPasskeyState: (state: MultiWalletState["passkeyState"]) => void;
-  setPasskeyError: (error: string | null) => void;
-  setPasskeyPublicKey: (key: string | null) => void;
-  resetPasskeyState: () => void;
-
-  /* Ledger actions */
-  setLedgerTransportType: (transportType: "usb" | "ble" | null) => void;
-  setLedgerConnectionState: (connectionState: MultiWalletState["ledgerConnectionState"]) => void;
-  setLedgerFirmwareVersion: (version: string | null) => void;
-  setLedgerStellarAppVersion: (version: string | null) => void;
-  setLedgerFirmwareWarnings: (warnings: string[]) => void;
-  setLedgerConnectionError: (error: string | null) => void;
-  resetLedgerState: () => void;
 }
 
 /**
@@ -160,26 +120,6 @@ export const useMultiWalletStore = create<MultiWalletState>()((set, get) => ({
   /* Route-specific error isolation defaults */
   loginError: null,
   registerError: null,
-
-  /* WC2 defaults */
-  wc2PairingUri: null,
-  wc2PairingState: "idle",
-  wc2RelayStatus: "healthy",
-  wc2PairingError: null,
-  wc2QrExpiresAt: null,
-
-  /* Passkey defaults */
-  passkeyState: "idle",
-  passkeyError: null,
-  passkeyPublicKey: null,
-
-  /* Ledger defaults */
-  ledgerTransportType: null,
-  ledgerConnectionState: "idle",
-  ledgerFirmwareVersion: null,
-  ledgerStellarAppVersion: null,
-  ledgerFirmwareWarnings: [],
-  ledgerConnectionError: null,
 
   init: async () => {
     if (get().isInitializing) return;
@@ -469,96 +409,6 @@ export const useMultiWalletStore = create<MultiWalletState>()((set, get) => ({
 
   setSelectorOpen: (open: boolean) => {
     set({ isSelectorOpen: open });
-  },
-
-  /* WC2 actions */
-  setWc2PairingUri: (uri: string | null) => {
-    set({
-      wc2PairingUri: uri,
-      wc2PairingState: uri ? "pairing" : "idle",
-      wc2QrExpiresAt: uri ? Date.now() + WC2_QR_EXPIRATION_MS : null,
-    });
-  },
-
-  setWc2PairingState: (state) => {
-    set({ wc2PairingState: state });
-  },
-
-  setWc2PairingError: (error) => {
-    set({
-      wc2PairingError: error,
-      wc2PairingState: error ? "error" : get().wc2PairingState,
-    });
-  },
-
-  setWc2RelayStatus: (status) => {
-    set({ wc2RelayStatus: status });
-  },
-
-  resetWc2Pairing: () => {
-    set({
-      wc2PairingUri: null,
-      wc2PairingState: "idle",
-      wc2PairingError: null,
-      wc2QrExpiresAt: null,
-    });
-  },
-
-  /* Passkey actions */
-  setPasskeyState: (passkeyState) => {
-    set({ passkeyState });
-  },
-
-  setPasskeyError: (passkeyError) => {
-    set({ passkeyError, passkeyState: passkeyError ? "error" : get().passkeyState });
-  },
-
-  setPasskeyPublicKey: (passkeyPublicKey) => {
-    set({ passkeyPublicKey });
-  },
-
-  resetPasskeyState: () => {
-    set({
-      passkeyState: "idle",
-      passkeyError: null,
-      passkeyPublicKey: null,
-    });
-  },
-
-  /* Ledger actions */
-  setLedgerTransportType: (transportType) => {
-    set({ ledgerTransportType: transportType });
-  },
-
-  setLedgerConnectionState: (connectionState) => {
-    set({ ledgerConnectionState: connectionState });
-  },
-
-  setLedgerFirmwareVersion: (firmwareVersion) => {
-    set({ ledgerFirmwareVersion: firmwareVersion });
-  },
-
-  setLedgerStellarAppVersion: (stellarAppVersion) => {
-    set({ ledgerStellarAppVersion: stellarAppVersion });
-  },
-
-  setLedgerFirmwareWarnings: (warnings) => {
-    set({ ledgerFirmwareWarnings: warnings });
-  },
-
-  setLedgerConnectionError: (error) => {
-    set({ ledgerConnectionError: error });
-  },
-
-  resetLedgerState: () => {
-    set({
-      ledgerTransportType: null,
-      ledgerConnectionState: "idle",
-      ledgerFirmwareVersion: null,
-      ledgerStellarAppVersion: null,
-      ledgerFirmwareWarnings: [],
-      ledgerConnectionError: null,
-    });
   },
 
   setLoginError: (loginError) => set({ loginError }),

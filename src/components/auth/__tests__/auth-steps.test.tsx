@@ -6,6 +6,7 @@ import { ProfileStep } from "../profile-step"
 import { SignStep } from "../sign-step"
 import { LocaleProvider } from "@/lib/locale/context"
 import { useMultiWalletStore } from "@/stores/multi-wallet-store"
+import { useWalletConnectStore } from "@/stores/walletconnect-store"
 
 describe("ChooseWalletStep", () => {
   beforeEach(() => {
@@ -34,11 +35,9 @@ describe("ChooseWalletStep", () => {
       ],
       isScanning: false,
       connectingWalletId: null,
-      wc2PairingState: "idle",
-      wc2PairingUri: null,
-      wc2PairingError: null,
       wc2QrExpiresAt: null,
     })
+    useWalletConnectStore.getState().reset()
   })
 
   it("renders passkey recommendation button in register mode", () => {

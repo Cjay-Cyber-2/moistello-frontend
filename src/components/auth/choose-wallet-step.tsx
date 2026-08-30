@@ -5,6 +5,7 @@ import dynamic from "next/dynamic"
 import { Wallet, Loader2, Shield } from "lucide-react"
 import { WalletGrid } from "./wallet-grid"
 import { useMultiWalletStore } from "@/stores/multi-wallet-store"
+import { useWalletConnectStore } from "@/stores/walletconnect-store"
 
 const AuthConnectionState = dynamic(
   () => import("./auth-connection-state").then((m) => m.AuthConnectionState),
@@ -23,11 +24,11 @@ export function ChooseWalletStep({ mode, onPasskeyLogin }: ChooseWalletStepProps
   const detectedWallets = useMultiWalletStore((s) => s.detectedWallets)
   const isScanning = useMultiWalletStore((s) => s.isScanning)
   const connectingWalletId = useMultiWalletStore((s) => s.connectingWalletId)
-  const wc2PairingUri = useMultiWalletStore((s) => s.wc2PairingUri)
-  const wc2PairingState = useMultiWalletStore((s) => s.wc2PairingState)
-  const wc2PairingError = useMultiWalletStore((s) => s.wc2PairingError)
-  const wc2QrExpiresAt = useMultiWalletStore((s) => s.wc2QrExpiresAt)
-  const resetWc2Pairing = useMultiWalletStore((s) => s.resetWc2Pairing)
+  const wc2PairingUri = useWalletConnectStore((s) => s.pairingUri)
+  const wc2PairingState = useWalletConnectStore((s) => s.pairingState)
+  const wc2PairingError = useWalletConnectStore((s) => s.pairingError)
+  const wc2QrExpiresAt = useWalletConnectStore((s) => s.qrExpiresAt)
+  const resetWc2Pairing = useWalletConnectStore((s) => s.reset)
   const connect = useMultiWalletStore((s) => s.connect)
 
   const isWc2Active = wc2PairingState !== "idle" && wc2PairingState !== "approved"
