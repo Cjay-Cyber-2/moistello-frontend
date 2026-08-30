@@ -49,7 +49,7 @@ export function SignStep({
   onSign,
   onBack,
 }: SignStepProps) {
-  const { t } = useTranslate()
+  const { t, locale } = useTranslate()
   const [isSigning, setIsSigning] = useState(false)
   const [cooldownLeft, setCooldownLeft] = useState(0)
   const cooldownTimerRef = useRef<ReturnType<typeof setInterval> | null>(null)
@@ -90,7 +90,8 @@ export function SignStep({
   }, [auth.nonceTimestamp])
 
   const countryLabel = profile.countryCode
-    ? new Intl.DisplayNames(["en"], { type: "region" }).of(profile.countryCode) ?? profile.countryCode
+    ? (new Intl.DisplayNames([locale || "en"], { type: "region" }).of(profile.countryCode) ??
+      profile.countryCode)
     : ""
 
   useEffect(() => {

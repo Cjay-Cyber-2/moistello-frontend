@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button"
 import { WalletSettings } from "@/components/wallet/wallet-settings"
 import { get } from "@/lib/api-client"
 import { useTranslate } from "@/lib/locale/context"
-import { formatAddress } from "@/lib/formatters"
+import { formatAddress, DEFAULT_LOCALE } from "@/lib/formatters"
 import { cn } from "@/lib/cn"
 import { useMultiWallet } from "@/hooks/use-multi-wallet"
 import { useUIStore } from "@/stores/ui-store"
@@ -32,7 +32,7 @@ interface TransactionItem {
 const STELLAR_EXPLORER_TX = "https://stellar.expert/explorer/testnet/tx"
 
 export default function WalletPage() {
-  const { t } = useTranslate()
+  const { t, locale } = useTranslate()
   const { address, activeWalletId, wallets } = useMultiWallet()
   const [balance, setBalance] = useState<BalanceInfo | null>(null)
   const [transactions, setTransactions] = useState<TransactionItem[]>([])
@@ -172,7 +172,7 @@ export default function WalletPage() {
           <div className="absolute -top-6 -right-6 w-24 h-24 rounded-full bg-aurora-violet/5 blur-2xl pointer-events-none" />
           <p className="text-xs font-heading font-medium text-muted-foreground uppercase tracking-wider mb-1">XLM</p>
           <p className="text-3xl font-bold font-heading text-foreground">
-            {loading ? <span className="inline-block w-24 h-8 bg-white/10 rounded animate-pulse align-middle" /> : formatBalance(balance?.xlm)}
+            {loading ? <span className="inline-block w-24 h-8 bg-white/10 rounded animate-pulse align-middle" /> : formatBalance(balance?.xlm, locale)}
           </p>
           <p className="text-xs text-muted-foreground mt-0.5">Stellar Lumens</p>
         </div>
@@ -180,7 +180,7 @@ export default function WalletPage() {
           <div className="absolute -top-6 -right-6 w-24 h-24 rounded-full bg-emerald-500/5 blur-2xl pointer-events-none" />
           <p className="text-xs font-heading font-medium text-muted-foreground uppercase tracking-wider mb-1">USDC</p>
           <p className="text-3xl font-bold font-heading text-foreground">
-            {loading ? <span className="inline-block w-24 h-8 bg-white/10 rounded animate-pulse align-middle" /> : formatBalance(balance?.usdc)}
+            {loading ? <span className="inline-block w-24 h-8 bg-white/10 rounded animate-pulse align-middle" /> : formatBalance(balance?.usdc, locale)}
           </p>
           <p className="text-xs text-muted-foreground mt-0.5">USD Coin</p>
         </div>
@@ -250,7 +250,7 @@ export default function WalletPage() {
                     <div className="min-w-0">
                       <p className="text-sm text-foreground truncate">{tx.description}</p>
                       <p className="text-xs text-muted-foreground">
-                        {new Date(tx.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
+                        {new Date(tx.createdAt).toLocaleDateString(locale || DEFAULT_LOCALE, { month: "short", day: "numeric" })}
                       </p>
                     </div>
                     <div className="flex items-center gap-2 shrink-0">
@@ -258,7 +258,7 @@ export default function WalletPage() {
                         "text-sm font-semibold font-heading whitespace-nowrap",
                         tx.type === "received" ? "text-emerald-400" : "text-muted-foreground",
                       )}>
-                        {tx.type === "received" ? "+" : "-"}{formatAmount(tx.amount)} USDC
+                        {tx.type === "received" ? "+" : "-"}{formatAmount(tx.amount, locale)} USDC
                       </span>
                       {tx.txnHash && (
                         <a
@@ -320,13 +320,13 @@ export default function WalletPage() {
   )
 }
 
-function formatBalance(val?: string): string {
+function formatBalance(val?: string, locale: string = DEFAULT_LOCALE): string {
   if (!val) return "0.0000"
   const n = parseFloat(val)
   if (isNaN(n)) return "0.0000"
-  return n.toLocaleString("en-US", { minimumFractionDigits: 4, maximumFractionDigits: 4 })
+  return n.toLocaleString(locale, { minimumFractionDigits: 4, maximumFractionDigits: 4 })
 }
 
-function formatAmount(val: number): string {
-  return val.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+function formatAmount(val: number, locale: string = DEFAULT_LOCALE): string {
+  return val.toLocaleString(locale, { minimumFractionDigits: 2, maximumFractionDigits: 2 })
 }
