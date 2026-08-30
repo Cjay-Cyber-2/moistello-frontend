@@ -5,6 +5,7 @@ import { ArrowLeft, Mail, Shield, CheckCircle } from "lucide-react"
 import { useAuthFlowStore } from "@/stores/auth-flow-store"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { OTPInput } from "@/components/ui/otp-input"
 
 interface VerifyEmailStepProps {
   onVerified: () => void
@@ -114,16 +115,14 @@ export function VerifyEmailStep({ onVerified, onBack }: VerifyEmailStepProps) {
           We sent a code to{" "}
           <strong className="text-foreground">{emailVerification.email}</strong>
         </p>
-        <Input
+        <OTPInput
           label="6-digit verification code"
-          placeholder="000000"
           value={code}
-          onChange={(e) => {
-            setCode(e.target.value.replace(/\D/g, "").slice(0, 6))
+          onChange={(value) => {
+            setCode(value)
             setError("")
           }}
           onKeyDown={(e) => e.key === "Enter" && handleVerify()}
-          className="text-center text-2xl tracking-[0.5em] font-mono"
           error={error}
         />
         <Button

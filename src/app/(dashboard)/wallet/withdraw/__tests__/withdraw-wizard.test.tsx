@@ -29,13 +29,14 @@ describe("useWithdrawWizard", () => {
 
   it("handleOtpChange updates otp array", () => {
     const { result } = renderHook(() => useWithdrawWizard())
-    act(() => { result.current.handleOtpChange(0, "5") })
+    act(() => { result.current.handleOtpChange("512") })
     expect(result.current.otp[0]).toBe("5")
+    expect(result.current.otp[2]).toBe("2")
   })
 
   it("handleOtpChange ignores non-digit input", () => {
     const { result } = renderHook(() => useWithdrawWizard())
-    act(() => { result.current.handleOtpChange(1, "a") })
+    act(() => { result.current.handleOtpChange("") })
     expect(result.current.otp[1]).toBe("")
   })
 

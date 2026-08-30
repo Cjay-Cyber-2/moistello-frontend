@@ -122,12 +122,10 @@ export default function WithdrawPage() {
       {wizard.step === "otp" && (
         <OtpStep
           otp={wizard.otp}
-          otpRefs={wizard.otpRefs}
           loading={wizard.loading}
           errMsg={wizard.errMsg}
           resendCooldown={wizard.resendCooldown}
           onOtpChange={wizard.handleOtpChange}
-          onOtpKeyDown={wizard.handleOtpKeyDown}
           onVerify={wizard.handleVerifyOtp}
           onResend={wizard.handleResendOtp}
         />
