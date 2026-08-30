@@ -1,23 +1,46 @@
 import { formatDistanceToNow } from "date-fns"
 import type { Locale } from "date-fns"
 
-export function formatCurrency(amount: number, currency: string): string {
-  const formatter = new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency: currency === "XLM" ? "USD" : "USD",
-    currencyDisplay: "symbol",
-  })
+/**
+ * Default locale used when a caller doesn't pass one explicitly. Kept as
+ * `en-US` so existing call sites render identically until they opt in to the
+ * active locale (see {@link useIntl}).
+ */
+export const DEFAULT_LOCALE = "en-US"
 
+/**
+ * Format a numeric amount for a given locale. `locale` is threaded to
+ * `Intl` so grouping separators, currency placement and decimal separators
+ * follow the active language rather than being pinned to `en-US`. Falls back
+ * to the {@link DEFAULT_LOCALE}.
+ */
+export function formatCurrency(
+  amount: number,
+  currency: string,
+  locale: string = DEFAULT_LOCALE
+): string {
+  // XLM (and anything without a real fiat quote) renders as "0.1234 XLM".
+  // Everything else renders as a localized currency amount. The currency code
+  // is still passed so parity-sensitive callers can rely on the shape.
   if (currency === "XLM") {
-    return `${amount.toLocaleString("en-US", { maximumFractionDigits: 4 })} XLM`
+    return `${amount.toLocaleString(locale, { maximumFractionDigits: 4 })} XLM`
   }
 
-  return formatter.format(amount)
+  return new Intl.NumberFormat(locale, {
+    style: "currency",
+    currency,
+    currencyDisplay: "symbol",
+  }).format(amount)
 }
 
+/**
+ * Format a date for a given locale. Localization covers weekday/month/year
+ * names, order of fields and the date separator.
+ */
 export function formatDate(
   date: string | Date,
-  options?: Intl.DateTimeFormatOptions
+  options?: Intl.DateTimeFormatOptions,
+  locale: string = DEFAULT_LOCALE
 ): string {
   const d = typeof date === "string" ? new Date(date) : date
 
@@ -27,14 +50,29 @@ export function formatDate(
     day: "numeric",
   }
 
-  return new Intl.DateTimeFormat("en-US", { ...defaults, ...options }).format(d)
+  return new Intl.DateTimeFormat(locale, { ...defaults, ...options }).format(d)
 }
 
-export function formatRelativeTime(date: string | Date): string {
+const isInvalidDate = (d: Date) => Number.isNaN(d.getTime())
+
+/**
+ * Relative time (e.g. "2 hours ago") in the given date-fns `Locale`.
+ * Date-fns localizes each supported language through its own Locale objects,
+ * so `locale` is a date-fns `Locale` here (not the BCP-47 tag). Falls back to
+ * a localized absolute date when the relative calculation fails.
+ */
+export function formatRelativeTime(
+  date: string | Date,
+  locale?: Locale
+): string {
   const d = typeof date === "string" ? new Date(date) : date
+  if (isInvalidDate(d)) return ""
 
   try {
-    return formatDistanceToNow(d, { addSuffix: true })
+    return formatDistanceToNow(d, {
+      addSuffix: true,
+      ...(locale ? { locale } : {}),
+    })
   } catch {
     return formatDate(d)
   }
@@ -45,8 +83,15 @@ export function formatAddress(address: string): string {
   return `${address.slice(0, 6)}...${address.slice(-4)}`
 }
 
-export function formatNumber(num: number): string {
-  return num.toLocaleString("en-US")
+/**
+ * Locale-aware integer grouping. `locale` is optional and defaults to
+ * {@link DEFAULT_LOCALE} for callers that don't have the active tag handy.
+ */
+export function formatNumber(
+  num: number,
+  locale: string = DEFAULT_LOCALE
+): string {
+  return num.toLocaleString(locale)
 }
 
 export function formatPercentage(value: number, decimals = 2): string {
@@ -71,47 +116,4 @@ export function formatDuration(minutes: number): string {
     return `${days}d`
   }
   return `${days}d ${remainingHours}h`
-}
-
-/**
- * Locale-aware relative time formatter.
- * Pass the date-fns Locale object obtained from `useDataLocale()` or
- * `loadDateFnsLocale()`. Falls back to the default (English) behaviour
- * when `dateFnsLocale` is not provided.
- */
-export function formatRelativeTimeLocalized(
-  date: string | Date,
-  dateFnsLocale?: Locale,
-): string {
-  const d = typeof date === "string" ? new Date(date) : date
-  try {
-    return formatDistanceToNow(d, {
-      addSuffix: true,
-      ...(dateFnsLocale ? { locale: dateFnsLocale } : {}),
-    })
-  } catch {
-    return formatDateLocalized(d)
-  }
-}
-
-/**
- * Locale-aware date formatter backed by `Intl.DateTimeFormat`.
- * `localeCode` is a BCP-47 tag (e.g. "fr", "de", "en-US").
- * Falls back to "en-US" when not provided.
- */
-export function formatDateLocalized(
-  date: string | Date,
-  localeCode?: string,
-  options?: Intl.DateTimeFormatOptions,
-): string {
-  const d = typeof date === "string" ? new Date(date) : date
-  const defaults: Intl.DateTimeFormatOptions = {
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-  }
-  return new Intl.DateTimeFormat(localeCode ?? "en-US", {
-    ...defaults,
-    ...options,
-  }).format(d)
 }
