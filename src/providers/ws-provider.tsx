@@ -1,10 +1,47 @@
 "use client";
 
-import { type ReactNode, useEffect, useRef, useCallback } from "react";
-import { useWebSocket, type WebSocketMessage } from "@/hooks/use-websocket";
+import {
+  type ReactNode,
+  createContext,
+  useContext,
+  useEffect,
+  useRef,
+  useCallback,
+  useState,
+} from "react";
+import {
+  useWebSocket,
+  type WebSocketMessage,
+  type WsConnectionState,
+} from "@/hooks/use-websocket";
 import { useQueryClient } from "@tanstack/react-query";
 import { queryKeys } from "@/lib/query-keys";
 import type { Notification } from "@/types";
+
+// ── WebSocket context ────────────────────────────────────────────────────────
+
+export interface WsContextValue {
+  isConnected: boolean;
+  connectionState: WsConnectionState;
+  lastMessage: WebSocketMessage | null;
+}
+
+const WsContext = createContext<WsContextValue>({
+  isConnected: false,
+  connectionState: "connecting",
+  lastMessage: null,
+});
+
+/**
+ * Read the global WebSocket connection state without creating a second
+ * connection. Use this inside pages/hooks that only need the connection
+ * status, not a new independent WebSocket.
+ */
+export function useWsContext(): WsContextValue {
+  return useContext(WsContext);
+}
+
+// ── Provider ─────────────────────────────────────────────────────────────────
 
 interface WsProviderProps {
   children: ReactNode;
@@ -96,7 +133,9 @@ export function WsProvider({ children }: WsProviderProps) {
     handleEventRef.current(msg);
   }, []);
 
-  useWebSocket({ onEvent: handleEvent });
+  const { isConnected, connectionState, lastMessage } = useWebSocket({
+    onEvent: handleEvent,
+  });
 
   useEffect(() => {
     mountedRef.current = true;
@@ -105,5 +144,9 @@ export function WsProvider({ children }: WsProviderProps) {
     };
   }, []);
 
-  return <>{children}</>;
+  return (
+    <WsContext.Provider value={{ isConnected, connectionState, lastMessage }}>
+      {children}
+    </WsContext.Provider>
+  );
 }

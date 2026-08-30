@@ -14,6 +14,8 @@ interface PayoutFilters {
   payoutType?: Payout["payoutType"] | "all"
   dateFrom?: string
   dateTo?: string
+  /** When set, react-query will re-fetch at this interval (ms). */
+  refetchInterval?: number | false
 }
 
 interface PayoutQueryResult {
@@ -38,22 +40,24 @@ function buildPayoutQueryResult(
 }
 
 export function usePayouts(filters?: PayoutFilters) {
+  const { refetchInterval, ...filterParams } = filters ?? {}
   return useQuery({
-    queryKey: queryKeys.payouts.list(filters),
+    queryKey: queryKeys.payouts.list(filterParams),
+    ...(refetchInterval !== undefined ? { refetchInterval } : {}),
     queryFn: async () => {
-      const page = filters?.page ?? 1
-      const limit = filters?.limit ?? 20
+      const page = filterParams.page ?? 1
+      const limit = filterParams.limit ?? 20
       const params = new URLSearchParams()
       params.set("page", String(page))
       params.set("limit", String(limit))
-      if (filters?.sortBy) params.set("sortBy", filters.sortBy)
-      if (filters?.sortDir) params.set("sortDir", filters.sortDir)
-      if (filters?.circleId) params.set("circleId", filters.circleId)
-      if (filters?.payoutType && filters.payoutType !== "all") {
-        params.set("payoutType", filters.payoutType)
+      if (filterParams.sortBy) params.set("sortBy", filterParams.sortBy)
+      if (filterParams.sortDir) params.set("sortDir", filterParams.sortDir)
+      if (filterParams.circleId) params.set("circleId", filterParams.circleId)
+      if (filterParams.payoutType && filterParams.payoutType !== "all") {
+        params.set("payoutType", filterParams.payoutType)
       }
-      if (filters?.dateFrom) params.set("dateFrom", filters.dateFrom)
-      if (filters?.dateTo) params.set("dateTo", filters.dateTo)
+      if (filterParams.dateFrom) params.set("dateFrom", filterParams.dateFrom)
+      if (filterParams.dateTo) params.set("dateTo", filterParams.dateTo)
 
       const response = await get<ApiResponse<{ payouts: Payout[] }>>(
         `/payouts?${params.toString()}`,

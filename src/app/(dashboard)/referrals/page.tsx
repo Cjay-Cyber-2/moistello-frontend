@@ -4,6 +4,7 @@ import { useState } from "react"
 import { Check, Copy, Share2, Users, UserCheck, CircleDot, DollarSign } from "lucide-react"
 import { useQuery } from "@tanstack/react-query"
 import { get } from "@/lib/api-client"
+import { useTranslate } from "@/lib/locale/context"
 
 interface ReferralData {
   code: string
@@ -47,6 +48,7 @@ function BonusRow({ bonus }: { bonus: ReferralData["bonuses"][number] }) {
 
 export default function ReferralsPage() {
   const { data, isLoading, error } = useReferralData()
+  const { t } = useTranslate()
   const [copied, setCopied] = useState(false)
 
   const referralUrl = data
@@ -90,7 +92,7 @@ export default function ReferralsPage() {
     return (
       <div className="max-w-3xl mx-auto">
         <div className="border border-red-500/20 bg-red-500/5 rounded-lg p-6 text-center">
-          <p className="text-sm text-red-400">{error ? "Referral activity could not be loaded." : "No referral data available."}</p>
+          <p className="text-sm text-red-400">{error ? t("referral.loadError") : t("referral.noData")}</p>
         </div>
       </div>
     )
@@ -102,14 +104,14 @@ export default function ReferralsPage() {
       <div className="relative mb-8">
         <div className="pointer-events-none absolute -right-4 -top-4 h-28 w-28 rounded-full bg-aurora-violet/8 blur-2xl" />
         <div className="border-l-4 border-l-emerald-400 pl-5">
-          <p className="text-xs uppercase tracking-[0.3em] text-emerald-400">Growth incentive program</p>
-          <h1 className="mt-2 font-heading text-3xl font-bold text-foreground">Referral dashboard</h1>
+          <p className="text-xs uppercase tracking-[0.3em] text-emerald-400">{t("referral.subtitle")}</p>
+          <h1 className="mt-2 font-heading text-3xl font-bold text-foreground">{t("referral.title")}</h1>
         </div>
       </div>
 
       {/* Referral code section - full-bleed gradient */}
       <section className="bg-gradient-to-r from-aurora-violet/12 via-transparent to-aurora-cyan/8 px-6 py-7 mb-8">
-        <p className="text-xs uppercase tracking-widest text-muted-foreground mb-3">Your referral code</p>
+        <p className="text-xs uppercase tracking-widest text-muted-foreground mb-3">{t("referral.yourCode")}</p>
         <div className="flex flex-wrap items-center gap-4">
           <code className="font-mono text-3xl font-bold text-foreground tracking-wider">{data.code}</code>
           <button
@@ -117,14 +119,14 @@ export default function ReferralsPage() {
             className="inline-flex items-center gap-2 rounded-full border border-white/15 px-4 py-2 text-sm hover:border-aurora-violet/40 transition-colors"
           >
             {copied ? <Check className="h-4 w-4 text-emerald-400" /> : <Copy className="h-4 w-4" />}
-            {copied ? "Copied!" : "Copy link"}
+            {copied ? t("referral.copied") : t("referral.copyLink")}
           </button>
           {typeof navigator !== "undefined" && typeof navigator.share === "function" && (
             <button
               onClick={handleShare}
               className="inline-flex items-center gap-2 rounded-full border border-white/15 px-4 py-2 text-sm hover:border-aurora-violet/40 transition-colors"
             >
-              <Share2 className="h-4 w-4" /> Share
+              <Share2 className="h-4 w-4" /> {t("referral.share")}
             </button>
           )}
         </div>
@@ -132,27 +134,27 @@ export default function ReferralsPage() {
 
       {/* Stats pills */}
       <div className="flex flex-wrap gap-3 mb-10">
-        <StatPill icon={Users} value={data.clicks} label="Clicks" />
-        <StatPill icon={UserCheck} value={data.signups} label="Signups" />
-        <StatPill icon={CircleDot} value={data.completedCircles} label="Completed circles" />
-        <StatPill icon={DollarSign} value={`$${data.bonusAmount.toFixed(2)}`} label="Bonus earned" />
+        <StatPill icon={Users} value={data.clicks} label={t("referral.clicks")} />
+        <StatPill icon={UserCheck} value={data.signups} label={t("referral.signups")} />
+        <StatPill icon={CircleDot} value={data.completedCircles} label={t("referral.completedCircles")} />
+        <StatPill icon={DollarSign} value={`$${data.bonusAmount.toFixed(2)}`} label={t("referral.bonusEarned")} />
       </div>
 
       {/* Bonus history */}
       <section>
-        <h2 className="font-heading text-lg font-semibold text-foreground mb-4">Bonus history</h2>
+        <h2 className="font-heading text-lg font-semibold text-foreground mb-4">{t("referral.bonusHistory")}</h2>
         {data.bonuses.length === 0 ? (
           <div className="border border-dashed border-white/10 rounded-lg p-8 text-center">
-            <p className="text-sm text-muted-foreground">No bonuses earned yet. Share your referral code to get started!</p>
+            <p className="text-sm text-muted-foreground">{t("referral.noBonuses")}</p>
           </div>
         ) : (
           <div className="border-y border-white/10 overflow-x-auto">
             <table className="w-full text-left text-sm">
               <thead className="text-xs uppercase tracking-wider text-muted-foreground">
                 <tr>
-                  <th className="py-3 font-medium">Activity</th>
-                  <th className="py-3 font-medium">Date</th>
-                  <th className="py-3 font-medium text-right">Bonus</th>
+                  <th className="py-3 font-medium">{t("referral.activity")}</th>
+                  <th className="py-3 font-medium">{t("referral.date")}</th>
+                  <th className="py-3 font-medium text-right">{t("referral.bonus")}</th>
                 </tr>
               </thead>
               <tbody>

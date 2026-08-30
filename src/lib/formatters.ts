@@ -1,4 +1,5 @@
 import { formatDistanceToNow } from "date-fns"
+import type { Locale } from "date-fns"
 
 export function formatCurrency(amount: number, currency: string): string {
   const formatter = new Intl.NumberFormat("en-US", {
@@ -70,4 +71,47 @@ export function formatDuration(minutes: number): string {
     return `${days}d`
   }
   return `${days}d ${remainingHours}h`
+}
+
+/**
+ * Locale-aware relative time formatter.
+ * Pass the date-fns Locale object obtained from `useDataLocale()` or
+ * `loadDateFnsLocale()`. Falls back to the default (English) behaviour
+ * when `dateFnsLocale` is not provided.
+ */
+export function formatRelativeTimeLocalized(
+  date: string | Date,
+  dateFnsLocale?: Locale,
+): string {
+  const d = typeof date === "string" ? new Date(date) : date
+  try {
+    return formatDistanceToNow(d, {
+      addSuffix: true,
+      ...(dateFnsLocale ? { locale: dateFnsLocale } : {}),
+    })
+  } catch {
+    return formatDateLocalized(d)
+  }
+}
+
+/**
+ * Locale-aware date formatter backed by `Intl.DateTimeFormat`.
+ * `localeCode` is a BCP-47 tag (e.g. "fr", "de", "en-US").
+ * Falls back to "en-US" when not provided.
+ */
+export function formatDateLocalized(
+  date: string | Date,
+  localeCode?: string,
+  options?: Intl.DateTimeFormatOptions,
+): string {
+  const d = typeof date === "string" ? new Date(date) : date
+  const defaults: Intl.DateTimeFormatOptions = {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+  }
+  return new Intl.DateTimeFormat(localeCode ?? "en-US", {
+    ...defaults,
+    ...options,
+  }).format(d)
 }

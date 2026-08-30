@@ -12,29 +12,34 @@ interface ContributionFilters {
   sort?: string
   page?: number
   limit?: number
+  /** When set, react-query will re-fetch at this interval (ms). */
+  refetchInterval?: number | false
 }
 
 export function useContributions(filters?: ContributionFilters) {
+  const { refetchInterval, ...filterParams } = filters ?? {}
+
   return useQuery({
     queryKey: [
       "contributions",
-      filters?.search ?? "",
-      filters?.circleId ?? "",
-      filters?.amount ?? "",
-      filters?.date ?? "",
-      filters?.sort ?? "",
-      filters?.page,
-      filters?.limit,
+      filterParams.search ?? "",
+      filterParams.circleId ?? "",
+      filterParams.amount ?? "",
+      filterParams.date ?? "",
+      filterParams.sort ?? "",
+      filterParams.page,
+      filterParams.limit,
     ],
+    ...(refetchInterval !== undefined ? { refetchInterval } : {}),
     queryFn: async () => {
-      const page = filters?.page ?? 1
-      const limit = filters?.limit ?? 20
+      const page = filterParams.page ?? 1
+      const limit = filterParams.limit ?? 20
       const params = new URLSearchParams()
-      if (filters?.search) params.set("search", filters.search)
-      if (filters?.circleId) params.set("circleId", filters.circleId)
-      if (filters?.amount) params.set("amount", filters.amount)
-      if (filters?.date) params.set("date", filters.date)
-      if (filters?.sort) params.set("sort", filters.sort)
+      if (filterParams.search) params.set("search", filterParams.search)
+      if (filterParams.circleId) params.set("circleId", filterParams.circleId)
+      if (filterParams.amount) params.set("amount", filterParams.amount)
+      if (filterParams.date) params.set("date", filterParams.date)
+      if (filterParams.sort) params.set("sort", filterParams.sort)
       params.set("page", String(page))
       params.set("limit", String(limit))
 

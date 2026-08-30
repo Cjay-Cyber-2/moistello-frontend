@@ -25,4 +25,12 @@ export const EN_SEED: Record<string, string> = {
   "auth.login.signInButton": "Sign in with Passkey",
   "landing.launchApp": "Launch App",
   "landing.howItWorks": "How it works",
+  "payouts.title": "Payouts Received",
+  "contributions.title": "My Contributions",
+  "notifications.title": "Notifications",
+  "governance.title": "Governance",
+  "referrals.title": "Referral dashboard",
+  "profile.title": "Profile",
+  "reputation.title": "Your MoiScore",
+  "reputation.loadingAria": "Loading reputation",
 }

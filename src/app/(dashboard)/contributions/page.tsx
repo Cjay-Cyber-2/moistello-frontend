@@ -14,15 +14,17 @@ import {
 } from "lucide-react"
 import { useQuery } from "@tanstack/react-query"
 import { get } from "@/lib/api-client"
-import { useContributions } from "@/hooks/use-contributions"
+import { useLiveContributions } from "@/hooks/use-live-contributions"
 import { PageHeader } from "@/components/shared/page-header"
 import { EmptyState } from "@/components/shared/empty-state"
+import { LiveIndicator } from "@/components/shared/live-indicator"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Select } from "@/components/ui/select"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Input } from "@/components/ui/input"
 import { formatCurrency, formatDate, formatAddress } from "@/lib/formatters"
+import { useTranslate } from "@/lib/locale/context"
 import type {
   ApiResponse,
   Circle,
@@ -56,6 +58,7 @@ const rowVariants = {
 }
 
 export default function ContributionsPage() {
+  const { t } = useTranslate()
   const [searchQuery, setSearchQuery] = useState("")
   const [circleFilter, setCircleFilter] = useState("")
   const [amountFilter, setAmountFilter] = useState("")
@@ -74,11 +77,11 @@ export default function ContributionsPage() {
 
   const circles = circlesData ?? []
   const circleOptions = [
-    { label: "All Circles", value: "" },
+    { label: t("contributions.allCircles"), value: "" },
     ...circles.map((c) => ({ label: c.name, value: c.id })),
   ]
 
-  const { data, isLoading, isError } = useContributions({
+  const { data, isLoading, isError, connectionState } = useLiveContributions({
     search: searchQuery,
     circleId: circleFilter,
     amount: amountFilter,
@@ -95,51 +98,54 @@ export default function ContributionsPage() {
   const hasPrev = page > 1
 
   const amountOptions = [
-    { label: "All Amounts", value: "" },
-    { label: "Under $100", value: "<100" },
-    { label: "$100 - $500", value: "100-500" },
-    { label: "Over $500", value: ">500" },
+    { label: t("contributions.allAmounts"), value: "" },
+    { label: t("contributions.under100"), value: "<100" },
+    { label: t("contributions.range100to500"), value: "100-500" },
+    { label: t("contributions.over500"), value: ">500" },
   ]
 
   const dateOptions = [
-    { label: "All Time", value: "" },
-    { label: "Past 7 Days", value: "7d" },
-    { label: "Past 30 Days", value: "30d" },
-    { label: "This Year", value: "1y" },
+    { label: t("contributions.allTime"), value: "" },
+    { label: t("contributions.past7Days"), value: "7d" },
+    { label: t("contributions.past30Days"), value: "30d" },
+    { label: t("contributions.thisYear"), value: "1y" },
   ]
 
   const sortOptions = [
-    { label: "Newest First", value: "date-desc" },
-    { label: "Oldest First", value: "date-asc" },
-    { label: "Amount: High to Low", value: "amount-desc" },
-    { label: "Amount: Low to High", value: "amount-asc" },
+    { label: t("contributions.newestFirst"), value: "date-desc" },
+    { label: t("contributions.oldestFirst"), value: "date-asc" },
+    { label: t("contributions.amountHighToLow"), value: "amount-desc" },
+    { label: t("contributions.amountLowToHigh"), value: "amount-asc" },
   ]
 
-  const getCircleName = (circleId: string): string =>
-    circles.find((c) => c.id === circleId)?.name ?? "Unknown"
+  const getCircleName = (id: string): string =>
+    circles.find((c) => c.id === id)?.name ?? "Unknown"
 
   return (
     <div className="space-y-6">
-      <PageHeader
-        title="My Contributions"
-        description="Track all your circle contributions and their status."
-      />
+      <div className="flex items-start justify-between gap-4 flex-wrap">
+        <PageHeader
+          title={t("contributions.title")}
+          description={t("contributions.desc")}
+        />
+        <LiveIndicator connectionState={connectionState} className="mt-1" />
+      </div>
 
       {summary && (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
           <div className="glass-premium rounded-2xl p-5 relative overflow-hidden group">
             <div className="absolute inset-0 bg-gradient-to-br from-aurora-teal/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-            <p className="text-sm font-medium text-muted-foreground font-heading uppercase tracking-wider mb-1">Total Contributed</p>
+            <p className="text-sm font-medium text-muted-foreground font-heading uppercase tracking-wider mb-1">{t("contributions.totalContributed")}</p>
             <p className="font-heading text-2xl font-bold gradient-text">{formatCurrency(summary.totalContributed, "USDC")}</p>
           </div>
           <div className="glass-premium rounded-2xl p-5 relative overflow-hidden group">
             <div className="absolute inset-0 bg-gradient-to-br from-aurora-purple/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-            <p className="text-sm font-medium text-muted-foreground font-heading uppercase tracking-wider mb-1">Average Amount</p>
+            <p className="text-sm font-medium text-muted-foreground font-heading uppercase tracking-wider mb-1">{t("contributions.averageAmount")}</p>
             <p className="font-heading text-2xl font-bold text-foreground">{formatCurrency(summary.average, "USDC")}</p>
           </div>
           <div className="glass-premium rounded-2xl p-5 relative overflow-hidden group">
             <div className="absolute inset-0 bg-gradient-to-br from-aurora-cyan/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-            <p className="text-sm font-medium text-muted-foreground font-heading uppercase tracking-wider mb-1">Total Count</p>
+            <p className="text-sm font-medium text-muted-foreground font-heading uppercase tracking-wider mb-1">{t("contributions.totalCount")}</p>
             <p className="font-heading text-2xl font-bold text-foreground">{summary.count}</p>
           </div>
         </div>
@@ -149,7 +155,7 @@ export default function ContributionsPage() {
         <div className="relative flex-1 w-full">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Search contributions..."
+            placeholder={t("contributions.searchPlaceholder")}
             value={searchQuery}
             onChange={(e) => {
               setSearchQuery(e.target.value)
@@ -168,7 +174,7 @@ export default function ContributionsPage() {
                 setCircleFilter(value)
                 setPage(1)
               }}
-              placeholder="Circle"
+              placeholder={t("contributions.allCircles")}
             />
           </div>
           <div className="w-32 shrink-0">
@@ -179,7 +185,7 @@ export default function ContributionsPage() {
                 setAmountFilter(value)
                 setPage(1)
               }}
-              placeholder="Amount"
+              placeholder={t("contributions.allAmounts")}
             />
           </div>
           <div className="w-32 shrink-0">
@@ -190,7 +196,7 @@ export default function ContributionsPage() {
                 setDateFilter(value)
                 setPage(1)
               }}
-              placeholder="Date"
+              placeholder={t("contributions.allTime")}
             />
           </div>
           <div className="w-40 shrink-0">
@@ -201,7 +207,7 @@ export default function ContributionsPage() {
                 setSortOption(value)
                 setPage(1)
               }}
-              placeholder="Sort by"
+              placeholder={t("contributions.newestFirst")}
             />
           </div>
         </div>
@@ -225,16 +231,16 @@ export default function ContributionsPage() {
       ) : isError ? (
         <EmptyState
           icon={<AlertCircle className="h-6 w-6" />}
-          title="Failed to load contributions"
-          description="Something went wrong. Please try again later."
+          title={t("contributions.errorTitle")}
+          description={t("contributions.errorDesc")}
         />
       ) : contributions.length === 0 ? (
         <EmptyState
           icon={<ArrowUpCircle className="h-6 w-6" />}
-          title="No contributions yet"
-          description="Join a circle to get started!"
+          title={t("contributions.emptyTitle")}
+          description={t("contributions.emptyDesc")}
           action={{
-            label: "Browse Circles",
+            label: t("contributions.browseCircles"),
             onClick: () => (window.location.href = "/circles"),
           }}
         />
@@ -242,22 +248,22 @@ export default function ContributionsPage() {
         <div className="glass-premium rounded-2xl overflow-hidden holo-border">
           <div className="hidden md:flex items-center gap-4 border-b border-border glass-strong px-5 py-3">
             <div className="flex-1 text-2xs font-heading tracking-wider uppercase text-muted-foreground">
-              Circle
+              {t("contributions.colCircle")}
             </div>
             <div className="w-16 text-2xs font-heading tracking-wider uppercase text-muted-foreground">
-              Round
+              {t("contributions.colRound")}
             </div>
             <div className="w-28 text-2xs font-heading tracking-wider uppercase text-muted-foreground">
-              Amount
+              {t("contributions.colAmount")}
             </div>
             <div className="w-28 text-2xs font-heading tracking-wider uppercase text-muted-foreground">
-              Date
+              {t("contributions.colDate")}
             </div>
             <div className="w-24 text-2xs font-heading tracking-wider uppercase text-muted-foreground">
-              Status
+              {t("contributions.colStatus")}
             </div>
             <div className="w-36 text-2xs font-heading tracking-wider uppercase text-muted-foreground">
-              Transaction
+              {t("contributions.colTransaction")}
             </div>
           </div>
 
@@ -270,9 +276,6 @@ export default function ContributionsPage() {
             {contributions.map((c) => {
               const st = statusConfig[c.status] || statusConfig.pending
               const isOnTime = c.onTime
-              const displayStatus = isOnTime
-                ? "completed"
-                : c.status
 
               return (
                 <motion.div
@@ -288,7 +291,7 @@ export default function ContributionsPage() {
                       {getCircleName(c.circleId)}
                     </Link>
                     <span className="text-xs text-muted-foreground md:hidden">
-                      Round {c.roundNumber}
+                      {t("contributions.round")} {c.roundNumber}
                     </span>
                   </div>
                   <div className="hidden md:block w-16 text-sm text-muted-foreground font-mono">
@@ -305,7 +308,7 @@ export default function ContributionsPage() {
                       variant={isOnTime ? "success" : st.variant}
                       size="sm"
                     >
-                      {isOnTime ? "On Time" : displayStatus}
+                      {isOnTime ? t("contributions.statusOnTime") : c.status}
                     </Badge>
                   </div>
                   <div className="w-36">
@@ -313,7 +316,7 @@ export default function ContributionsPage() {
                       <TransactionLink hash={c.txnHash} />
                     ) : (
                       <span className="text-xs text-muted-foreground font-mono">
-                        Pending
+                        {t("contributions.pendingTxn")}
                       </span>
                     )}
                   </div>
@@ -327,7 +330,7 @@ export default function ContributionsPage() {
       {meta && meta.totalPages > 1 && (
         <div className="flex items-center justify-between">
           <p className="text-sm text-muted-foreground font-body">
-            Page {meta.page} of {meta.totalPages} ({meta.total} contributions)
+            {t("contributions.page")} {meta.page} {t("contributions.of")} {meta.totalPages} ({meta.total} {t("contributions.contributionsCount")})
           </p>
           <div className="flex items-center gap-2">
             <Button
@@ -337,7 +340,7 @@ export default function ContributionsPage() {
               onClick={() => setPage((p) => Math.max(1, p - 1))}
               leftIcon={<ChevronLeft className="h-4 w-4" />}
             >
-              Previous
+              {t("contributions.previous")}
             </Button>
             <Button
               variant="outline"
@@ -346,7 +349,7 @@ export default function ContributionsPage() {
               onClick={() => setPage((p) => p + 1)}
               rightIcon={<ChevronRight className="h-4 w-4" />}
             >
-              Next
+              {t("contributions.next")}
             </Button>
           </div>
         </div>
