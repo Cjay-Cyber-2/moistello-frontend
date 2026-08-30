@@ -21,7 +21,6 @@ export function useWithdrawWizard() {
   const [wallets, setWallets] = useState<WalletOption[]>([])
   const [selectedWallet, setSelectedWallet] = useState<string>("")
   const [otp, setOtp] = useState(["", "", "", "", "", ""])
-  const otpRefs = useRef<(HTMLInputElement | null)[]>([])
   const [resendCooldown, setResendCooldown] = useState(0)
   const cooldownRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
@@ -155,19 +154,9 @@ export function useWithdrawWizard() {
     }
   }, [])
 
-  const handleOtpChange = useCallback((index: number, val: string) => {
-    if (!/^\d*$/.test(val)) return
-    const next = [...otp]
-    next[index] = val.slice(-1)
-    setOtp(next)
-    if (val && index < 5) otpRefs.current[index + 1]?.focus()
-  }, [otp])
-
-  const handleOtpKeyDown = useCallback((index: number, e: React.KeyboardEvent) => {
-    if (e.key === "Backspace" && !otp[index] && index > 0) {
-      otpRefs.current[index - 1]?.focus()
-    }
-  }, [otp])
+  const handleOtpChange = useCallback((value: string) => {
+    setOtp(Array.from({ length: 6 }, (_, index) => value[index] ?? ""))
+  }, [])
 
   const ngnEstimate =
     amountUsdc && parseFloat(amountUsdc) > 0
@@ -194,14 +183,12 @@ export function useWithdrawWizard() {
     selectWallet,
     selectedWalletData,
     otp,
-    otpRefs,
     handleGetQuote,
     handleConfirm,
     handleVerifyOtp,
     handleResendOtp,
     resendCooldown,
     handleOtpChange,
-    handleOtpKeyDown,
     ngnEstimate,
   }
 }

@@ -2,23 +2,21 @@
 
 import { Key, AlertCircle } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { cn } from "@/lib/cn"
+import { OTPInput } from "@/components/ui/otp-input"
 
 interface Props {
   otp: string[]
-  otpRefs: React.MutableRefObject<(HTMLInputElement | null)[]>
   loading: boolean
   errMsg: string
   resendCooldown: number
-  onOtpChange: (index: number, val: string) => void
-  onOtpKeyDown: (index: number, e: React.KeyboardEvent) => void
+  onOtpChange: (value: string) => void
   onVerify: () => void
   onResend: () => void
 }
 
 export function OtpStep({
-  otp, otpRefs, loading, errMsg, resendCooldown,
-  onOtpChange, onOtpKeyDown, onVerify, onResend,
+  otp, loading, errMsg, resendCooldown,
+  onOtpChange, onVerify, onResend,
 }: Props) {
   return (
     <div className="space-y-6">
@@ -33,28 +31,7 @@ export function OtpStep({
           </p>
         </div>
 
-        {/* OTP input row */}
-        <div className="flex items-center justify-center gap-2 sm:gap-3">
-          {otp.map((digit, i) => (
-            <input
-              key={i}
-              ref={(el) => { otpRefs.current[i] = el }}
-              type="text"
-              inputMode="numeric"
-              maxLength={1}
-              value={digit}
-              onChange={(e) => onOtpChange(i, e.target.value)}
-              onKeyDown={(e) => onOtpKeyDown(i, e)}
-              aria-label={`OTP digit ${i + 1}`}
-              className={cn(
-                "w-10 sm:w-12 h-12 sm:h-14 text-center text-xl font-bold font-heading text-foreground",
-                "bg-white/5 border rounded-xl outline-none transition-all",
-                "focus:border-aurora-violet focus:ring-1 focus:ring-aurora-violet/30",
-                digit ? "border-aurora-violet/50" : "border-white/10",
-              )}
-            />
-          ))}
-        </div>
+        <OTPInput label="6-digit withdrawal verification code" value={otp.join("")} onChange={onOtpChange} />
 
         <p className="text-xs text-muted-foreground">
           Didn&apos;t receive it?{" "}
