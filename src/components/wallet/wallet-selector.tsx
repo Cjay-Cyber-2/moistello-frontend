@@ -4,6 +4,7 @@ import { useState } from "react"
 import { Wallet, X, Loader2, QrCode } from "lucide-react"
 import { cn } from "@/lib/cn"
 import { useMultiWalletStore } from "@/stores/multi-wallet-store"
+import { useWalletConnectStore } from "@/stores/walletconnect-store"
 import { useMultiWalletConnection } from "@/hooks/use-multi-wallet"
 import { formatAddress } from "@/lib/formatters"
 import dynamic from "next/dynamic"
@@ -212,13 +213,13 @@ export function WalletSelector({ className, variant = "inline" }: WalletSelector
   const isHardwareAvailable = isWebUSBAvailable || isWebBLEAvailable
   const isMobileBrowser = typeof navigator !== "undefined" && /Android|iPhone|iPad|iPod/i.test(navigator.userAgent)
 
-  const wc2PairingUri = useMultiWalletStore((s) => s.wc2PairingUri)
-  const wc2PairingState = useMultiWalletStore((s) => s.wc2PairingState)
-  const wc2PairingError = useMultiWalletStore((s) => s.wc2PairingError)
-  const setWc2PairingUri = useMultiWalletStore((s) => s.setWc2PairingUri)
-  const setWc2PairingError = useMultiWalletStore((s) => s.setWc2PairingError)
-  const resetWc2Pairing = useMultiWalletStore((s) => s.resetWc2Pairing)
-  const setWc2PairingState = useMultiWalletStore((s) => s.setWc2PairingState)
+  const wc2PairingUri = useWalletConnectStore((s) => s.pairingUri)
+  const wc2PairingState = useWalletConnectStore((s) => s.pairingState)
+  const wc2PairingError = useWalletConnectStore((s) => s.pairingError)
+  const setWc2PairingUri = useWalletConnectStore((s) => s.setPairingUri)
+  const setWc2PairingError = useWalletConnectStore((s) => s.setPairingError)
+  const resetWc2Pairing = useWalletConnectStore((s) => s.reset)
+  const setWc2PairingState = useWalletConnectStore((s) => s.setPairingState)
 
   const sortedWallets = [...detectedWallets].sort((a, b) => {
     if (a.id === "walletconnect") return -1

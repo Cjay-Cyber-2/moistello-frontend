@@ -13,6 +13,7 @@ import {
 import { cn } from "@/lib/cn";
 import { Button } from "@/components/ui/button";
 import { useMultiWalletStore } from "@/stores/multi-wallet-store";
+import { useLedgerStore } from "@/stores/ledger-store";
 import { LedgerDeviceSim } from "./ledger-device-sim";
 import type { DeviceScreenState } from "./ledger-device-sim";
 import {
@@ -87,16 +88,16 @@ export function LedgerPrompt({
   onConnected,
 }: LedgerPromptProps) {
   const connect = useMultiWalletStore((s) => s.connect);
-  const setLedgerConnectionState = useMultiWalletStore(
-    (s) => s.setLedgerConnectionState,
+  const setLedgerConnectionState = useLedgerStore(
+    (s) => s.setConnectionState,
   );
-  const setLedgerTransportType = useMultiWalletStore(
-    (s) => s.setLedgerTransportType,
+  const setLedgerTransportType = useLedgerStore(
+    (s) => s.setTransportType,
   );
-  const setLedgerConnectionError = useMultiWalletStore(
-    (s) => s.setLedgerConnectionError,
+  const setLedgerConnectionError = useLedgerStore(
+    (s) => s.setConnectionError,
   );
-  const resetLedgerState = useMultiWalletStore((s) => s.resetLedgerState);
+  const resetLedgerState = useLedgerStore((s) => s.reset);
 
   const [currentStep, setCurrentStep] = useState<WizardStep>("detect");
   const [isConnecting, setIsConnecting] = useState(false);
