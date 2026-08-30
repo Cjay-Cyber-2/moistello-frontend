@@ -18,6 +18,7 @@ import { formatAddress } from "@/lib/formatters";
 import { Routes } from "@/lib/constants";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
+import { LocaleSwitcher } from "@/components/layout/locale-switcher";
 import { useMultiWallet } from "@/hooks/use-multi-wallet";
 import { useUnreadCount } from "@/hooks/use-notifications";
 import { useTranslate } from "@/lib/locale/context";
@@ -92,6 +93,7 @@ export function Header({ onToggleMobileMenu, isMobileMenuOpen }: HeaderProps) {
 
           <div className="flex items-center gap-1.5">
             <ThemeToggle />
+            <LocaleSwitcher />
 
             <button
               onClick={onToggleMobileMenu}

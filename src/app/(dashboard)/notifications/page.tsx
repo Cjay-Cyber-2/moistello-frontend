@@ -26,6 +26,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useNotifications } from "@/hooks/use-notifications";
+import { useWsState } from "@/hooks/use-ws-state";
 import {
   TYPE_FILTERS,
   filterNotifications,
@@ -33,10 +34,13 @@ import {
 } from "@/lib/notifications";
 import { PageHeader } from "@/components/shared/page-header";
 import { EmptyState } from "@/components/shared/empty-state";
+import { LiveIndicator } from "@/components/shared/live-indicator";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { formatRelativeTime } from "@/lib/formatters";
+import { formatRelativeTimeLocalized } from "@/lib/formatters";
+import { useDateLocale } from "@/hooks/use-date-locale";
+import { useTranslate } from "@/lib/locale/context";
 import { cn } from "@/lib/cn";
 import { patch } from "@/lib/api-client";
 import { useUIStore } from "@/stores/ui-store";
@@ -98,6 +102,8 @@ function NotificationItem({
   onToggleSelect: (id: string) => void;
   largeList: boolean;
 }) {
+  const { dateFnsLocale } = useDateLocale();
+  const { t } = useTranslate();
   const handleClick = () => {
     if (!notification.isRead) onMarkRead(notification.id);
     onClick(notification);
@@ -130,8 +136,8 @@ function NotificationItem({
         aria-checked={selected}
         aria-label={
           selected
-            ? `Deselect notification: ${notification.title}`
-            : `Select notification: ${notification.title}`
+            ? `${t("notifications.deselectNotification").replace("{title}", notification.title)}`
+            : `${t("notifications.selectNotification").replace("{title}", notification.title)}`
         }
         onClick={(e) => {
           e.stopPropagation();
@@ -186,8 +192,8 @@ function NotificationItem({
             </p>
             <span className="shrink-0 text-[11px] text-muted-foreground font-body">
               {notification.sentAt
-                ? formatRelativeTime(notification.sentAt)
-                : formatRelativeTime(notification.createdAt)}
+                ? formatRelativeTimeLocalized(notification.sentAt, dateFnsLocale)
+                : formatRelativeTimeLocalized(notification.createdAt, dateFnsLocale)}
             </span>
           </div>
           {notification.body && (
@@ -197,7 +203,7 @@ function NotificationItem({
           )}
           {link && (
             <span className="mt-1 inline-block text-xs gradient-text font-body">
-              View details &rarr;
+              {t("notifications.viewDetails")} &rarr;
             </span>
           )}
         </div>
@@ -209,6 +215,7 @@ function NotificationItem({
 export default function NotificationsPage() {
   const router = useRouter();
   const addToast = useUIStore((s) => s.addToast);
+  const { t } = useTranslate();
   const {
     notifications,
     isLoading,
@@ -216,6 +223,9 @@ export default function NotificationsPage() {
     markAllAsRead,
     fetchNotifications,
   } = useNotifications();
+  // Read WS connection state from the global WsProvider context — no new
+  // connection is created here; WsProvider already handles the events.
+  const { connectionState } = useWsState();
   const [filter, setFilter] = useState("all");
   const [typeFilter, setTypeFilter] = useState("all");
   const [markingAll, setMarkingAll] = useState(false);
@@ -297,13 +307,13 @@ export default function NotificationsPage() {
       );
       addToast({
         type: "success",
-        title: "Archived",
-        description: `${selectedIds.size} notification(s) archived.`,
+        title: t("notifications.archived"),
+        description: t("notifications.archiveSuccess").replace("{count}", String(selectedIds.size)),
       });
       setSelectedIds(new Set());
       fetchNotifications();
     } catch {
-      addToast({ type: "error", title: "Archive failed" });
+      addToast({ type: "error", title: t("notifications.archiveFailed") });
     } finally {
       setArchiving(false);
     }
@@ -334,21 +344,24 @@ export default function NotificationsPage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Notifications"
-        description="Stay updated with your circle activity, payouts, and system alerts."
+        title={t("notifications.title")}
+        description={t("notifications.desc")}
         action={
-          unreadCount > 0 && (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleMarkAllRead}
-              isLoading={markingAll}
-              leftIcon={<CheckCheck className="h-4 w-4" />}
-              className="glass-whisper"
-            >
-              Mark All Read
-            </Button>
-          )
+          <div className="flex items-center gap-3">
+            <LiveIndicator connectionState={connectionState} />
+            {unreadCount > 0 && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleMarkAllRead}
+                isLoading={markingAll}
+                leftIcon={<CheckCheck className="h-4 w-4" />}
+                className="glass-whisper"
+              >
+                {t("notifications.markAllRead")}
+              </Button>
+            )}
+          </div>
         }
       />
 
@@ -357,7 +370,7 @@ export default function NotificationsPage() {
         <Tabs defaultValue="all" onValueChange={setFilter}>
           <TabsList className="inline-flex gap-1 glass rounded-xl p-1">
             <TabsTrigger value="all" className="rounded-lg text-sm font-body">
-              All
+              {t("notifications.all")}
               {notifications.length > 0 && (
                 <span className="ml-1.5 inline-flex h-5 min-w-[20px] items-center justify-center rounded-full bg-white/10 px-1.5 text-xs text-muted-foreground">
                   {notifications.length}
@@ -368,7 +381,7 @@ export default function NotificationsPage() {
               value="unread"
               className="rounded-lg text-sm font-body"
             >
-              Unread
+              {t("notifications.unread")}
               {unreadCount > 0 && (
                 <span className="ml-1.5 inline-flex h-5 min-w-[20px] items-center justify-center rounded-full bg-aurora-cyan/20 px-1.5 text-xs text-aurora-cyan animate-pulse-glow">
                   {unreadCount}
@@ -403,7 +416,7 @@ export default function NotificationsPage() {
               size="sm"
               className="glass-whisper text-xs"
             >
-              Archive
+              {t("notifications.archive")}
             </Button>
           </Link>
         </div>
@@ -425,18 +438,18 @@ export default function NotificationsPage() {
             }
             aria-label={
               selectedIds.size === filteredNotifications.length
-                ? "Deselect all notifications"
-                : "Select all notifications"
+                ? t("notifications.deselectAll")
+                : t("notifications.selectAll")
             }
             onClick={toggleSelectAll}
             className="text-xs text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-aurora-violet/50 rounded"
           >
             {selectedIds.size === filteredNotifications.length
-              ? "Deselect all"
-              : "Select all"}
+              ? t("notifications.deselectAll")
+              : t("notifications.selectAll")}
           </button>
           <span className="text-xs text-muted-foreground">
-            {selectedIds.size} selected
+            {selectedIds.size} {t("notifications.archiveSelected").toLowerCase().includes("selected") ? "selected" : "selected"}
           </span>
           <Button
             variant="outline"
@@ -446,7 +459,7 @@ export default function NotificationsPage() {
             leftIcon={<Archive className="h-3.5 w-3.5" />}
             className="ml-auto"
           >
-            Archive Selected
+            {t("notifications.archiveSelected")}
           </Button>
         </div>
       )}

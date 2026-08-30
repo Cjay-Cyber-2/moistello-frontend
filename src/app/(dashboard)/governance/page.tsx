@@ -5,6 +5,7 @@ import { useState } from "react"
 import { ArrowRight, Landmark, Plus } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useGovernanceProposals } from "@/hooks/use-governance"
+import { useTranslate } from "@/lib/locale/context"
 import type { ProposalStatus } from "@/lib/governance-api"
 
 const tabs: ProposalStatus[] = ["active", "passed", "defeated"]
@@ -12,6 +13,7 @@ const tabs: ProposalStatus[] = ["active", "passed", "defeated"]
 export default function GovernancePage() {
   const [status, setStatus] = useState<ProposalStatus>("active")
   const { data: proposals = [], isError } = useGovernanceProposals(status)
+  const { t } = useTranslate()
 
   return (
     <div className="relative overflow-hidden">
@@ -20,17 +22,17 @@ export default function GovernancePage() {
       </div>
       <header className="relative border-l-4 border-l-aurora-violet py-3 pl-6">
         <p className="font-mono text-xs uppercase tracking-[0.3em] text-aurora-violet">
-          Community control
+          {t("gov.communityControl")}
         </p>
         <div className="mt-2 flex flex-wrap items-end justify-between gap-4">
           <div>
-            <h1 className="font-heading text-4xl font-bold text-foreground">Governance</h1>
+            <h1 className="font-heading text-4xl font-bold text-foreground">{t("gov.title")}</h1>
             <p className="mt-2 max-w-xl text-muted-foreground">
-              Propose and vote on changes executed through the governance contract.
+              {t("gov.desc")}
             </p>
           </div>
           <Link href="/governance/create">
-            <Button leftIcon={<Plus className="h-4 w-4" />}>Create proposal</Button>
+            <Button leftIcon={<Plus className="h-4 w-4" />}>{t("gov.createProposal")}</Button>
           </Link>
         </div>
       </header>
@@ -54,7 +56,7 @@ export default function GovernancePage() {
 
       {isError && (
         <p role="alert" className="mt-8 text-red-400">
-          Governance proposals could not be loaded. Try again.
+          {t("gov.loadError")}
         </p>
       )}
       <ol className="relative mt-8 space-y-8 border-l border-dashed border-aurora-violet/40 pl-8">
@@ -86,7 +88,7 @@ export default function GovernancePage() {
       {!isError && proposals.length === 0 && (
         <div className="mt-12 flex items-center gap-4 border-y border-white/10 py-8 text-muted-foreground">
           <Landmark className="h-8 w-8 text-aurora-violet" />
-          No {status} proposals yet.
+          {t("gov.noProposals").replace("{status}", status)}
         </div>
       )}
     </div>

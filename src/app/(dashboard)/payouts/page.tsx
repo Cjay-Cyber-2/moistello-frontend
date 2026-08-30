@@ -15,14 +15,16 @@ import {
 } from "lucide-react"
 import { useQuery } from "@tanstack/react-query"
 import { get } from "@/lib/api-client"
-import { usePayouts } from "@/hooks/use-payouts"
+import { useLivePayouts } from "@/hooks/use-live-payouts"
 import { PageHeader } from "@/components/shared/page-header"
 import { EmptyState } from "@/components/shared/empty-state"
 import { LiveRegion } from "@/components/shared/live-region"
+import { LiveIndicator } from "@/components/shared/live-indicator"
 import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
 import { formatCurrency, formatDate, formatAddress } from "@/lib/formatters"
 import { cn } from "@/lib/cn"
+import { useTranslate } from "@/lib/locale/context"
 import type { ApiResponse, Circle } from "@/types"
 import { getCurrentPagePayoutTotal } from "./payout-summary"
 import { DataTable, type DataTableColumn } from "@/components/shared/data-table"
@@ -86,6 +88,7 @@ function SummaryCard({
 }
 
 export default function PayoutsPage() {
+  const { t } = useTranslate()
   const [page, setPage] = useState(1)
   const [sortBy, setSortBy] = useState<"createdAt" | "amount" | "roundNumber">("createdAt")
   const [sortDir, setSortDir] = useState<"asc" | "desc">("desc")
@@ -95,7 +98,7 @@ export default function PayoutsPage() {
   const [dateTo, setDateTo] = useState("")
   const limit = 20
 
-  const { data, isLoading, isError } = usePayouts({
+  const { data, isLoading, isError, connectionState } = useLivePayouts({
     page,
     limit,
     sortBy,
@@ -121,26 +124,26 @@ export default function PayoutsPage() {
   const hasPrev = page > 1
 
   const currentPageTotal = getCurrentPagePayoutTotal(payouts)
-  const getCircleName = (circleId: string): string =>
-    circles.find((c) => c.id === circleId)?.name ?? "Unknown"
+  const getCircleName = (id: string): string =>
+    circles.find((c) => c.id === id)?.name ?? "Unknown"
 
   const payoutColumns: DataTableColumn<(typeof payouts)[number]>[] = [
-    { id: "circle", header: "Circle", cell: (payout) => <Link href={`/circles/${payout.circleId}`} className="font-medium text-foreground hover:underline">{getCircleName(payout.circleId)}</Link> },
-    { id: "round", header: "Round", accessor: (payout) => payout.roundNumber, sortable: true, cell: (payout) => <span className="font-mono">#{payout.roundNumber}</span> },
-    { id: "amount", header: "Amount", accessor: (payout) => payout.amount, sortable: true, cell: (payout) => <span className="font-bold text-emerald-400">+{formatCurrency(payout.amount, "USDC")}</span> },
-    { id: "fee", header: "Fee", cell: (payout) => payout.feeAmount != null && payout.feeAmount > 0 ? formatCurrency(payout.feeAmount, "USDC") : "—" },
-    { id: "date", header: "Date", accessor: (payout) => payout.createdAt, sortable: true, cell: (payout) => formatDate(payout.createdAt) },
-    { id: "transaction", header: "Transaction", cell: (payout) => payout.txnHash ? <TransactionLink hash={payout.txnHash} /> : "—" },
+    { id: "circle", header: t("payouts.colCircle"), cell: (payout) => <Link href={`/circles/${payout.circleId}`} className="font-medium text-foreground hover:underline">{getCircleName(payout.circleId)}</Link> },
+    { id: "round", header: t("payouts.colRound"), accessor: (payout) => payout.roundNumber, sortable: true, cell: (payout) => <span className="font-mono">#{payout.roundNumber}</span> },
+    { id: "amount", header: t("payouts.colAmount"), accessor: (payout) => payout.amount, sortable: true, cell: (payout) => <span className="font-bold text-emerald-400">+{formatCurrency(payout.amount, "USDC")}</span> },
+    { id: "fee", header: t("payouts.colFee"), cell: (payout) => payout.feeAmount != null && payout.feeAmount > 0 ? formatCurrency(payout.feeAmount, "USDC") : "—" },
+    { id: "date", header: t("payouts.colDate"), accessor: (payout) => payout.createdAt, sortable: true, cell: (payout) => formatDate(payout.createdAt) },
+    { id: "transaction", header: t("payouts.colTransaction"), cell: (payout) => payout.txnHash ? <TransactionLink hash={payout.txnHash} /> : "—" },
   ]
 
   // ── Meaningful status announcements for assistive tech ──
   const statusMessage = useMemo(() => {
-    if (isLoading) return "Loading payouts…"
-    if (isError) return "Failed to load payouts. Please try again later."
-    if (payouts.length === 0) return "No payouts received yet."
-    const pageInfo = meta ? ` (page ${meta.page} of ${meta.totalPages})` : ""
-    return `Loaded ${payouts.length} payout${payouts.length === 1 ? "" : "s"}${pageInfo}.`
-  }, [isLoading, isError, payouts.length, meta])
+    if (isLoading) return t("payouts.loadingAria")
+    if (isError) return t("payouts.errorDesc")
+    if (payouts.length === 0) return t("payouts.emptyTitle")
+    const pageInfo = meta ? ` (${t("payouts.page")} ${meta.page} ${t("payouts.of")} ${meta.totalPages})` : ""
+    return `${payouts.length === 1 ? t("payouts.loadedOnePayout") : `${payouts.length} ${t("payouts.payoutsCount")}.`}${pageInfo}`
+  }, [isLoading, isError, payouts.length, meta, t])
 
   const resetPage = <T,>(setter: (value: T) => void, value: T) => {
     setter(value)
@@ -160,20 +163,23 @@ export default function PayoutsPage() {
   return (
     <div className="space-y-6">
       <LiveRegion message={statusMessage} />
-      <PageHeader
-        title="Payouts Received"
-        description="Track the payouts you've received from your savings circles."
-      />
+      <div className="flex items-start justify-between gap-4 flex-wrap">
+        <PageHeader
+          title={t("payouts.title")}
+          description={t("payouts.desc")}
+        />
+        <LiveIndicator connectionState={connectionState} className="mt-1" />
+      </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <SummaryCard
-          label="Total on This Page"
+          label={t("payouts.totalOnPage")}
           value={formatCurrency(currentPageTotal, "USDC")}
           icon={<DollarSign className="h-6 w-6" />}
           gradient="from-emerald-500 to-aurora-cyan"
         />
         <SummaryCard
-          label="Number of Payouts"
+          label={t("payouts.numberOfPayouts")}
           value={String(meta?.total ?? payouts.length)}
           icon={<TrendingUp className="h-6 w-6" />}
           gradient="from-aurora-indigo to-aurora-violet"
@@ -182,13 +188,13 @@ export default function PayoutsPage() {
 
       <div className="glass rounded-2xl p-4 grid grid-cols-1 md:grid-cols-5 gap-3">
         <label className="space-y-1 text-xs font-heading tracking-wider uppercase text-muted-foreground">
-          Circle
+          {t("payouts.filterCircle")}
           <select
             value={circleId}
             onChange={(event) => resetPage(setCircleId, event.target.value)}
             className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm normal-case text-foreground"
           >
-            <option value="">All circles</option>
+            <option value="">{t("payouts.allCircles")}</option>
             {circles.map((circle) => (
               <option key={circle.id} value={circle.id}>
                 {circle.name}
@@ -197,21 +203,21 @@ export default function PayoutsPage() {
           </select>
         </label>
         <label className="space-y-1 text-xs font-heading tracking-wider uppercase text-muted-foreground">
-          Type
+          {t("payouts.filterType")}
           <select
             value={payoutType}
             onChange={(event) => resetPage(setPayoutType, event.target.value)}
             className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm normal-case text-foreground"
           >
-            <option value="all">All types</option>
-            <option value="fixed">Fixed</option>
-            <option value="random">Random</option>
-            <option value="auction">Auction</option>
-            <option value="vote">Vote</option>
+            <option value="all">{t("payouts.allTypes")}</option>
+            <option value="fixed">{t("payouts.typeFixed")}</option>
+            <option value="random">{t("payouts.typeRandom")}</option>
+            <option value="auction">{t("payouts.typeAuction")}</option>
+            <option value="vote">{t("payouts.typeVote")}</option>
           </select>
         </label>
         <label className="space-y-1 text-xs font-heading tracking-wider uppercase text-muted-foreground">
-          From
+          {t("payouts.filterFrom")}
           <input
             type="date"
             value={dateFrom}
@@ -220,7 +226,7 @@ export default function PayoutsPage() {
           />
         </label>
         <label className="space-y-1 text-xs font-heading tracking-wider uppercase text-muted-foreground">
-          To
+          {t("payouts.filterTo")}
           <input
             type="date"
             value={dateTo}
@@ -241,7 +247,7 @@ export default function PayoutsPage() {
             setPage(1)
           }}
         >
-          Reset
+          {t("payouts.reset")}
         </Button>
       </div>
 
@@ -263,33 +269,33 @@ export default function PayoutsPage() {
       ) : isError ? (
         <EmptyState
           icon={<AlertCircle className="h-6 w-6" />}
-          title="Failed to load payouts"
-          description="Something went wrong. Please try again later."
+          title={t("payouts.errorTitle")}
+          description={t("payouts.errorDesc")}
         />
       ) : payouts.length === 0 ? (
         <EmptyState
           icon={<ArrowDownCircle className="h-6 w-6" />}
-          title="No payouts received yet"
-          description="You'll receive payouts when it's your turn in a savings circle."
+          title={t("payouts.emptyTitle")}
+          description={t("payouts.emptyDesc")}
           action={{
-            label: "Browse Circles",
+            label: t("payouts.browseCircles"),
             onClick: () => (window.location.href = "/circles"),
           }}
         />
       ) : (
         <div className="glass-premium rounded-2xl overflow-hidden holo-border">
-          <DataTable data={payouts} columns={payoutColumns} getRowId={(payout) => payout.id} caption="Payout history" />
+          <DataTable data={payouts} columns={payoutColumns} getRowId={(payout) => payout.id} caption={t("payouts.caption")} />
           <div className="hidden">
           <div className="hidden md:flex items-center gap-4 border-b border-border glass-strong px-5 py-3">
             <div className="flex-1 text-2xs font-heading tracking-wider uppercase text-muted-foreground">
-              Circle
+              {t("payouts.colCircle")}
             </div>
             <button
               type="button"
               onClick={() => toggleSort("roundNumber")}
               className="w-16 inline-flex items-center gap-1 text-left text-2xs font-heading tracking-wider uppercase text-muted-foreground"
             >
-              Round
+              {t("payouts.colRound")}
               <ArrowUpDown className="h-3 w-3" />
             </button>
             <button
@@ -297,22 +303,22 @@ export default function PayoutsPage() {
               onClick={() => toggleSort("amount")}
               className="w-28 inline-flex items-center gap-1 text-left text-2xs font-heading tracking-wider uppercase text-muted-foreground"
             >
-              Amount
+              {t("payouts.colAmount")}
               <ArrowUpDown className="h-3 w-3" />
             </button>
             <div className="w-24 text-2xs font-heading tracking-wider uppercase text-muted-foreground">
-              Fee
+              {t("payouts.colFee")}
             </div>
             <button
               type="button"
               onClick={() => toggleSort("createdAt")}
               className="w-28 inline-flex items-center gap-1 text-left text-2xs font-heading tracking-wider uppercase text-muted-foreground"
             >
-              Date
+              {t("payouts.colDate")}
               <ArrowUpDown className="h-3 w-3" />
             </button>
             <div className="w-36 text-2xs font-heading tracking-wider uppercase text-muted-foreground">
-              Transaction
+              {t("payouts.colTransaction")}
             </div>
           </div>
 
@@ -367,7 +373,7 @@ export default function PayoutsPage() {
       {meta && meta.totalPages > 1 && (
         <div className="flex items-center justify-between">
           <p className="text-sm text-muted-foreground font-body">
-            Page {meta.page} of {meta.totalPages} ({meta.total} payouts)
+            {t("payouts.page")} {meta.page} {t("payouts.of")} {meta.totalPages} ({meta.total} {t("payouts.payoutsCount")})
           </p>
           <div className="flex items-center gap-2">
             <Button
@@ -377,7 +383,7 @@ export default function PayoutsPage() {
               onClick={() => setPage((p) => Math.max(1, p - 1))}
               leftIcon={<ChevronLeft className="h-4 w-4" />}
             >
-              Previous
+              {t("payouts.previous")}
             </Button>
             <Button
               variant="outline"
@@ -386,7 +392,7 @@ export default function PayoutsPage() {
               onClick={() => setPage((p) => p + 1)}
               rightIcon={<ChevronRight className="h-4 w-4" />}
             >
-              Next
+              {t("payouts.next")}
             </Button>
           </div>
         </div>
