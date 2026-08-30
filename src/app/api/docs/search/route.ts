@@ -1,6 +1,10 @@
 import { NextRequest, NextResponse } from "next/server"
 import fs from "fs"
 import path from "path"
+import {
+  searchDocs,
+  type DocPage,
+} from "@/lib/docs/search-utils"
 
 const DOCS_DIR = path.join(process.cwd(), "content/docs")
 
@@ -47,50 +51,24 @@ function loadAllDocs(): DocEntry[] {
   return entries
 }
 
-const staticPages = [
-  { slug: "faq", title: "FAQ", content: "passkey auth auto wallet stellar USDC zero fees MoiScore reputation savings circles ROSCA how to join create circle contribute payout" },
-  { slug: "how-it-works", title: "How It Works", content: "sign in with passkey Face ID fingerprint create circle join contribute receive payout build reputation MoiScore start saving" },
-  { slug: "about", title: "About", content: "mission financial inclusion Stellar blockchain open source passkey wallet no email no KYC" },
-  { slug: "developers", title: "Developers", content: "API passkey auth circles contributions payouts reputation endpoints smart contracts Soroban Stellar" },
-  { slug: "support", title: "Support", content: "help ticket support contact passkey wallet circle payment withdrawal" },
+const staticPages: DocPage[] = [
+  { slug: "faq", title: "FAQ", source: "page", content: "passkey auth auto wallet stellar USDC zero fees MoiScore reputation savings circles ROSCA how to join create circle contribute payout" },
+  { slug: "how-it-works", title: "How It Works", source: "page", content: "sign in with passkey Face ID fingerprint create circle join contribute receive payout build reputation MoiScore start saving" },
+  { slug: "about", title: "About", source: "page", content: "mission financial inclusion Stellar blockchain open source passkey wallet no email no KYC" },
+  { slug: "developers", title: "Developers", source: "page", content: "API passkey auth circles contributions payouts reputation endpoints smart contracts Soroban Stellar" },
+  { slug: "support", title: "Support", source: "page", content: "help ticket support contact passkey wallet circle payment withdrawal" },
 ]
 
 export async function GET(request: NextRequest) {
-  const query = request.nextUrl.searchParams.get("q")?.toLowerCase().trim()
-  if (!query) {
-    return NextResponse.json({ results: [] })
-  }
+  const query = request.nextUrl.searchParams.get("q")?.trim() ?? ""
 
-  const docs = loadAllDocs()
-  const allPages = [
-    ...docs.map(d => ({ ...d, source: "docs" as const })),
-    ...staticPages.map(p => ({ ...p, source: "page" as const })),
-  ]
+  const docs: DocPage[] = loadAllDocs().map(d => ({
+    ...d,
+    source: "docs" as const,
+  }))
 
-  const terms = query.split(/\s+/).filter(Boolean)
+  const pages = [...docs, ...staticPages]
+  const results = searchDocs(pages, query)
 
-  const scored = allPages.map(page => {
-    const searchText = `${page.title} ${page.content}`.toLowerCase()
-    let score = 0
-
-    for (const term of terms) {
-      const count = (searchText.match(new RegExp(term.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "g")) || []).length
-      score += count
-      if (page.title.toLowerCase().includes(term)) score += 5
-    }
-
-    return { ...page, score }
-  })
-
-  const results = scored
-    .filter(p => p.score > 0)
-    .sort((a, b) => b.score - a.score)
-    .slice(0, 10)
-    .map(({ title, slug, source, score }) => ({
-      title,
-      href: source === "docs" ? `/docs/${slug === "index" ? "" : slug}` : `/${slug}`,
-      score,
-    }))
-
-  return NextResponse.json({ results })
+  return NextResponse.json({ results, query })
 }

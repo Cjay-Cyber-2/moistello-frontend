@@ -1,36 +1,54 @@
 "use client"
 
-import { useState } from "react"
+import { useMemo, useState } from "react"
 import Link from "next/link"
+import { escapeRegExp } from "@/lib/docs/search-utils"
 
 interface SearchResult {
   title: string
   href: string
+  snippet?: string
 }
+
+type SearchState =
+  | { status: "idle" }
+  | { status: "loading" }
+  | { status: "error" }
+  | { status: "done"; results: SearchResult[]; query: string }
 
 export function SearchForm() {
   const [searchQuery, setSearchQuery] = useState("")
-  const [searchResults, setSearchResults] = useState<SearchResult[] | null>(null)
-  const [searching, setSearching] = useState(false)
+  const [state, setState] = useState<SearchState>({ status: "idle" })
+
+  const terms = useMemo(
+    () => searchQuery.trim().split(/\s+/).filter(Boolean),
+    [searchQuery]
+  )
 
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!searchQuery.trim()) {
-      setSearchResults(null)
+    const q = searchQuery.trim()
+    if (!q) {
+      setState({ status: "idle" })
       return
     }
 
-    setSearching(true)
+    setState({ status: "loading" })
     try {
-      const res = await fetch(`/api/docs/search?q=${encodeURIComponent(searchQuery.trim())}`)
+      const res = await fetch(`/api/docs/search?q=${encodeURIComponent(q)}`)
+      if (!res.ok) throw new Error(`HTTP ${res.status}`)
       const data = await res.json()
-      setSearchResults(data.results.length > 0 ? data.results : [])
-    } catch (e) {
-      console.warn("[search] Failed to search docs:", e)
-      setSearchResults([])
-    } finally {
-      setSearching(false)
+      const results: SearchResult[] = data.results ?? []
+      setState({ status: "done", results, query: q })
+    } catch (err) {
+      console.warn("[search] Failed to search docs:", err)
+      setState({ status: "error" })
     }
+  }
+
+  const clearResults = () => {
+    setSearchQuery("")
+    setState({ status: "idle" })
   }
 
   return (
@@ -43,42 +61,74 @@ export function SearchForm() {
             value={searchQuery}
             onChange={(e) => {
               setSearchQuery(e.target.value)
-              if (!e.target.value) setSearchResults(null)
+              if (!e.target.value) setState({ status: "idle" })
             }}
             placeholder="Search docs, FAQ, how-to guides..."
+            aria-label="Search the documentation"
             className="w-full h-14 pl-12 pr-4 rounded-2xl bg-white/5 border border-white/10 text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-2 focus:ring-aurora-violet/50 focus:border-aurora-violet/40 text-base transition-all"
           />
         </div>
+        {state.status !== "idle" && (
+          <span
+            className="sr-only"
+            role="status"
+            aria-live="polite"
+          >
+            {state.status === "loading"
+              ? "Searching documentation"
+              : state.status === "done"
+              ? `${state.results.length} result${state.results.length === 1 ? "" : "s"} for ${state.query}`
+              : "Search failed"}
+          </span>
+        )}
       </form>
 
-      {searching && (
+      {state.status === "loading" && (
         <div className="mt-4 text-center">
           <p className="text-sm text-muted-foreground">Searching...</p>
         </div>
       )}
 
-      {!searching && searchResults !== null && (
+      {state.status === "error" && (
+        <div className="mt-4 max-w-lg mx-auto text-left" role="alert">
+          <p className="text-sm text-amber-400 bg-amber-500/10 border border-amber-500/30 rounded-xl px-4 py-3">
+            Searching is temporarily unavailable. Please try again in a moment
+            or submit a ticket.
+          </p>
+        </div>
+      )}
+
+      {state.status === "done" && (
         <div className="mt-4 max-w-lg mx-auto text-left">
-          {searchResults.length === 0 ? (
+          {state.results.length === 0 ? (
             <p className="text-sm text-muted-foreground bg-white/5 rounded-xl px-4 py-3">
-              No results found. Try a different term or submit a ticket.
+              No results found for “{state.query}”. Try a different term or
+              submit a ticket.
             </p>
           ) : (
             <div className="space-y-2">
-              {searchResults.map((result, i) => (
+              <p className="text-2xs uppercase tracking-wider text-muted-foreground/70">
+                {state.results.length} result{state.results.length === 1 ? "" : "s"}
+              </p>
+              {state.results.map((result, i) => (
                 <Link
                   key={`${result.href}-${i}`}
                   href={result.href}
-                  className="flex items-center gap-3 bg-white/5 hover:bg-white/10 rounded-xl px-4 py-3 transition-colors group"
+                  className="flex items-start gap-3 bg-white/5 hover:bg-white/10 rounded-xl px-4 py-3 transition-colors group"
                 >
                   <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-aurora-violet/10 text-aurora-violet shrink-0">
                     <LinkIcon />
                   </span>
                   <div className="flex-1 min-w-0 text-left">
                     <p className="text-sm font-medium text-foreground">
-                      {result.title}
+                      <Highlight text={result.title} terms={terms} />
                     </p>
-                    <p className="text-xs text-muted-foreground truncate">
+                    {result.snippet && (
+                      <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">
+                        <Highlight text={result.snippet} terms={terms} />
+                      </p>
+                    )}
+                    <p className="text-xs text-muted-foreground/60 truncate mt-0.5">
                       {result.href}
                     </p>
                   </div>
@@ -90,6 +140,34 @@ export function SearchForm() {
         </div>
       )}
     </div>
+  )
+}
+
+/** Wrap every query-term occurrence in a <mark>, case-insensitively. */
+function Highlight({ text, terms }: { text: string; terms: string[] }) {
+  const active = terms.filter((t) => t.length > 0)
+  if (active.length === 0) return <>{text}</>
+
+  const pattern = active.map((t) => escapeRegExp(t)).join("|")
+  const parts = text.split(new RegExp(`(${pattern})`, "ig"))
+
+  return (
+    <>
+      {parts.map((part, i) =>
+        active.some(
+          (t) => part.toLowerCase() === t.toLowerCase()
+        ) ? (
+          <mark
+            key={i}
+            className="bg-aurora-violet/30 text-foreground rounded px-0.5"
+          >
+            {part}
+          </mark>
+        ) : (
+          <span key={i}>{part}</span>
+        )
+      )}
+    </>
   )
 }
 
