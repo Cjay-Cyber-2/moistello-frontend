@@ -1,4 +1,4 @@
-"use client";
+"client";
 
 import React, { useEffect, useState, useCallback, useMemo } from "react";
 import { useRouter } from "next/navigation";
@@ -159,18 +159,17 @@ function NotificationItem({
       >
         <div className="relative flex h-10 w-10 shrink-0 items-center justify-center">
           {isUnread &&
-            // layout animations are expensive on large lists; only enable when under threshold
             (!largeList ? (
               <motion.span
                 layoutId="unread-dot"
                 className="absolute -left-1.5 top-1/2 -translate-y-1/2 h-2 w-2 rounded-full bg-aurora-cyan animate-pulse"
               />
             ) : (
-              <span className="absolute -left-1.5 top-1/2 -translate-y-1/2 h-2 w-2 rounded-full bg-aurora-cyan" />
+              <span className="absolute -left-1.5 top-1/2 -translate-y-1/2 h-2 w-2 rounded-full bg-aurora-cyan animate-pulse" />
             ))}
           <div
             className={cn(
-              "flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br",
+              "flex h-10 w-10 items-center justify-center rounded-2xl bg-gradient-to-br shadow-sm",
               grad,
             )}
           >
@@ -178,34 +177,37 @@ function NotificationItem({
           </div>
         </div>
 
-        <div className="min-w-0 flex-1">
-          <div className="flex items-center justify-between gap-2">
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2">
             <p
               className={cn(
-                "text-sm truncate font-body",
+                "text-sm truncate",
                 isUnread
-                  ? "font-semibold text-foreground dark:text-white"
+                  ? "font-semibold text-foreground"
                   : "font-medium text-muted-foreground",
               )}
             >
               {notification.title}
             </p>
-            <span className="shrink-0 text-[11px] text-muted-foreground font-body">
-              {notification.sentAt
-                ? formatRelativeTimeLocalized(notification.sentAt, dateFnsLocale)
-                : formatRelativeTimeLocalized(notification.createdAt, dateFnsLocale)}
-            </span>
           </div>
           {notification.body && (
-            <p className="mt-0.5 text-sm text-muted-foreground line-clamp-2 font-body">
+            <p className="text-xs text-muted-foreground/80 mt-0.5 line-clamp-2">
               {notification.body}
             </p>
           )}
-          {link && (
-            <span className="mt-1 inline-block text-xs gradient-text font-body">
-              {t("notifications.viewDetails")} &rarr;
+          <div className="flex items-center gap-3 mt-1.5">
+            <span className="text-[11px] text-muted-foreground/60 font-mono">
+              {formatRelativeTimeLocalized(
+                notification.sentAt ?? notification.createdAt,
+                dateFnsLocale,
+              )}
             </span>
-          )}
+            {link && (
+              <span className="text-[11px] text-aurora-violet font-medium hover:underline">
+                {t("common.viewDetails")} &rarr;
+              </span>
+            )}
+          </div>
         </div>
       </button>
     </motion.div>
@@ -214,176 +216,126 @@ function NotificationItem({
 
 export default function NotificationsPage() {
   const router = useRouter();
-  const addToast = useUIStore((s) => s.addToast);
   const { t } = useTranslate();
-  const {
-    notifications,
-    isLoading,
-    markAsRead,
-    markAllAsRead,
-    fetchNotifications,
-  } = useNotifications();
-  // Read WS connection state from the global WsProvider context — no new
-  // connection is created here; WsProvider already handles the events.
-  const { connectionState } = useWsState();
-  const [filter, setFilter] = useState("all");
+  const addToast = useUIStore((s) => s.addToast);
+  const { notifications, unreadCount, isLoading, markAsRead, markAllAsRead, fetchNotifications } = useNotifications();
+  const wsState = useWsState();
+
+  const [activeTab, setActiveTab] = useState("all");
   const [typeFilter, setTypeFilter] = useState("all");
-  const [markingAll, setMarkingAll] = useState(false);
-  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
-  const [archiving, setArchiving] = useState(false);
+  const [groupBy, setGroupBy] = useState<"none" | "type" | "day">("none");
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
 
-  const handleNotificationClick = useCallback(
-    (notification: Notification) => {
-      const link =
-        notification.data &&
-        typeof notification.data === "object" &&
-        "link" in notification.data
-          ? String(notification.data.link)
-          : null;
-      if (link) router.push(link);
-    },
-    [router],
-  );
-
-  const handleMarkAllRead = async () => {
-    setMarkingAll(true);
-    try {
-      await markAllAsRead();
-    } finally {
-      setMarkingAll(false);
+  const filtered = useMemo(() => {
+    let res = filterNotifications(notifications, typeFilter);
+    if (activeTab === "unread") {
+      res = res.filter((n) => !n.isRead);
     }
-  };
+    return res;
+  }, [notifications, typeFilter, activeTab]);
 
-  // Compute filtered notifications first — shared implementation lives in
-  // @/lib/notifications so the page and any future consumer stay in sync.
-  const filteredNotifications = useMemo(() => {
-    const start = typeof performance !== "undefined" ? performance.now() : 0;
-    const result = filterNotifications(
-      notifications,
-      filter as "all" | "unread",
-      typeFilter
+  const largeList = filtered.length > STAGGER_CHILDREN_LIMIT;
+  const listMotion = useListMotion(largeList);
+
+  const handleToggleSelect = useCallback((id: string) => {
+    setSelectedIds((prev) =>
+      prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id]
     );
-    const end = typeof performance !== "undefined" ? performance.now() : 0;
-    if (notifications.length > 200) {
-      // lightweight measurement to help diagnose filter perf on large lists
-      // eslint-disable-next-line no-console
-      console.log(
-        `[perf] filtered ${notifications.length} -> ${result.length} in ${Math.max(0, end - start).toFixed(1)}ms`,
-      );
-    }
-    return result;
-  }, [notifications, filter, typeFilter]);
+  }, []);
 
-  // Group notifications by type category
-  const groupedNotifications = useMemo(
-    () => groupNotificationsByType(filteredNotifications),
-    [filteredNotifications]
-  );
-
-  const toggleSelect = (id: string) => {
-    setSelectedIds((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
-      return next;
-    });
-  };
-
-  const toggleSelectAll = () => {
-    if (selectedIds.size === filteredNotifications.length) {
-      setSelectedIds(new Set());
+  const handleSelectAll = useCallback(() => {
+    if (selectedIds.length === filtered.length) {
+      setSelectedIds([]);
     } else {
-      setSelectedIds(new Set(filteredNotifications.map((n) => n.id)));
+      setSelectedIds(filtered.map((n) => n.id));
     }
-  };
+  }, [selectedIds.length, filtered]);
 
-  const handleBulkArchive = async () => {
-    setArchiving(true);
+  const handleBulkMarkRead = useCallback(async () => {
     try {
-      await Promise.all(
-        Array.from(selectedIds).map((id) =>
-          patch(`/notifications/${id}/read`).catch(() => {}),
-        ),
-      );
-      addToast({
-        type: "success",
-        title: t("notifications.archived"),
-        description: t("notifications.archiveSuccess").replace("{count}", String(selectedIds.size)),
-      });
-      setSelectedIds(new Set());
-      fetchNotifications();
+      await Promise.all(selectedIds.map((id) => markAsRead(id)));
+      setSelectedIds([]);
+      addToast({ type: "success", title: "Marked selected as read" });
     } catch {
-      addToast({ type: "error", title: t("notifications.archiveFailed") });
-    } finally {
-      setArchiving(false);
+      addToast({ type: "error", title: "Failed to mark selected as read" });
     }
-  };
+  }, [selectedIds, markAsRead, addToast]);
 
-  const unreadCount = notifications.filter((n) => !n.isRead).length;
+  const handleBulkArchive = useCallback(async () => {
+    try {
+      await Promise.all(selectedIds.map((id) => markAsRead(id)));
+      setSelectedIds([]);
+      addToast({ type: "success", title: "Archived selected notifications" });
+    } catch {
+      addToast({ type: "error", title: "Failed to archive selected" });
+    }
+  }, [selectedIds, markAsRead, addToast]);
 
-  const totalFiltered = filteredNotifications.length;
-  const { shouldReduce, variants } = useListMotion(totalFiltered);
+  const grouped = useMemo(() => {
+    if (groupBy === "type") {
+      const map: Record<string, Notification[]> = {};
+      for (const n of filtered) {
+        const key = n.type || "system";
+        if (!map[key]) map[key] = [];
+        map[key].push(n);
+      }
+      return Object.entries(map).map(([key, items]) => ({
+        key,
+        label: key.replace(/_/g, " ").toUpperCase(),
+        items,
+      }));
+    }
+    if (groupBy === "day") {
+      const map: Record<string, Notification[]> = {};
+      for (const n of filtered) {
+        const dateStr = (n.sentAt || n.createdAt).split("T")[0];
+        if (!map[dateStr]) map[dateStr] = [];
+        map[dateStr].push(n);
+      }
+      return Object.entries(map).map(([key, items]) => ({
+        key,
+        label: key,
+        items,
+      }));
+    }
+    return [{ key: "all", label: "All", items: filtered }];
+  }, [filtered, groupBy]);
 
-  useEffect(() => {
-    if (totalFiltered <= 200) return;
-    let last =
-      typeof performance !== "undefined" ? performance.now() : Date.now();
-    const handler = () => {
-      const now =
-        typeof performance !== "undefined" ? performance.now() : Date.now();
-      // eslint-disable-next-line no-console
-      console.log(
-        `[perf][scroll] ${totalFiltered} items, dt=${(now - last).toFixed(1)}ms`,
-      );
-      last = now;
-    };
-    window.addEventListener("scroll", handler, { passive: true });
-    return () => window.removeEventListener("scroll", handler);
-  }, [totalFiltered]);
+  const allSelected = filtered.length > 0 && selectedIds.length === filtered.length;
 
   return (
-    <div className="space-y-6">
-      <PageHeader
-        title={t("notifications.title")}
-        description={t("notifications.desc")}
-        action={
-          <div className="flex items-center gap-3">
-            <LiveIndicator connectionState={connectionState} />
-            {unreadCount > 0 && (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleMarkAllRead}
-                isLoading={markingAll}
-                leftIcon={<CheckCheck className="h-4 w-4" />}
-                className="glass-whisper"
-              >
-                {t("notifications.markAllRead")}
-              </Button>
-            )}
-          </div>
-        }
-      />
+    <div className="space-y-6 max-w-4xl mx-auto pb-12">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <PageHeader
+          title={t("notifications.title")}
+          description={t("notifications.description")}
+        />
+        <div className="flex items-center gap-3">
+          <LiveIndicator isLive={wsState.isConnected} label={wsState.status} />
+          <Link href="/notifications/archive">
+            <Button variant="outline" size="sm" leftIcon={<Archive className="h-4 w-4" />}>
+              {t("notifications.archive")}
+            </Button>
+          </Link>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => markAllAsRead()}
+            disabled={unreadCount === 0}
+          >
+            {t("notifications.markAllAsRead")}
+          </Button>
+        </div>
+      </div>
 
-      {/* Filters row */}
-      <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center justify-between">
-        <Tabs defaultValue="all" onValueChange={setFilter}>
-          <TabsList className="inline-flex gap-1 glass rounded-xl p-1">
-            <TabsTrigger value="all" className="rounded-lg text-sm font-body">
-              {t("notifications.all")}
-              {notifications.length > 0 && (
-                <span className="ml-1.5 inline-flex h-5 min-w-[20px] items-center justify-center rounded-full bg-white/10 px-1.5 text-xs text-muted-foreground">
-                  {notifications.length}
-                </span>
-              )}
-            </TabsTrigger>
-            <TabsTrigger
-              value="unread"
-              className="rounded-lg text-sm font-body"
-            >
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-white/10 pb-4">
+        <Tabs value={activeTab} onValueChange={setActiveTab}>
+          <TabsList>
+            <TabsTrigger value="all">{t("common.all")}</TabsTrigger>
+            <TabsTrigger value="unread">
               {t("notifications.unread")}
               {unreadCount > 0 && (
-                <span className="ml-1.5 inline-flex h-5 min-w-[20px] items-center justify-center rounded-full bg-aurora-cyan/20 px-1.5 text-xs text-aurora-cyan animate-pulse-glow">
+                <span className="ml-1.5 px-1.5 py-0.5 text-[10px] bg-aurora-violet text-white rounded-full">
                   {unreadCount}
                 </span>
               )}
@@ -392,139 +344,115 @@ export default function NotificationsPage() {
         </Tabs>
 
         <div className="flex items-center gap-2">
-          {/* Type filter */}
-          <div className="flex gap-1 bg-white/5 rounded-lg p-1">
-            {TYPE_FILTERS.map((tf) => (
-              <button
-                key={tf.value}
-                onClick={() => setTypeFilter(tf.value)}
-                className={cn(
-                  "px-2.5 py-1.5 text-xs font-medium rounded-md transition-colors",
-                  typeFilter === tf.value
-                    ? "bg-white/10 text-foreground"
-                    : "text-muted-foreground hover:text-foreground",
-                )}
-              >
-                {tf.label}
-              </button>
+          <select
+            value={typeFilter}
+            onChange={(e) => setTypeFilter(e.target.value)}
+            className="bg-white/5 border border-white/10 rounded-lg px-3 py-1.5 text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-aurora-violet"
+          >
+            <option value="all">{t("common.allTypes")}</option>
+            {TYPE_FILTERS.map((f) => (
+              <option key={f.value} value={f.value}>
+                {f.label}
+              </option>
             ))}
-          </div>
+          </select>
 
-          <Link href="/notifications/archive">
-            <Button
-              variant="outline"
-              size="sm"
-              className="glass-whisper text-xs"
-            >
-              {t("notifications.archive")}
-            </Button>
-          </Link>
+          <select
+            value={groupBy}
+            onChange={(e) => setGroupBy(e.target.value as "none" | "type" | "day")}
+            className="bg-white/5 border border-white/10 rounded-lg px-3 py-1.5 text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-aurora-violet"
+          >
+            <option value="none">{t("notifications.noGrouping")}</option>
+            <option value="type">{t("notifications.groupByType")}</option>
+            <option value="day">{t("notifications.groupByDay")}</option>
+          </select>
         </div>
       </div>
 
-      {/* Bulk actions bar */}
-      {selectedIds.size > 0 && (
-        <div className="flex items-center gap-3 px-4 py-3 glass rounded-xl">
+      {/* Bulk actions bar if selectedIds > 0 */}
+      {selectedIds.length > 0 && (
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="flex items-center justify-between bg-aurora-violet/15 border border-aurora-violet/30 px-4 py-3 rounded-xl"
+        >
+          <div className="flex items-center gap-3">
+            <span className="text-xs font-semibold text-aurora-violet">
+              {selectedIds.length} selected
+            </span>
+          </div>
+          <div className="flex items-center gap-2">
+            <Button size="xs" variant="outline" onClick={handleBulkMarkRead}>
+              Mark Read
+            </Button>
+            <Button size="xs" variant="outline" onClick={handleBulkArchive}>
+              Archive
+            </Button>
+          </div>
+        </motion.div>
+      )}
+
+      {/* Select all header control */}
+      {filtered.length > 0 && (
+        <div className="flex items-center gap-2 px-1 text-xs text-muted-foreground">
           <button
             type="button"
             role="checkbox"
-            aria-checked={
-              filteredNotifications.length > 0 &&
-              selectedIds.size === filteredNotifications.length
-                ? true
-                : selectedIds.size > 0
-                  ? "mixed"
-                  : false
-            }
-            aria-label={
-              selectedIds.size === filteredNotifications.length
-                ? t("notifications.deselectAll")
-                : t("notifications.selectAll")
-            }
-            onClick={toggleSelectAll}
-            className="text-xs text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-aurora-violet/50 rounded"
+            aria-checked={allSelected}
+            aria-label={allSelected ? "Deselect all notifications" : "Select all notifications"}
+            onClick={handleSelectAll}
+            className="flex items-center gap-2 text-foreground hover:text-aurora-violet transition-colors"
           >
-            {selectedIds.size === filteredNotifications.length
-              ? t("notifications.deselectAll")
-              : t("notifications.selectAll")}
+            {allSelected ? <CheckSquare className="h-4 w-4 text-aurora-violet" /> : <Square className="h-4 w-4" />}
+            <span>Select All</span>
           </button>
-          <span className="text-xs text-muted-foreground">
-            {selectedIds.size} {t("notifications.archiveSelected").toLowerCase().includes("selected") ? "selected" : "selected"}
-          </span>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleBulkArchive}
-            isLoading={archiving}
-            leftIcon={<Archive className="h-3.5 w-3.5" />}
-            className="ml-auto"
-          >
-            {t("notifications.archiveSelected")}
-          </Button>
         </div>
       )}
 
       {isLoading ? (
-        <div className="glass-premium rounded-2xl overflow-hidden holo-border">
-          <div className="divide-y divide-border">
-            {Array.from({ length: 8 }).map((_, i) => (
-              <div key={i} className="flex items-start gap-4 px-5 py-4">
-                <Skeleton variant="circular" width={40} height={40} />
-                <div className="flex-1 space-y-2">
-                  <Skeleton variant="text" width="55%" />
-                  <Skeleton variant="text" width="85%" />
-                </div>
-                <Skeleton variant="text" width="12%" />
-              </div>
-            ))}
-          </div>
+        <div className="space-y-3">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <Skeleton key={i} className="h-20 w-full rounded-2xl" />
+          ))}
         </div>
-      ) : filteredNotifications.length === 0 ? (
+      ) : filtered.length === 0 ? (
         <EmptyState
           icon={<BellOff className="h-6 w-6" />}
-          title="No notifications"
-          description={
-            filter === "unread"
-              ? "You're all caught up! No unread notifications."
-              : "You don't have any notifications yet."
-          }
+          title={t("notifications.emptyTitle")}
+          description={t("notifications.emptyDescription")}
         />
       ) : (
-        <motion.div
-          initial={shouldReduce ? undefined : "hidden"}
-          animate={shouldReduce ? undefined : "show"}
-          variants={variants}
-          className="glass-premium rounded-2xl overflow-hidden holo-border"
-        >
-          <div className="divide-y divide-border">
-            {(
-              Object.entries(groupedNotifications) as [string, Notification[]][]
-            ).map(([group, items]) => (
-              <div key={group}>
-                {/* Group header */}
-                <div className="px-5 py-3 bg-white/[0.02] border-b border-white/[0.04]">
-                  <h4 className="text-xs font-heading font-semibold text-muted-foreground uppercase tracking-wider">
-                    {group}
-                    <span className="ml-2 text-xs font-normal text-muted-foreground/60">
-                      ({items.length})
-                    </span>
-                  </h4>
-                </div>
-                {items.map((notification) => (
+        <div className="space-y-6">
+          {grouped.map((group) => (
+            <div key={group.key} className="space-y-3">
+              {groupBy !== "none" && (
+                <h3 className="font-heading text-xs font-semibold tracking-wider text-muted-foreground uppercase px-1">
+                  {group.label} ({group.items.length})
+                </h3>
+              )}
+              <motion.div
+                {...listMotion}
+                className="border border-white/10 rounded-2xl overflow-hidden divide-y divide-white/[0.06] bg-white/[0.01]"
+              >
+                {group.items.map((n) => (
                   <NotificationItem
-                    key={notification.id}
-                    notification={notification}
+                    key={n.id}
+                    notification={n}
                     onMarkRead={markAsRead}
-                    onClick={handleNotificationClick}
-                    selected={selectedIds.has(notification.id)}
-                    onToggleSelect={toggleSelect}
-                    largeList={totalFiltered > STAGGER_CHILDREN_LIMIT}
+                    onClick={(notif) => {
+                      if (notif.data && typeof notif.data === "object" && "link" in notif.data) {
+                        router.push(String(notif.data.link));
+                      }
+                    }}
+                    selected={selectedIds.includes(n.id)}
+                    onToggleSelect={handleToggleSelect}
+                    largeList={largeList}
                   />
                 ))}
-              </div>
-            ))}
-          </div>
-        </motion.div>
+              </motion.div>
+            </div>
+          ))}
+        </div>
       )}
     </div>
   );
