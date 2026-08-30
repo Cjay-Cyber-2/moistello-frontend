@@ -1,5 +1,6 @@
 "use client";
 
+import { memo, useMemo } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
@@ -39,7 +40,7 @@ interface NavGroup {
   items: NavItem[];
 }
 
-export function Sidebar() {
+function SidebarComponent() {
   const pathname = usePathname();
   const theme = useUIStore((s) => s.theme);
   const toggleTheme = useUIStore((s) => s.toggleTheme);
@@ -55,7 +56,7 @@ export function Sidebar() {
     return pathname.startsWith(href);
   };
 
-  const navGroups: NavGroup[] = [
+  const navGroups: NavGroup[] = useMemo(() => [
     {
       title: t("nav.platform"),
       items: [
@@ -90,7 +91,7 @@ export function Sidebar() {
         { label: t("nav.support"), href: Routes.SUPPORT, icon: <LifeBuoy className="h-[18px] w-[18px]" /> },
       ],
     },
-  ];
+  ], [t, unreadCount]);
 
   const userFallback = user?.displayName
     ? user.displayName.charAt(0).toUpperCase()
@@ -217,3 +218,5 @@ export function Sidebar() {
     </div>
   );
 }
+
+export const Sidebar = memo(SidebarComponent);

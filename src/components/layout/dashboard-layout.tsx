@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { memo, useState, useCallback } from "react";
 import type { ReactNode } from "react";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/cn";
@@ -15,18 +15,15 @@ interface DashboardLayoutProps {
 
 export function DashboardLayout({ children }: DashboardLayoutProps) {
   const pathname = usePathname();
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-
-  useEffect(() => {
-    setMobileMenuOpen(false);
-  }, [pathname]);
+  const [mobileMenuPath, setMobileMenuPath] = useState<string | null>(null);
+  const mobileMenuOpen = mobileMenuPath === pathname;
 
   const toggleMobileMenu = useCallback(() => {
-    setMobileMenuOpen((prev) => !prev);
-  }, []);
+    setMobileMenuPath((openPath) => openPath === pathname ? null : pathname);
+  }, [pathname]);
 
   const closeMobileMenu = useCallback(() => {
-    setMobileMenuOpen(false);
+    setMobileMenuPath(null);
   }, []);
 
   return (
@@ -52,3 +49,5 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
     </div>
   );
 }
+
+export const MemoizedDashboardLayout = memo(DashboardLayout);
