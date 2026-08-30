@@ -1,5 +1,6 @@
 "use client";
 
+import { memo, useMemo } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { LayoutDashboard, PiggyBank, CircleDot, Users, User } from "lucide-react";
@@ -13,17 +14,17 @@ interface MobileNavItem {
   icon: React.ReactNode;
 }
 
-export function MobileNav() {
+function MobileNavComponent() {
   const pathname = usePathname();
   const { t } = useTranslate();
 
-  const navItems: MobileNavItem[] = [
+  const navItems: MobileNavItem[] = useMemo(() => [
     { label: t("nav.dashboard"), href: Routes.DASHBOARD, icon: <LayoutDashboard className="h-5 w-5" /> },
     { label: t("nav.savings"), href: Routes.SAVINGS, icon: <PiggyBank className="h-5 w-5" /> },
     { label: t("nav.circles"), href: Routes.CIRCLES, icon: <CircleDot className="h-5 w-5" /> },
     { label: t("nav.communities"), href: Routes.COMMUNITIES, icon: <Users className="h-5 w-5" /> },
     { label: t("nav.profile"), href: Routes.PROFILE, icon: <User className="h-5 w-5" /> },
-  ];
+  ], [t]);
 
   const isActive = (href: string) => {
     if (href === Routes.DASHBOARD) return pathname === Routes.DASHBOARD;
@@ -85,3 +86,5 @@ export function MobileNav() {
     </nav>
   );
 }
+
+export const MobileNav = memo(MobileNavComponent);

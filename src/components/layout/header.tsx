@@ -1,17 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { memo, useState } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
 import {
   Menu,
   X,
   Wallet,
   Bell,
-  Home,
-  PiggyBank,
-  CircleDot,
-  Users,
 } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { formatAddress } from "@/lib/formatters";
@@ -21,31 +16,16 @@ import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { LocaleSwitcher } from "@/components/layout/locale-switcher";
 import { useMultiWallet } from "@/hooks/use-multi-wallet";
 import { useUnreadCount } from "@/hooks/use-notifications";
-import { useTranslate } from "@/lib/locale/context";
 
 interface HeaderProps {
   onToggleMobileMenu: () => void;
   isMobileMenuOpen: boolean;
 }
 
-export function Header({ onToggleMobileMenu, isMobileMenuOpen }: HeaderProps) {
-  const pathname = usePathname();
+function HeaderComponent({ onToggleMobileMenu, isMobileMenuOpen }: HeaderProps) {
   const { isConnected, address } = useMultiWallet();
   const unreadCount = useUnreadCount();
-  const { t } = useTranslate();
   const [showConnectModal, setShowConnectModal] = useState(false);
-
-  const navLinks: { label: string; href: string; icon: React.ReactNode }[] = [
-    { label: t("nav.dashboard"), href: Routes.DASHBOARD, icon: <Home className="h-4 w-4" /> },
-    { label: t("nav.savings"), href: "/savings", icon: <PiggyBank className="h-4 w-4" /> },
-    { label: t("nav.circles"), href: Routes.CIRCLES, icon: <CircleDot className="h-4 w-4" /> },
-    { label: t("nav.communities"), href: Routes.COMMUNITIES, icon: <Users className="h-4 w-4" /> },
-  ];
-
-  const isActive = (href: string) => {
-    if (href === Routes.DASHBOARD) return pathname === Routes.DASHBOARD;
-    return pathname.startsWith(href);
-  };
 
   return (
     <>
@@ -65,31 +45,6 @@ export function Header({ onToggleMobileMenu, isMobileMenuOpen }: HeaderProps) {
               </span>
             </Link>
           </div>
-
-          <nav className="hidden lg:flex items-center gap-0.5 absolute left-1/2 -translate-x-1/2">
-            {navLinks.map((link) => {
-              const active = isActive(link.href);
-              return (
-                <Link
-                  key={link.href}
-                  href={link.href}
-                  className={cn(
-                    "relative flex items-center gap-2 px-4 py-2 text-sm font-body rounded-xl",
-                    active
-                      ? "text-foreground glass-strong bg-gradient-to-r from-aurora-violet/10 to-transparent"
-                      : "text-muted-foreground hover:text-foreground hover:glass-whisper",
-                  )}
-                >
-                  <span className="flex items-center gap-1.5">
-                    {link.icon}
-                    <span className="font-heading text-[11px] tracking-[0.15em] uppercase">
-                      {link.label}
-                    </span>
-                  </span>
-                </Link>
-              );
-            })}
-          </nav>
 
           <div className="flex items-center gap-1.5">
             <ThemeToggle />
@@ -171,6 +126,8 @@ export function Header({ onToggleMobileMenu, isMobileMenuOpen }: HeaderProps) {
     </>
   );
 }
+
+export const Header = memo(HeaderComponent);
 
 function ConnectWalletModal({ onClose }: { onClose: () => void }) {
   const { isConnecting, error, setSelectorOpen } = useMultiWallet();

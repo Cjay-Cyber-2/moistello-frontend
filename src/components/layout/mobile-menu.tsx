@@ -1,5 +1,6 @@
 "use client";
 
+import { memo, useMemo } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
@@ -31,7 +32,7 @@ interface MobileMenuProps {
   onClose: () => void;
 }
 
-export function MobileMenu({ isOpen, onClose }: MobileMenuProps) {
+function MobileMenuComponent({ isOpen, onClose }: MobileMenuProps) {
   const pathname = usePathname();
   const router = useRouter();
   const theme = useUIStore((s) => s.theme);
@@ -43,20 +44,26 @@ export function MobileMenu({ isOpen, onClose }: MobileMenuProps) {
   const { t } = useTranslate();
   const menuRef = useFocusTrap<HTMLDivElement>(isOpen, onClose);
 
-  const navLinks = [
+  const navLinks = useMemo(() => [
     { label: t("nav.dashboard"), href: Routes.DASHBOARD, icon: <Home className="h-4 w-4" /> },
     { label: t("nav.savings"), href: Routes.SAVINGS, icon: <PiggyBank className="h-4 w-4" /> },
     { label: t("nav.circles"), href: Routes.CIRCLES, icon: <CircleDot className="h-4 w-4" /> },
     { label: t("nav.contributions"), href: Routes.CONTRIBUTIONS, icon: <ArrowUpCircle className="h-4 w-4" /> },
     { label: t("nav.payouts"), href: Routes.PAYOUTS, icon: <ArrowDownCircle className="h-4 w-4" /> },
     { label: t("nav.communities"), href: Routes.COMMUNITIES, icon: <Award className="h-4 w-4" /> },
-  ];
+  ], [t]);
 
-  const accountLinks = [
+  const accountLinks = useMemo(() => [
     { label: t("nav.notifications"), href: Routes.NOTIFICATIONS, icon: <Bell className="h-4 w-4" /> },
     { label: t("nav.settings"), href: Routes.PROFILE_SETTINGS, icon: <Settings className="h-4 w-4" /> },
     { label: t("nav.wallet"), href: Routes.WALLET, icon: <Wallet className="h-4 w-4" /> },
-  ];
+  ], [t]);
+
+  const docsLinks = useMemo(() => [
+    { label: t("nav.documentation"), href: Routes.DOCS, icon: <BookOpen className="h-4 w-4" /> },
+    { label: t("nav.faqs"), href: Routes.FAQ, icon: <HelpCircle className="h-4 w-4" /> },
+    { label: t("nav.support"), href: Routes.SUPPORT, icon: <LifeBuoy className="h-4 w-4" /> },
+  ], [t]);
 
   const isActive = (href: string) => {
     if (href === Routes.DASHBOARD) return pathname === Routes.DASHBOARD;
@@ -152,11 +159,7 @@ export function MobileMenu({ isOpen, onClose }: MobileMenuProps) {
             <p className="px-3 text-[10px] font-heading tracking-[0.2em] uppercase text-muted-foreground/70 mb-2">
               {t("nav.docs")}
             </p>
-            {[
-              { label: t("nav.documentation"), href: Routes.DOCS, icon: <BookOpen className="h-4 w-4" /> },
-              { label: t("nav.faqs"), href: Routes.FAQ, icon: <HelpCircle className="h-4 w-4" /> },
-              { label: t("nav.support"), href: Routes.SUPPORT, icon: <LifeBuoy className="h-4 w-4" /> },
-            ].map((link) => {
+            {docsLinks.map((link) => {
               const active = isActive(link.href);
               return (
                 <Link
@@ -201,3 +204,5 @@ export function MobileMenu({ isOpen, onClose }: MobileMenuProps) {
     </div>
   );
 }
+
+export const MobileMenu = memo(MobileMenuComponent);

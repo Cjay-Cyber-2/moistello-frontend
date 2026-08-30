@@ -1,6 +1,6 @@
 "use client"
 
-import { DashboardLayout } from "@/components/layout/dashboard-layout"
+import { MemoizedDashboardLayout } from "@/components/layout/dashboard-layout"
 import { useRequireAuth } from "@/hooks/use-auth"
 
 export default function ClientLayout({
@@ -12,5 +12,5 @@ export default function ClientLayout({
 
   if (!isAuthenticated) return null
 
-  return <DashboardLayout>{children}</DashboardLayout>
+  return <MemoizedDashboardLayout>{children}</MemoizedDashboardLayout>
 }
